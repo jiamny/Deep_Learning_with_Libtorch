@@ -1,0 +1,91 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*_cifar10
+
+# PyTorch
+libtorch/
+
+# Datasets
+data/CIFAR10/
+data/Caltech_101/
+data/cat_dog/
+data/CelebA/
+data/cifar10_bin/
+data/hymenoptera_data/
+data/MNIST/
+data/mnist/
+data/cifar/
+data/penntreebank/
+
+
+# Model files
+models/*.pt
+models/*.pth
+src/01_Introducing/pytorch_basics/model/*.pt
+src/14_NeuralStyleTransfer/style_transfer/model/*.pt
+src/01_Introducing/pytorch_basics/model/*.pt
+src/01_Introducing/pytorch_basics/output/*.pt
+src/05_BasicModels/*pt
+src/15_GenerativeAdversarialNetwork/GAN/output/*.png
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+build/
+cmake-build-*/
+
+# Other
+.DS_Store
+.idea/
+.clangd/
+.cproject
+.project
+*.iml
+.settings/
+*.pdf
+src/14_NeuralStyleTransfer/style_transfer/output/*.png
+src/18_RecurrentNeuralNetwork/RNN_LM/output/*txt
+
+
+# Notebooks
+.ipynb_checkpoints
+
+# extern
+extern/*
+!extern/CMakeLists.txt
+.vscode/
