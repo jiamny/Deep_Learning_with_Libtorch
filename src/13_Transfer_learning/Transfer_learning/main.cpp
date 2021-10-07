@@ -245,8 +245,8 @@ void test(torch::jit::script::Module network, torch::nn::Linear lin, Dataloader&
 
 int main(int argc, const char * argv[]) {
     // Set folder names for cat and dog images
-    std::string cats_name = "/root/PycharmProjects/图像_datasets/cat_dog/train/Cat";
-    std::string dogs_name = "/root/PycharmProjects/图像_datasets/cat_dog/train/Dog";
+    std::string cats_name = "./data/cat_dog/train/Cat";
+    std::string dogs_name = "./data/cat_dog/train/Dog";
     
     std::vector<std::string> folders_name;
     folders_name.push_back(cats_name);

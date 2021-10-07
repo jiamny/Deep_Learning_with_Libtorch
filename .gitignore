@@ -42,6 +42,7 @@ data/MNIST/
 data/mnist/
 data/cifar/
 data/penntreebank/
+data/flickr_8k/
 
 
 # Model files
@@ -49,10 +50,10 @@ models/*.pt
 models/*.pth
 src/01_Introducing/pytorch_basics/model/*.pt
 src/14_NeuralStyleTransfer/style_transfer/model/*.pt
-src/01_Introducing/pytorch_basics/model/*.pt
 src/01_Introducing/pytorch_basics/output/*.pt
 src/05_BasicModels/*pt
 src/15_GenerativeAdversarialNetwork/GAN/output/*.png
+src/17_ImageCaptioning/model/*.pt
 
 # CMake
 CMakeLists.txt.user

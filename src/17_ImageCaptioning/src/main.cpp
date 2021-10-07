@@ -16,6 +16,7 @@
 #include "score.h"
 #include "scheduler.h"
 #include "validate.h"
+#include <unistd.h>
 
 using data_utils::CaptionData;
 using data_utils::load_caption_data;
@@ -28,6 +29,8 @@ using torch::indexing::Ellipsis;
 cxxopts::ParseResult parse_args(int argc, char **argv);
 
 int main(int argc, char **argv) {
+	std::cout << "Current path is " << get_current_dir_name() << '\n';
+
     auto results = parse_args(argc, argv);
 
     if (results.count("help")) {
@@ -69,17 +72,17 @@ int main(int argc, char **argv) {
     const auto num_sample_images = results["num_sample_images"].as<size_t>();
 
     // Data input paths
-    const std::string flickr8k_captions_file_path = "../../../../data/flickr_8k/Flickr8k_text/Flickr8k.token.txt";
-    const std::string flickr8k_image_directory_path = "../../../../data/flickr_8k/Flickr8k_Dataset/Flicker8k_Dataset";
+    const std::string flickr8k_captions_file_path = "./data/flickr_8k/Flickr8k_text/Flickr8k.token.txt";
+    const std::string flickr8k_image_directory_path = "./data/flickr_8k/Flickr8k_Dataset/Flicker8k_Dataset";
     const std::string flickr8k_training_set_file_path =
-            "../../../../data/flickr_8k/Flickr8k_text/Flickr_8k.trainImages.txt";
+            "./data/flickr_8k/Flickr8k_text/Flickr_8k.trainImages.txt";
 
     const std::string flickr8k_valiadtion_set_file_path =
-            "../../../../data/flickr_8k/Flickr8k_text/Flickr_8k.devImages.txt";
+            "./data/flickr_8k/Flickr8k_text/Flickr_8k.devImages.txt";
 
     // Path to prelearned encoder backbone scriptmodule file
     const std::string encoder_backbone_scriptmodule_file_path =
-            "../../../../tutorials/advanced/image_captioning/model/encoder_cnn_backbone.pt";
+            "./src/17_ImageCaptioning/model/flickr_8k_encoder_cnn_backbone.pt";
 
     // Load captions from file and build caption data (vocabulary and filename -> captions map)
     auto caption_data = load_caption_data(flickr8k_captions_file_path, min_word_frequency);
@@ -242,7 +245,7 @@ int main(int argc, char **argv) {
 
     // Test data input path
     const std::string flickr8k_testing_set_file_path =
-            "../../../../data/flickr_8k/Flickr8k_text/Flickr_8k.testImages.txt";
+            "./data/flickr_8k/Flickr8k_text/Flickr_8k.testImages.txt";
 
     // Load test data
     auto test_dataset = ImageCaptionDataset(flickr8k_testing_set_file_path, flickr8k_image_directory_path,

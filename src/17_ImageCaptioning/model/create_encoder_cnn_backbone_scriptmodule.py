@@ -33,7 +33,7 @@ def main():
     backbone_script_module = create_backbone_torchscript_module()
 
     # Serialize scriptmodule to a file.
-    filename = "encoder_cnn_backbone.pt"
+    filename = "flickr_8k_encoder_cnn_backbone.pt"
     backbone_script_module.save(filename)
     print(f"Successfully created scriptmodule file {filename}.")
 

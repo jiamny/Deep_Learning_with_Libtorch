@@ -61,7 +61,7 @@ int main() {
     if(!std::ifstream(vgg19_layers_scriptmodule_path)) {
         std::cout << "Could not open the required VGG19 layers scriptmodule file from path: "
             << vgg19_layers_scriptmodule_path << ".\nThis file must be created using the provided python script at "
-            "pytorch-cpp/tutorials/advanced/neural_style_transfer/model/create_vgg19_layers_scriptmodule.py."
+            "model/create_vgg19_layers_scriptmodule.py."
             << std::endl;
         return -1;
     }
@@ -146,7 +146,7 @@ int main() {
 
         if ((step + 1) % sample_step == 0) {
             // Save the generated image
-            auto image = denormalize_transform(target.to(torch::kCPU).clone().squeeze(0)).clamp_(0, 1);
+            auto image = denormalize_transform(target.to(device).clone().squeeze(0)).clamp_(0, 1);
             save_image(image, output_path + "/output-" + std::to_string(step + 1) + ".png", 1, 0);
         }
     }
