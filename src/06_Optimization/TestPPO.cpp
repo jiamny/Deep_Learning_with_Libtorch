@@ -27,7 +27,7 @@ int main() {
     ac->to(torch::kF64);
     ac->normal(0., std);
     ac->eval();
-    torch::load(ac, "best_model.pt");
+    torch::load(ac, "./models/PPO_best_model.pt");
 
     // Training loop.
     uint n_iter = 10000;

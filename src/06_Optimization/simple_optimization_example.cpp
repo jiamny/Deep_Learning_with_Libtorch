@@ -10,6 +10,7 @@ void native_run(double minimal) {
   auto x = torch::randn({1, 1}, torch::requires_grad(true));
 
   for (size_t t = 0; t < kMaxIterations; t++) {
+
     // Expression/value to be minimized
     auto y = (x - minimal) * (x - minimal);
     if (y.item<double>() < 1e-3) {
@@ -23,7 +24,7 @@ void native_run(double minimal) {
     x -= kLearningRate * x.grad();
 
     // Reset the gradient of variable x
-    x.grad().reset();
+    x.grad().zero_();
   }
 
   std::cout << "[native] Actual minimal x value: " << minimal
@@ -57,11 +58,15 @@ void optimizer_run(double minimal) {
 
 // optimize y = (x - 10)^2
 int main(int argc, char* argv[]) {
+/*
   if (argc < 2) {
     std::cout << "Usage: " << argv[0] << " minimal_value\n";
     return 1;
   }
-  native_run(atof(argv[1]));
-  optimizer_run(atof(argv[1]));
+*/
+  double minimal = 0.05;
+
+  native_run( minimal );
+  optimizer_run( minimal );
   return 0;
 }

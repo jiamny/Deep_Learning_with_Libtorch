@@ -138,7 +138,7 @@ int main() {
 
             best_avg_reward = avg_reward;
             printf("Best average reward: %f\n", best_avg_reward);
-            torch::save(ac, "best_model.pt");
+            torch::save(ac, "./models/PPO_best_model.pt");
         }
 
         avg_reward = 0.;

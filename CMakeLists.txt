@@ -104,6 +104,7 @@ add_subdirectory("src/15_GenerativeAdversarialNetwork")
 add_subdirectory("src/16_Autoencoder")
 add_subdirectory("src/17_ImageCaptioning")
 add_subdirectory("src/18_RecurrentNeuralNetwork")
+add_subdirectory("src/19_ObjectDetection")
 
 
 

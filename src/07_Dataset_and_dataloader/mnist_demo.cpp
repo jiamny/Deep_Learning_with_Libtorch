@@ -25,7 +25,7 @@ int main() {
     const size_t num_epochs = 50;
     const double learning_rate = 0.001;
 
-    const std::string mnist_data_path = "/root/MNIST/";
+    const std::string mnist_data_path = "./data/MNIST/";
 
     // MNIST custom dataset
     auto train_dataset = MNIST(mnist_data_path, MNIST::Mode::kTrain)

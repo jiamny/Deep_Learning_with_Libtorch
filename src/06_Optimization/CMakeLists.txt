@@ -44,3 +44,14 @@ set_target_properties(06_TestPPO PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
 )
+
+# -------------------------------------------------------------------------------------------
+add_executable(06_simple_optimization_example) 
+target_sources(06_simple_optimization_example PRIVATE simple_optimization_example.cpp)
+
+target_link_libraries(06_simple_optimization_example ${TORCH_LIBRARIES})
+
+set_target_properties(06_simple_optimization_example PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+)
