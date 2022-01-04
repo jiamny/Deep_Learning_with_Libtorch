@@ -19,13 +19,13 @@ int main(int argc, char *argv[])
     }
 
     std::string vgg_path = "./models/vgg16_bn.pt";
-    std::string train_val_dir = "./data/hymenoptera_data";
+    std::string train_val_dir = "./data/";
     Classifier classifier(-1);
     classifier.Initialize(2,vgg_path);
 
     //predict
     classifier.LoadWeight("classifer.pt");
-    cv::Mat image = cv::imread(train_val_dir+"/val/bees/2407809945_fb525ef54d.jpg");
+    cv::Mat image = cv::imread(train_val_dir+"cat_image.jpg");
     classifier.Predict(image);
 
     classifier.Train(10, 8, 224, 0.0003, train_val_dir,".jpg", "classifer.pt");

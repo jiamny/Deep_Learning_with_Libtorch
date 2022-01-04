@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 add_executable(18_RNN)
 target_sources(18_RNN PRIVATE RNN/main.cpp

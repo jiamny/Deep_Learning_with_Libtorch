@@ -1,5 +1,5 @@
 # set minimum required version for cmake
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.16)
 
 find_package (Eigen3 REQUIRED NO_MODULE)
 
@@ -13,7 +13,7 @@ add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
 # tell CMake to search for the static libraries ONLY
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-set(requiredlibs "python3.6m")
+set(requiredlibs "python3.8")
 list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")

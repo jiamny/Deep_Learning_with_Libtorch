@@ -81,10 +81,10 @@ struct MobileNetInvertedResidualImpl : torch::nn::Module {
 TORCH_MODULE(MobileNetInvertedResidual);
 
 MobileNetV2Impl::MobileNetV2Impl(
-    int64_t num_classes,
-    double width_mult,
-    std::vector<std::vector<int64_t>> inverted_residual_settings,
-    int64_t round_nearest) {
+  int64_t num_classes,
+  double width_mult,
+  std::vector<std::vector<int64_t>> inverted_residual_settings,
+  int64_t round_nearest) {
   using Block = MobileNetInvertedResidual;
   int64_t input_channel = 32;
   int64_t last_channel = 1280;

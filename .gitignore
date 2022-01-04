@@ -33,15 +33,11 @@ libtorch/
 
 # Datasets
 data/CIFAR10/
+data/CIFAR10_org/
 data/Caltech_101/
-data/cat_dog/
+data/DogsVSCats/
 data/CelebA/
-data/cifar10_bin/
-data/hymenoptera_data/
-data/MNIST/
-data/mnist/
-data/cifar/
-data/penntreebank/
+data/17_flowers/
 data/flickr_8k/
 
 

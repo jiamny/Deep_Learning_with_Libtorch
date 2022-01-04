@@ -1,205 +1,275 @@
-// Copyright 2020-present pytorch-cpp Authors
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <stdint.h>
 #include <torch/torch.h>
+#include <torch/script.h>
+#include <torch/autograd.h>
+#include <torch/utils.h>
+#include <fstream>
 #include <iostream>
-#include <iomanip>
+#include <string>
+#include <vector>
+#include <cstring>
+#include <sstream>
+
+#include <dirent.h>           //get files in directory
+#include <sys/stat.h>
+#include <cmath>
+#include <map>
+#include <tuple>
+
 #include "inception.h"
-#include "../../dataSet.h"
+
+#include "../../../image_tools/transforms.hpp"              // transforms_Compose
+#include "../../../image_tools/datasets.hpp"                // datasets::ImageFolderClassesWithPaths
+#include "../../../image_tools/dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
+
+
+std::vector<std::string> Set_Class_Names(const std::string path, const size_t class_num) {
+    // (1) Memory Allocation
+    std::vector<std::string> class_names = std::vector<std::string>(class_num);
+
+    // (2) Get Class Names
+    std::string class_name;
+    std::ifstream ifs(path, std::ios::in);
+    size_t i = 0;
+    if( ! ifs.fail() ) {
+    	while( getline(ifs, class_name) ) {
+//    		std::cout << class_name.length() << std::endl;
+    		if( class_name.length() > 2 ) {
+    			class_names.at(i) = class_name;
+    			i++;
+    		}
+    	}
+    } else {
+    	std::cerr << "Error : can't open the class name file." << std::endl;
+    	std::exit(1);
+    }
+
+    ifs.close();
+    if( i != class_num ){
+        std::cerr << "Error : The number of classes does not match the number of lines in the class name file." << std::endl;
+        std::exit(1);
+    }
+
+    // End Processing
+    return class_names;
+}
 
 int main() {
-	 const int64_t batch_size = 8;
-     // Hyper parameters
-     const double learning_rate = 0.001;
-     const size_t learning_rate_decay_frequency = 8;  // number of epochs after which to decay the learning rate
-     const double learning_rate_decay_factor = 1.0 / 3.0;
-     const int64_t random_seed{0};
-     const size_t num_epochs{10};
-   	 torch::manual_seed(random_seed);
 
-   	 const int64_t num_workers{2};
-   	 const size_t imgSize{299};
-   	 const int64_t num_classes{2};
-   	 const bool aux_logits{true};
-   	 const bool transform_input{false};
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
 
-   	 bool saveModel{false};
+	size_t img_size = 299;
+	size_t batch_size = 32;
+	const std::string path = "./data/17_flowers_name.txt";
+	const size_t class_num = 17;
+	const size_t valid_batch_size = 1;
+	std::vector<std::string> class_names = Set_Class_Names( path, class_num);
+	constexpr bool train_shuffle = true;    // whether to shuffle the training dataset
+	constexpr size_t train_workers = 2;  	// the number of workers to retrieve data from the training dataset
+    constexpr bool valid_shuffle = true;    // whether to shuffle the validation dataset
+    constexpr size_t valid_workers = 2;     // the number of workers to retrieve data from the validation dataset
 
-     // Device
-     auto cuda_available = torch::cuda::is_available();
-     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-     std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
 
-     // test model
+    // (4) Set Transforms
+    std::vector<transforms_Compose> transform {
+        transforms_Resize(cv::Size(img_size, img_size), cv::INTER_LINEAR),        // {IH,IW,C} ===method{OW,OH}===> {OH,OW,C}
+        transforms_ToTensor(),                                                     // Mat Image [0,255] or [0,65535] ===> Tensor Image [0,1]
+		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
+    };
 
-     InceptionV3_ net(num_classes, std::string("train"));
-     net->to(device);
-     auto dict = net->named_parameters();
-     for (auto n = dict.begin(); n != dict.end(); n++) {
-    	 std::cout<<(*n).key()<<std::endl;
-     }
+	std::string dataroot = "./data/17_flowers/train";
+    std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
+    torch::Tensor loss, image, label, output;
+    datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
+    DataLoader::ImageFolderClassesWithPaths dataloader, valid_dataloader, test_dataloader; 	// dataloader;
 
-     std::cout << "Test model ..." << std::endl;
-     torch::Tensor x = torch::randn({1,3,299,299});
-     InceptionV3Output y = net(x);
-     std::cout << y.output << std::endl;
-     std::cout << y.aux << std::endl;
-     std::cout << device << std::endl;
+    // (1) Get Dataset
 
-   	 std::string model_dir="./models";
-   	 std::string model_file_name="./models/V3_inception.pt";
-   	 std::string model_file_path = model_dir + "/" + model_file_name;
+    dataset = datasets::ImageFolderClassesWithPaths(dataroot, transform, class_names);
+    dataloader = DataLoader::ImageFolderClassesWithPaths(dataset, batch_size, /*shuffle_=*/train_shuffle, /*num_workers_=*/train_workers);
 
-   	 const std::string train_data_path = "./data/hymenoptera_data/train";
-   	 const std::string test_data_path = "./data/hymenoptera_data/val";
-   	 std::vector<std::string> classes;
+	std::cout << "total training images : " << dataset.size() << std::endl;
 
-   	 std::cout << "Loading train dataset...\n";
-   	 auto train_set = dataSetClc(train_data_path, ".png", imgSize, classes);
-   	 size_t num_train_samples = train_set.size().value();
+    std::string valid_dataroot = "./data/17_flowers/valid";
+    valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
+    valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
 
-   	 std::string cls[classes.size()];
-   	 std::copy(classes.begin(), classes.end(), cls);
-   	 for(int i=0; i < classes.size(); i++) {
-   	    std::cout << cls[i] << '\n';
-   	 }
+    std::cout << "total validation images : " << valid_dataset.size() << std::endl;
+    bool valid = true;
+    bool test  = true;
+    bool vobose = false;
 
-   	 std::cout << "Loading test dataset...\n";
-   	 auto test_set = dataSetClc(test_data_path, ".png", imgSize, cls, classes.size());
-
-   	 // This might be different from the PyTorch API.
-   	 // We did transform for the dataset directly instead of doing transform in
-   	 // dataloader. Currently there is no augmentation options such as random
-   	 // crop.
-   	 auto train_set_transformed =
-   	        train_set
-   	//            .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
-   			    .map(torch::data::transforms::Normalize<>({0.5, 0.5, 0.5}, {0.5, 0.5, 0.5}))
-   	            .map(torch::data::transforms::Stack<>());
-   	 size_t num_test_samples= test_set.size().value();
-
-   	 auto test_set_transformed =
-   	        test_set
-   	//            .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
-   			    .map(torch::data::transforms::Normalize<>({0.5, 0.5, 0.5}, {0.5, 0.5, 0.5}))
-   	            .map(torch::data::transforms::Stack<>());
-
-   	// std::unique_ptr<StatelessDataLoader<Dataset, Sampler>>>
-   	auto train_loader = torch::data::make_data_loader(
-   	        std::move(train_set_transformed), torch::data::DataLoaderOptions()
-   	                                              .batch_size(batch_size)
-   	                                              .workers(num_workers)
-   	                                              .enforce_ordering(true));
-
-   	auto test_loader = torch::data::make_data_loader(
-   	        std::move(test_set_transformed), torch::data::DataLoaderOptions()
-   	                                             .batch_size(batch_size)
-   	                                             .workers(num_workers)
-   	                                             .enforce_ordering(true));
-    // Model
-   	InceptionV3_ model(classes.size(), std::string("train"));
-    model->to(device);
-
-    // Optimizer
-    //torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(learning_rate));
-    //torch::optim::Adam optimizer(model->parameters(),
-    //            		torch::optim::AdamOptions(learning_rate).betas({0.5, 0.999}));
-
-    torch::optim::SGD optimizer{model->parameters(),
-                                        torch::optim::SGDOptions(/*lr=*/learning_rate)
-                                            .momentum(0.9)
-                                            .weight_decay(1e-4)};
-
-    // Set floating point output precision
-    std::cout << std::fixed << std::setprecision(4);
-
-    auto current_learning_rate = learning_rate;
-
-    std::cout << "Training...\n";
-
-    // Train the model
-    for (size_t epoch = 0; epoch != num_epochs; ++epoch) {
-        // Initialize running metrics
-        double running_loss = 0.0;
-        size_t num_correct = 0;
-
-        for (auto& batch : *train_loader) {
-            // Transfer images and target labels to device
-            auto data = batch.data.to(device);
-            auto target = batch.target.to(device).flatten(0, -1);
-
-            // Forward pass
-            auto output = model->forward(data);
-
-            // Calculate loss
-            auto loss = torch::nn::functional::cross_entropy(output.output, target);
-
-            // Update running loss
-            running_loss += loss.item<double>() * data.size(0);
-
-            // Calculate prediction
-            auto prediction = output.output.argmax(1);
-
-            // Update number of correctly classified samples
-            num_correct += prediction.eq(target).sum().item<int64_t>();
-
-            // Backward pass and optimize
-            optimizer.zero_grad();
-            loss.backward();
-            optimizer.step();
-        }
-
-        // Decay learning rate
-        if ((epoch + 1) % learning_rate_decay_frequency == 0) {
-            current_learning_rate *= learning_rate_decay_factor;
-            static_cast<torch::optim::AdamOptions&>(optimizer.param_groups().front()
-                .options()).lr(current_learning_rate);
-        }
-
-        auto sample_mean_loss = running_loss / num_train_samples;
-        auto accuracy = static_cast<double>(num_correct) / num_train_samples;
-
-        std::cout << "Epoch [" << (epoch + 1) << "/" << num_epochs << "], Trainset - Loss: "
-            << sample_mean_loss << ", Accuracy: " << accuracy << '\n';
+    InceptionV3_ model(class_num, std::string("train"));
+//	model->init();
+	model->to(device);
+    auto dict = model->named_parameters();
+    for (auto n = dict.begin(); n != dict.end(); n++) {
+        std::cout<<(*n).key()<<std::endl;
     }
 
-    std::cout << "Training finished!\n\n";
+	std::cout << "Test model ..." << std::endl;
+	torch::Tensor x = torch::randn({1,3,299,299}, device);
+	InceptionV3Output y = model->forward(x);
+	std::cout << y.output << std::endl;
+	std::cout << y.aux << std::endl;
 
-    if( saveModel ) {
-    	torch::save(model, model_file_name);
+	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-4).betas({0.5, 0.999}));
 
-    	// Test the network on the test data
-        model = InceptionV3_(classes.size(), std::string("train"));
-        torch::load(model, model_file_name);
-    }
+	auto criterion = torch::nn::NLLLoss(torch::nn::NLLLossOptions().ignore_index(-100).reduction(torch::kMean));
 
-    std::cout << "Testing...\n";
+	size_t epoch;
+	size_t total_iter = dataloader.get_count_max();
+	size_t start_epoch, total_epoch;
+	start_epoch = 1;
+	total_iter = dataloader.get_count_max();
+	total_epoch = 50;
 
-    // Test the model
-    model->eval();
-    torch::NoGradGuard no_grad;
+	bool first = true;
+	std::vector<float> train_loss_ave;
+	std::vector<float> train_epochs;
 
-    double running_loss = 0.0;
-    size_t num_correct = 0;
+	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
+		model->train();
+		std::cout << "--------------- Training --------------------\n";
+		first = true;
+		float loss_sum = 0.0;
+		while (dataloader(mini_batch)) {
+			image = std::get<0>(mini_batch).to(device);
+			label = std::get<1>(mini_batch).to(device);
 
-    for (const auto& batch : *test_loader) {
-        auto data = batch.data.to(device);
-        auto target = batch.target.to(device).flatten(0, -1);
+			if( first && vobose ) {
+				for(size_t i = 0; i < label.size(0); i++)
+					std::cout << label[i].item<int64_t>() << " ";
+				std::cout << "\n";
+				first = false;
+			}
 
-        auto output = model->forward(data);
+			image = std::get<0>(mini_batch).to(device);
+			label = std::get<1>(mini_batch).to(device);
+			InceptionV3Output output = model->forward(image);
+			auto out = torch::nn::functional::log_softmax(output.output, /*dim=*/1);
+			//std::cout << output.sizes() << "\n" << out.sizes() << std::endl;
+			loss = criterion(out, label); //torch::mse_loss(out, label);
 
-        auto loss = torch::nn::functional::cross_entropy(output.output, target);
-        running_loss += loss.item<double>() * data.size(0);
+			optimizer.zero_grad();
+			loss.backward();
+			optimizer.step();
 
-        auto prediction = output.output.argmax(1);
-        num_correct += prediction.eq(target).sum().item<int64_t>();
-    }
+			loss_sum += loss.item<float>();
+		}
 
-    std::cout << "Testing finished!\n";
+		train_loss_ave.push_back(loss_sum/total_iter);
+		train_epochs.push_back(epoch*1.0);
+		std::cout << "epoch: " << epoch << "/"  << total_epoch << ", avg_loss: " << (loss_sum/total_iter) << std::endl;
 
-    auto test_accuracy = static_cast<double>(num_correct) / num_test_samples;
-    auto test_sample_mean_loss = running_loss / num_test_samples;
+		// ---------------------------------
+		// validation
+		// ---------------------------------
+		if( valid && (epoch % 5 == 0) ) {
+			std::cout << "--------------- validation --------------------\n";
+			model->eval();
+			size_t iteration = 0;
+			float total_loss = 0.0;
+			size_t total_match = 0, total_counter = 0;
+			torch::Tensor responses;
+			first = true;
+			while (valid_dataloader(mini_batch)){
 
-    std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
+				image = std::get<0>(mini_batch).to(device);
+			    label = std::get<1>(mini_batch).to(device);
+			    size_t mini_batch_size = image.size(0);
+
+			    if( first && vobose ) {
+			    	for(size_t i = 0; i < label.size(0); i++)
+			    		std::cout << label[i].item<int64_t>() << " ";
+			    	std::cout << "\n";
+			    	first = false;
+			    }
+
+			    InceptionV3Output output = model->forward(image);
+			    auto out = torch::nn::functional::log_softmax(output.output, /*dim=*/1);
+			    loss = criterion(out, label);
+
+			    responses = output.output.exp().argmax(/*dim=*/1);
+			    for (size_t i = 0; i < mini_batch_size; i++){
+			        int64_t response = responses[i].item<int64_t>();
+			        int64_t answer = label[i].item<int64_t>();
+
+			        total_counter++;
+			        if (response == answer) total_match++;
+			    }
+			    total_loss += loss.item<float>();
+			    iteration++;
+			}
+			// (3) Calculate Average Loss
+			float ave_loss = total_loss / (float)iteration;
+
+			// (4) Calculate Accuracy
+			float total_accuracy = (float)total_match / (float)total_counter;
+			std::cout << "\nValidation accuracy: " << total_accuracy << std::endl;
+		}
+	}
+
+	// ---- Testing
+	if( test ) {
+		std::cout << "--------------- Testing --------------------\n";
+		std::string test_dataroot = "./data/17_flowers/test";
+		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
+		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, /*batch_size_=*/1, /*shuffle_=*/false, /*num_workers_=*/0);
+		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
+
+		float  ave_loss = 0.0;
+		size_t match = 0;
+		size_t counter = 0;
+		std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> data;
+		std::vector<size_t> class_match = std::vector<size_t>(class_num, 0);
+		std::vector<size_t> class_counter = std::vector<size_t>(class_num, 0);
+		std::vector<float> class_accuracy = std::vector<float>(class_num, 0.0);
+
+	    model->eval();
+	    while( test_dataloader(data) ){
+	        image = std::get<0>(data).to(device);
+	        label = std::get<1>(data).to(device);
+	        InceptionV3Output output = model->forward(image);
+	        auto out = torch::nn::functional::log_softmax(output.output, /*dim=*/1);
+
+	        loss = criterion(out, label);
+
+	        ave_loss += loss.item<float>();
+
+	        auto opt = output.output.exp();
+	        int64_t response = opt.argmax(/*dim=*/1).item<int64_t>();
+	        int64_t answer = label[0].item<int64_t>();
+	        counter += 1;
+	        class_counter[answer]++;
+
+	        if (response == answer){
+	        	class_match[answer]++;
+	            match += 1;
+	        }
+	    }
+
+	    // (7.1) Calculate Average
+	    ave_loss = ave_loss / (float)dataset.size();
+
+	    // (7.2) Calculate Accuracy
+	    std::cout << "Test accuracy ==========\n";
+	    for (size_t i = 0; i < class_num; i++){
+	    	class_accuracy[i] = (float)class_match[i] / (float)class_counter[i];
+	    	std::cout << class_names[i] << ": " << class_accuracy[i] << "\n";
+	    }
+	    float accuracy = (float)match / float(counter);
+	    std::cout << "\nTest accuracy: " << accuracy << std::endl;
+	}
 
     std::cout << "Done!\n";
-    return 0;
 }
+

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 project(Deep_Learning_with_PyTorch_CPP VERSION 1.0.0 LANGUAGES CXX)
 

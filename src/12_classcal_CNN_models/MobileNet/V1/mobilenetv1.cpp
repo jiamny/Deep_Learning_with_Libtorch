@@ -28,7 +28,7 @@ MobileNetV1Impl::MobileNetV1Impl(int64_t num_classes) {
 std::vector<MobileBlock> MobileNetV1Impl::_make_layers(int64_t in_planes) {
 	std::vector<MobileBlock> tmp;
 
-	for (auto setting : this->cfg) {
+	for(auto setting : this->cfg) {
 		int64_t out_planes = setting[0];
 		int64_t stride = setting[1];
 		tmp.push_back(MobileBlock(in_planes, out_planes, stride));

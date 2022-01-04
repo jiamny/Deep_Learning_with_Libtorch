@@ -3,22 +3,20 @@
 template<typename T>
 int vec_index(std::vector<T> vec, T value) {
 	int a = 0;
-	for (auto temp : vec)
-	{
-		if (temp == value)
-		{
+	for (auto temp : vec) {
+		if (temp == value) {
 			return a;
 		}
 		a++;
 	}
-	if (a == vec.size())
-	{
+	if (a == vec.size()) {
 		std::cout << "No such value in std::vector" << std::endl;
 		return a;
 	}
+	return a;
 }
 
-//Ë÷ÒýÏòÁ¿ÖµµÄÎ»ÖÃ
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½Î»ï¿½ï¿½
 template<typename T>
 bool in_vec(std::vector<T> vec, T value) {
 	for (auto temp : vec)
@@ -76,11 +74,11 @@ torch::Tensor jaccard(torch::Tensor _box_a, torch::Tensor _box_b) {
 	auto inter = torch::clamp((max_xy - min_xy), 0);
 	inter = inter.select(2, 0) * inter.select(2, 1);
 
-	//¼ÆËãÏÈÑé¿òºÍÕæÊµ¿ò¸÷×ÔµÄÃæ»ý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½
 	auto area_a = ((box_a.select(1, 2) - box_a.select(1, 0)) * (box_a.select(1, 3) - box_a.select(1, 1))).unsqueeze(1).expand_as(inter); // [A, B]
 	auto area_b = ((box_b.select(1, 2) - box_b.select(1, 0)) * (box_b.select(1, 3) - box_b.select(1, 1))).unsqueeze(0).expand_as(inter);  // [A, B]
 
-	//ÇóIOU
+	//ï¿½ï¿½IOU
 	auto uni = area_a + area_b - inter;
 	return inter / uni;  // [A, B]
 }
@@ -92,21 +90,21 @@ torch::Tensor smooth_label(torch::Tensor y_true, int label_smoothing, int num_cl
 
 torch::Tensor box_ciou(torch::Tensor b1, torch::Tensor b2)
 {
-	//Çó³öÔ¤²â¿ò×óÉÏ½ÇÓÒÏÂ½Ç
+	//ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ï¿½Â½ï¿½
 	auto b1_xy = b1.narrow(-1, 0, 2);
 	auto b1_wh = b1.narrow(-1, 2, 2);
 	auto b1_wh_half = b1_wh / 2.0;
 	auto b1_mins = b1_xy - b1_wh_half;
 	auto b1_maxes = b1_xy + b1_wh_half;
 
-	//Çó³öÕæÊµ¿ò×óÉÏ½ÇÓÒÏÂ½Ç
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ï¿½Â½ï¿½
 	auto b2_xy = b2.narrow(-1, 0, 2);
 	auto b2_wh = b2.narrow(-1, 2, 2);
 	auto b2_wh_half = b2_wh / 2.0;
 	auto b2_mins = b2_xy - b2_wh_half;
 	auto b2_maxes = b2_xy + b2_wh_half;
 
-	// ÇóÕæÊµ¿òºÍÔ¤²â¿òËùÓÐµÄiou
+	// ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½iou
 	auto intersect_mins = torch::max(b1_mins, b2_mins);
 	auto intersect_maxes = torch::min(b1_maxes, b2_maxes);
 	auto intersect_wh = torch::max(intersect_maxes - intersect_mins, torch::zeros_like(intersect_maxes));
@@ -116,15 +114,15 @@ torch::Tensor box_ciou(torch::Tensor b1, torch::Tensor b2)
 	auto union_area = b1_area + b2_area - intersect_area;
 	auto iou = intersect_area / torch::clamp(union_area, 1e-6);
 
-	//¼ÆËãÖÐÐÄµÄ²î¾à
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÄµÄ²ï¿½ï¿½
 	auto center_distance = torch::sum(torch::pow((b1_xy - b2_xy), 2), -1);
 
-	//ÕÒµ½°ü¹üÁ½¸ö¿òµÄ×îÐ¡¿òµÄ×óÉÏ½ÇºÍÓÒÏÂ½Ç
+	//ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Çºï¿½ï¿½ï¿½ï¿½Â½ï¿½
 	auto enclose_mins = torch::min(b1_mins, b2_mins);
 	auto enclose_maxes = torch::max(b1_maxes, b2_maxes);
 	auto enclose_wh = torch::max(enclose_maxes - enclose_mins, torch::zeros_like(intersect_maxes));
 
-	//¼ÆËã¶Ô½ÇÏß¾àÀë
+	//ï¿½ï¿½ï¿½ï¿½Ô½ï¿½ï¿½ß¾ï¿½ï¿½ï¿½
 	auto enclose_diagonal = torch::sum(torch::pow(enclose_wh, 2), -1);
 	auto ciou = iou - 1.0 * (center_distance) / (enclose_diagonal + 1e-7);
 
@@ -135,7 +133,7 @@ torch::Tensor box_ciou(torch::Tensor b1, torch::Tensor b2)
 	return ciou;
 }
 
-//clip tensor, ÀàÐÍÊÇ32»¹ÊÇ64´æÒÉ£¬ºó¸Ä
+//clip tensor, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½32ï¿½ï¿½ï¿½ï¿½64ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½
 torch::Tensor clip_by_tensor(torch::Tensor t, float t_min, float t_max) {
 	t = t.to(torch::kFloat32);
 	auto result = (t >= t_min).to(torch::kFloat32) * t + (t < t_min).to(torch::kFloat32) * t_min;
@@ -171,31 +169,31 @@ YOLOLossImpl::YOLOLossImpl(torch::Tensor anchors_, int num_classes_, int img_siz
 std::vector<torch::Tensor> YOLOLossImpl::forward(torch::Tensor input, std::vector<torch::Tensor> targets)
 {
 	//inputÎªbs, 3 * (5 + num_classes), 13, 13
-	//Ò»¹²¶àÉÙÕÅÍ¼Æ¬
+	//Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼Æ¬
 	auto bs = input.size(0);
-	//ÌØÕ÷²ãµÄ¸ß
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½
 	auto in_h = input.size(2);
-	//ÌØÕ÷²ãµÄ¿í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½
 	auto in_w = input.size(3);
 
-	//¼ÆËã²½³¤£¬Ã¿Ò»¸öÌØÕ÷µã¶ÔÓ¦Ô­À´µÄÍ¼Æ¬ÉÏ¶àÉÙ¸öÏñËØµã
-	//Èç¹ûÌØÕ÷²ãÎª13x13µÄ»°£¬Ô­Í¼416x416µÄÇé¿öÏÂ£¬Ò»¸öÌØÕ÷µã¾Í¶ÔÓ¦Ô­À´µÄÍ¼Æ¬ÉÏµÄ32¸öÏñËØµã
+	//ï¿½ï¿½ï¿½ã²½ï¿½ï¿½ï¿½ï¿½Ã¿Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦Ô­ï¿½ï¿½ï¿½ï¿½Í¼Æ¬ï¿½Ï¶ï¿½ï¿½Ù¸ï¿½ï¿½ï¿½ï¿½Øµï¿½
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª13x13ï¿½Ä»ï¿½ï¿½ï¿½Ô­Í¼416x416ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶ï¿½Ó¦Ô­ï¿½ï¿½ï¿½ï¿½Í¼Æ¬ï¿½Ïµï¿½32ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½
 	auto stride_h = image_size[1] / in_h;
 	auto stride_w = image_size[0] / in_w;
 
-	//°ÑÏÈÑé¿òµÄ³ß´çµ÷Õû³ÉÌØÕ÷²ã´óÐ¡µÄÐÎÊ½
-	//¼ÆËã³öÏÈÑé¿òÔÚÌØÕ÷²ãÉÏ¶ÔÓ¦µÄ¿í¸ß
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ß´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½Ê½
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½Ó¦ï¿½Ä¿ï¿½ï¿½
 	auto scaled_anchors = anchors.clone();
 	scaled_anchors.select(1, 0) = scaled_anchors.select(1, 0) / stride_w;
 	scaled_anchors.select(1, 1) = scaled_anchors.select(1, 1) / stride_h;
 
 	//bs, 3 * (5 + num_classes), 13, 13->bs, 3, 13, 13, (5 + num_classes)
 	auto prediction = input.view({bs, int(num_anchors / 2), bbox_attrs, in_h, in_w}).permute({0, 1, 3, 4, 2}).contiguous();
-	//¶ÔpredictionÔ¤²â½øÐÐµ÷Õû
+	//ï¿½ï¿½predictionÔ¤ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½
 	auto conf = torch::sigmoid(prediction.select(-1,4));//  # Conf
 	auto pred_cls = torch::sigmoid(prediction.narrow(-1, 5, num_classes));  //Cls pred.
 
-	//ÕÒµ½ÄÄÐ©ÏÈÑé¿òÄÚ²¿°üº¬ÎïÌå
+	//ï¿½Òµï¿½ï¿½ï¿½Ð©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	auto temp = get_target(targets, scaled_anchors, in_w, in_h, ignore_threshold);
 	auto BoolType = torch::ones(1).to(torch::kBool).to(device).options();
 	auto FloatType = torch::ones(1).to(torch::kFloat).to(device).options();
@@ -246,15 +244,15 @@ std::vector<torch::Tensor> YOLOLossImpl::forward(torch::Tensor input, std::vecto
 
 std::vector<torch::Tensor> YOLOLossImpl::get_target(std::vector<torch::Tensor> targets, torch::Tensor scaled_anchors, int in_w, int in_h, float ignore_threshold)
 {
-	//¼ÆËãÒ»¹²ÓÐ¶àÉÙÕÅÍ¼Æ¬
+	//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½ï¿½Í¼Æ¬
 	int bs = targets.size();
 	auto scaled_anchorsType = scaled_anchors.options();
-	//»ñµÃÏÈÑé¿ò
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	int index = vec_index(feature_length, in_w);
 	std::vector<std::vector<int>> anchor_vec_in_vec = { {3, 4, 5} ,{1, 2, 3}};
 	std::vector<int> anchor_index = anchor_vec_in_vec[index];
-	int subtract_index = 3*index;//0»òÕß3»òÕß6
-	//´´½¨È«ÊÇ0»òÕßÈ«ÊÇ1µÄÕóÁÐ
+	int subtract_index = 3*index;//0ï¿½ï¿½ï¿½ï¿½3ï¿½ï¿½ï¿½ï¿½6
+	//ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	torch::TensorOptions grad_false(torch::requires_grad(false));
 	auto TensorType = targets[0].options();
 	auto mask = torch::zeros({ bs, int(num_anchors / 2), in_h, in_w }, grad_false);
@@ -272,27 +270,27 @@ std::vector<torch::Tensor> YOLOLossImpl::get_target(std::vector<torch::Tensor> t
 	auto box_loss_scale_y = torch::zeros({bs, int(num_anchors / 2), in_h, in_w}, grad_false);
 	for (int b = 0; b < bs; b++)
 	{
-		if (targets[b].sizes().size() == 1)//datasetÉèÖÃtargetsÖÐÍ¼Æ¬ÎÞboxÔòtensor = torch::ones({1});
+		if (targets[b].sizes().size() == 1)//datasetï¿½ï¿½ï¿½ï¿½targetsï¿½ï¿½Í¼Æ¬ï¿½ï¿½boxï¿½ï¿½tensor = torch::ones({1});
 		{
 			continue;
 		}
-		//¼ÆËã³öÔÚÌØÕ÷²ãÉÏµÄµãÎ»
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏµÄµï¿½Î»
 		auto gxs = targets[b].narrow(-1,0,1) * in_w;
 		auto gys = targets[b].narrow(-1, 1, 1) * in_h;
 
 		auto gws = targets[b].narrow(-1, 2, 1) * in_w;
 		auto ghs = targets[b].narrow(-1, 3, 1) * in_h;
 
-		//¼ÆËã³öÊôÓÚÄÄ¸öÍø¸ñ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½
 		auto gis = torch::floor(gxs);
 		auto gjs = torch::floor(gys);
 
-		//¼ÆËãÕæÊµ¿òµÄÎ»ÖÃ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½Î»ï¿½ï¿½
 		auto gt_box = torch::Tensor(torch::cat({ torch::zeros_like(gws), torch::zeros_like(ghs), gws, ghs }, 1)).to(torch::kFloat32);
 
-		//¼ÆËã³öËùÓÐÏÈÑé¿òµÄÎ»ÖÃ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 		auto anchor_shapes = torch::Tensor(torch::cat({ torch::zeros({ num_anchors, 2 }).to(scaled_anchorsType), torch::Tensor(scaled_anchors) }, 1)).to(TensorType);
-		//¼ÆËãÖØºÏ³Ì¶È
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ØºÏ³Ì¶ï¿½
 		auto anch_ious = jaccard(gt_box, anchor_shapes);
 
 		//Find the best matching anchor box
@@ -312,22 +310,22 @@ std::vector<torch::Tensor> YOLOLossImpl::get_target(std::vector<torch::Tensor> t
 			auto gh = ghs[i].item().toFloat();
 			if (gj < in_h && gi < in_w) {
 				auto best_n = vec_index(anchor_index, best_ns[i].item().toInt());// (best_ns[i] - subtract_index).item().toInt();
-					//ÅÐ¶¨ÄÄÐ©ÏÈÑé¿òÄÚ²¿ÕæÊµµÄ´æÔÚÎïÌå
+					//ï¿½Ð¶ï¿½ï¿½ï¿½Ð©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½Êµï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 				noobj_mask[b][best_n][gj][gi] = 0;
 				mask[b][best_n][gj][gi] = 1;
-				//¼ÆËãÏÈÑé¿òÖÐÐÄµ÷Õû²ÎÊý
+				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				tx[b][best_n][gj][gi] = gx;
 				ty[b][best_n][gj][gi] = gy;
-				//¼ÆËãÏÈÑé¿ò¿í¸ßµ÷Õû²ÎÊý
+				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				tw[b][best_n][gj][gi] = gw;
 				th[b][best_n][gj][gi] = gh;
-				//ÓÃÓÚ»ñµÃxywhµÄ±ÈÀý
+				//ï¿½ï¿½ï¿½Ú»ï¿½ï¿½xywhï¿½Ä±ï¿½ï¿½ï¿½
 				box_loss_scale_x[b][best_n][gj][gi] = targets[b][i][2];
 				box_loss_scale_y[b][best_n][gj][gi] = targets[b][i][3];
-				//ÎïÌåÖÃÐÅ¶È
+				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¶ï¿½
 				tconf[b][best_n][gj][gi] = 1;
-				//ÖÖÀà
+				//ï¿½ï¿½ï¿½ï¿½
 				tcls[b][best_n][gj][gi][targets[b][i][4].item().toLong()] = 1;
 			}
 			else {
@@ -354,10 +352,10 @@ std::vector<torch::Tensor> YOLOLossImpl::get_ignore(torch::Tensor prediction, st
 	int index = vec_index(feature_length, in_w);
 	std::vector<std::vector<int>> anchor_vec_in_vec = { {3, 4, 5}, {0, 1, 2}};
 	std::vector<int> anchor_index = anchor_vec_in_vec[index];
-	//ÏÈÑé¿òµÄÖÐÐÄÎ»ÖÃµÄµ÷Õû²ÎÊý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ÃµÄµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	auto x = torch::sigmoid(prediction.select(-1,0));
 	auto y = torch::sigmoid(prediction.select(-1,1));
-	//ÏÈÑé¿òµÄ¿í¸ßµ÷Õû²ÎÊý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	auto w = prediction.select(-1,2);  //Width
 	auto h = prediction.select(-1,3);  // Height
 
@@ -365,7 +363,7 @@ std::vector<torch::Tensor> YOLOLossImpl::get_ignore(torch::Tensor prediction, st
 	auto FloatType = prediction.options();
 	auto LongType = prediction.to(torch::kLong).options();
 	
-	//Éú³ÉÍø¸ñ£¬ÏÈÑé¿òÖÐÐÄ£¬Íø¸ñ×óÉÏ½Ç
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï½ï¿½
 	auto grid_x = torch::linspace(0, in_w - 1, in_w).repeat({in_h, 1}).repeat(
 		{int(bs*num_anchors / 2), 1, 1}).view(x.sizes()).to(FloatType);
 	auto grid_y = torch::linspace(0, in_h - 1, in_h).repeat({in_w, 1}).t().repeat(
@@ -376,7 +374,7 @@ std::vector<torch::Tensor> YOLOLossImpl::get_ignore(torch::Tensor prediction, st
 	anchor_w = anchor_w.repeat({bs, 1}).repeat({1, 1, in_h * in_w}).view(w.sizes());
 	anchor_h = anchor_h.repeat({bs, 1}).repeat({1, 1, in_h * in_w}).view(h.sizes());
 	
-	//¼ÆËãµ÷ÕûºóµÄÏÈÑé¿òÖÐÐÄÓë¿í¸ß
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	auto pred_boxes = torch::randn_like(prediction.narrow(-1, 0, 4)).to(FloatType);
 	pred_boxes.select(-1, 0) = x + grid_x;
 	pred_boxes.select(-1, 1) = y + grid_y;
@@ -432,9 +430,9 @@ std::vector<torch::Tensor> non_maximum_suppression(torch::Tensor prediction, int
 			continue;
 		}
 
-		//»ñµÃµÄÄÚÈÝÎª(x1, y1, x2, y2, obj_conf, class_conf, class_pred)
+		//ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½Îª(x1, y1, x2, y2, obj_conf, class_conf, class_pred)
 		auto detections = torch::cat({ image_pred.narrow(-1,0,5), class_conf, class_pred }, 1);
-		//»ñµÃÖÖÀà
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		std::vector<torch::Tensor> img_classes;
 
 		for (int m = 0, len = detections.size(0); m < len; m++)
@@ -473,22 +471,22 @@ std::vector<int> nms_libtorch(torch::Tensor bboxes, torch::Tensor scores, float 
 	auto y1 = bboxes.select(-1, 1);
 	auto x2 = bboxes.select(-1, 2);
 	auto y2 = bboxes.select(-1, 3);
-	auto areas = (x2 - x1)*(y2 - y1);   //[N, ] Ã¿¸öbboxµÄÃæ»ý
-	auto tuple_sorted = scores.sort(0, true);    //½µÐòÅÅÁÐ
+	auto areas = (x2 - x1)*(y2 - y1);   //[N, ] Ã¿ï¿½ï¿½bboxï¿½ï¿½ï¿½ï¿½ï¿½
+	auto tuple_sorted = scores.sort(0, true);    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	auto order = std::get<1>(tuple_sorted);
 
 	std::vector<int>	keep;
-	while (order.numel() > 0) {// torch.numel()·µ»ØÕÅÁ¿ÔªËØ¸öÊý
-		if (order.numel() == 1) {//    ±£Áô¿òÖ»Ê£Ò»¸ö
+	while (order.numel() > 0) {// torch.numel()ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½Ø¸ï¿½ï¿½ï¿½
+		if (order.numel() == 1) {//    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»Ê£Ò»ï¿½ï¿½
 			auto i = order.item();
 			keep.push_back(i.toInt());
 			break;
 		}
 		else {
-			auto i = order[0].item();// ±£Áôscores×î´óµÄÄÇ¸ö¿òbox[i]
+			auto i = order[0].item();// ï¿½ï¿½ï¿½ï¿½scoresï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½box[i]
 			keep.push_back(i.toInt());
 		}
-		//¼ÆËãbox[i]ÓëÆäÓà¸÷¿òµÄIOU(Ë¼Â·ºÜºÃ)
+		//ï¿½ï¿½ï¿½ï¿½box[i]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IOU(Ë¼Â·ï¿½Üºï¿½)
 		auto order_mask = order.narrow(0, 1, order.size(-1) - 1);
 		x1.index({ order_mask });
 		x1.index({ order_mask }).clamp(x1[keep.back()].item().toFloat(), 1e10);
@@ -499,11 +497,11 @@ std::vector<int> nms_libtorch(torch::Tensor bboxes, torch::Tensor scores, float 
 		auto inter = (xx2 - xx1).clamp(0, 1e10) * (yy2 - yy1).clamp(0, 1e10);// [N - 1, ]
 
 		auto iou = inter / (areas[keep.back()] + areas.index({ order.narrow(0,1,order.size(-1) - 1) }) - inter);//[N - 1, ]
-		auto idx = (iou <= thresh).nonzero().squeeze();//×¢Òâ´ËÊ±idxÎª[N - 1, ] ¶øorderÎª[N, ]
+		auto idx = (iou <= thresh).nonzero().squeeze();//×¢ï¿½ï¿½ï¿½Ê±idxÎª[N - 1, ] ï¿½ï¿½orderÎª[N, ]
 		if (idx.numel() == 0) {
 			break;
 		}
-		order = order.index({ idx + 1 }); //ÐÞ²¹Ë÷ÒýÖ®¼äµÄ²îÖµ
+		order = order.index({ idx + 1 }); //ï¿½Þ²ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½Ä²ï¿½Öµ
 	}
 	return keep;
 }

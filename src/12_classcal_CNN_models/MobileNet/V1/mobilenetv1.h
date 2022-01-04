@@ -21,7 +21,8 @@ struct MobileNetV1Impl : torch::nn::Module {
 	torch::nn::BatchNorm2d bn1{nullptr};
 	torch::nn::Sequential linear;
 	std::vector<MobileBlock> layers;
-	std::vector<std::vector<int64_t>> cfg = {{64, 1}, {128,2}, {128,1}, {256,2}, {256,1}, {512,2}, {512,1}, {512,1}, {512,1}, {512,1}, {512,1}, {1024,2}, {1024,1}};
+	std::vector<std::vector<int64_t>> cfg = {{16, 1}, {32, 2}, {32, 1}, {64, 2}, {64, 1}, {128, 2}, {128, 1}, {256,2},
+					{256, 1}, {256, 2}, {512, 1}, {1024, 2}, {1024, 2}, {1024, 1}};
 
     explicit MobileNetV1Impl(int64_t num_classes);
 

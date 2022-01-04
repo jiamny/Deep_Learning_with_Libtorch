@@ -1,17 +1,29 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lm -ldl")
+find_package(Python3 COMPONENTS Development NumPy)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-set(CMAKE_CXX_STANDARD 17) # To use C++ <filesystem>
+add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
 
-# use openmp
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
- 
+find_package(OpenMP REQUIRED)
+find_package(PNG REQUIRED)
 
-set(requiredlibs ${OpenCV_LIBS})
-list(APPEND requiredlibs ${TORCH_LIBRARIES})
-list(APPEND requiredlibs "png16")
+include_directories(${PNG_INCLUDE_DIRS})
+
+set(requiredlibs "python3.8")
+list(APPEND requiredlibs "pthread")
+list(APPEND requiredlibs "dl")
+list(APPEND requiredlibs "m")
+list(APPEND requiredlibs "png")
+list(APPEND requiredlibs "jsoncpp") # link to libjsoncpp.so/libjsoncpp.a
+
+list(APPEND requiredlibs ${PNG_LIBRARIES})
+list(APPEND requiredlibs ${OpenMP_CXX_LIBRARIES})
+
+find_package(OpenMP)
+
+if(OpenMP_CXX_FOUND)
+    list(APPEND requiredlibs "OpenMP::OpenMP_CXX")
+endif()
 
 # ------------------------------------------------------------------
 # ----AlexNet_custom
@@ -19,14 +31,19 @@ add_executable(12_AlexNet_custom)
 target_sources(12_AlexNet_custom PRIVATE  AlexNet/custom/alexnet_demo.cpp
     AlexNet/custom/alexnet.cpp
     AlexNet/custom/alexnet.h
-    dataSet.cpp
-    dataSet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_AlexNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_AlexNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_AlexNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_AlexNet_custom PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
@@ -34,329 +51,360 @@ set_target_properties(12_AlexNet_custom PROPERTIES
 # ----AlexNet_torchvision
 add_executable(12_AlexNet_torchvision)
 target_sources(12_AlexNet_torchvision PRIVATE  AlexNet/torchvision/main.cpp
-	modelsimpl.h
     AlexNet/torchvision/alexnet.cpp
     AlexNet/torchvision/alexnet.h
-    dataSet.cpp
-    dataSet.h
-    modelsimpl.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_AlexNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_AlexNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_AlexNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_AlexNet_torchvision PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
 # ------------------------------------------------------------------
-# --- DenseNet torchvision
+# ----DenseNet torchvision
 add_executable(12_DenseNet_torchvision)
 target_sources(12_DenseNet_torchvision PRIVATE  DenseNet/torchvision/main.cpp
-	modelsimpl.h
     DenseNet/torchvision/densenet.cpp
     DenseNet/torchvision/densenet.h
-    dataSet.cpp
-    dataSet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_DenseNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_DenseNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_DenseNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_DenseNet_torchvision PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
-
-# ----------------------------------------------------------------------
-# --- DeepResidualNetwork
-add_executable(12_DeepResidualNetwork)
-target_sources(12_DeepResidualNetwork PRIVATE  ResNet/DeepResidualNetwork/main.cpp
-    cifar10.cpp
-    cifar10.h
-    ResNet/DeepResidualNetwork/residual_block.cpp
-    ResNet/DeepResidualNetwork/residual_block.h
-    ResNet/DeepResidualNetwork/resnet.h
-    transform.h
-    transform.cpp
-)
-
-target_link_libraries(12_DeepResidualNetwork ${requiredlibs})
-
-set_target_properties(12_DeepResidualNetwork PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-
 
 # --- DPN ---------------------------------------------------
 add_executable(12_DPN_32)
 target_sources(12_DPN_32 PRIVATE  DPN/DPN_32/main.cpp
     DPN/DPN_32/dpn.cpp
     DPN/DPN_32/dpn.h
-    dataSet.cpp
-    dataSet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_DPN_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_DPN_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_DPN_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_DPN_32 PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
 # --- EfficientNet_32 ---------------------------------------------------
 add_executable(12_EfficientNet_32)
-target_sources(12_EfficientNet_32 PRIVATE  EfficientNet/EfficientNet_32/main.cpp
+
+target_sources(12_EfficientNet_32 PRIVATE EfficientNet/EfficientNet_32/main.cpp
     EfficientNet/EfficientNet_32/efficientnet.cpp
     EfficientNet/EfficientNet_32/efficientnet.h
-    dataSet.cpp
-    dataSet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_EfficientNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_EfficientNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_EfficientNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_EfficientNet_32 PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-
-# ---------------------------------------------------------------------
-# --- Inception_V3
-add_executable(12_Inception_V3)
-target_sources(12_Inception_V3 PRIVATE  Inception/V3/main.cpp
-    Inception/V3/inception.cpp
-    Inception/V3/inception.h
-    dataSet.cpp
-    dataSet.h
-)
-
-target_link_libraries(12_Inception_V3 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-set_target_properties(12_Inception_V3 PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
 # -----------------------------------------------------------------
-# --- GoogleNet torch_cifar10
-add_executable(12_GoogleNet_custom_cifar)
-target_sources(12_GoogleNet_custom_cifar PRIVATE  GoogleNet/custom_cifar/main.cpp
-    GoogleNet/custom_cifar/googlenet.cpp
-    GoogleNet/custom_cifar/googlenet.h
-    dataSet.cpp
-    dataSet.h
+# --- GoogleNet torch
+add_executable(12_GoogleNet_custom)
+
+target_sources(12_GoogleNet_custom PRIVATE  GoogleNet/custom/main.cpp
+    GoogleNet/custom/googlenet.cpp
+    GoogleNet/custom/googlenet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_GoogleNet_custom_cifar ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_GoogleNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_GoogleNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
-set_target_properties(12_GoogleNet_custom_cifar PROPERTIES
-  CXX_STANDARD 14
+set_target_properties(12_GoogleNet_custom PROPERTIES
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
-#---------------------------------------------------------------------
-# --- LeNet torch_cifar10
-add_executable(12_LeNet_torch_cifar10)
-target_sources(12_LeNet_torch_cifar10 PRIVATE  LeNet/torch_cifar10/main.cpp
-    LeNet/torch_cifar10/nnet.cpp
-    LeNet/torch_cifar10/nnet.h
-    cifar10.cpp
-    cifar10.h
+# -----------------------------------------------------------------
+# --- Inception_V3
+add_executable(12_Inception_V3)
+
+target_sources(12_Inception_V3 PRIVATE  Inception/V3/main.cpp
+    Inception/V3/inception.cpp
+    Inception/V3/inception.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_LeNet_torch_cifar10 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_Inception_V3 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_Inception_V3 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
-set_target_properties(12_LeNet_torch_cifar10 PROPERTIES
-  CXX_STANDARD 14
+set_target_properties(12_Inception_V3 PROPERTIES
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
-# ---------------------------------------------------------------------
-# --- LeNet custom_cifar10
-add_executable(12_LeNet_custom_cifar10)
-target_sources(12_LeNet_custom_cifar10 PRIVATE  LeNet/custom_cifar10/main.cpp
-    LeNet/custom_cifar10/nnet.cpp
-    LeNet/custom_cifar10/nnet.h
-    dataSet.cpp
-    dataSet.h
-)
+# -----------------------------------------------------------------
+# --- MnasNet
+add_executable(12_MnasNet)
 
-target_link_libraries(12_LeNet_custom_cifar10 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-set_target_properties(12_LeNet_custom_cifar10 PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-
-# -------------------------------------------------------------------
-# --- MnasNet torchvision
-add_executable(12_MnasNet_torchvision)
-target_sources(12_MnasNet_torchvision PRIVATE  MnasNet/torchvision/main.cpp
-	modelsimpl.h
-    MnasNet/torchvision/mnasnet.cpp
+target_sources(12_MnasNet PRIVATE MnasNet/torchvision/main.cpp
     MnasNet/torchvision/mnasnet.h
-    dataSet.cpp
-    dataSet.h
+    MnasNet/torchvision/mnasnet.cpp
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_MnasNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_MnasNet PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_MnasNet ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
-set_target_properties(12_MnasNet_torchvision PROPERTIES
-  CXX_STANDARD 14
+set_target_properties(12_MnasNet PROPERTIES
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
-# -------------------------------------------------------------------------------
-# --- MobileNet torchvision V2 ---------------------------------------------------
+# -----------------------------------------------------------------
+# --- MobileNet torchvision V2
 add_executable(12_MobileNet_torchvisionV2)
-target_sources(12_MobileNet_torchvisionV2 PRIVATE  MobileNet/torchvisionV2/main.cpp
-	modelsimpl.h
+
+target_sources(12_MobileNet_torchvisionV2 PRIVATE   MobileNet/torchvisionV2/main.cpp
     MobileNet/torchvisionV2/mobilenetv2.cpp
     MobileNet/torchvisionV2/mobilenetv2.h
-    dataSet.cpp
-    dataSet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_MobileNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_MobileNet_torchvisionV2 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_MobileNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_MobileNet_torchvisionV2 PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-
-# --- PNASNet_32 ---------------------------------------------------
-add_executable(12_PnasNet_32)
-target_sources(12_PnasNet_32 PRIVATE  PnasNet/PnasNet_32/main.cpp
-    PnasNet/PnasNet_32/pnasnet.cpp
-    PnasNet/PnasNet_32/pnasnet.h
-    dataSet.cpp
-    dataSet.h
-)
-
-target_link_libraries(12_PnasNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-set_target_properties(12_PnasNet_32 PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-
-#---------------------------------------------------------------------
-# --- PreactResNet_32 torch_cifar10
-add_executable(12_PreactResNet_torch_cifar10)
-target_sources(12_PreactResNet_torch_cifar10 PRIVATE  PreactResnet/PreactResNet_32/main.cpp
-    PreactResnet/PreactResNet_32/PreactResNet.cpp
-    PreactResnet/PreactResNet_32/PreactResNet.h
-    cifar10.cpp
-    cifar10.h
-)
-
-target_link_libraries(12_PreactResNet_torch_cifar10 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-set_target_properties(12_PreactResNet_torch_cifar10 PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-
-#---------------------------------------------------------------------
-# --- RegNet_32 torch_cifar10
-add_executable(12_RegNet_torch_cifar10)
-target_sources(12_RegNet_torch_cifar10 PRIVATE  RegNet/RegNet_32/main.cpp
-    RegNet/RegNet_32/regnet.cpp
-    RegNet/RegNet_32/regnet.h
-    cifar10.cpp
-    cifar10.h
-)
-
-target_link_libraries(12_RegNet_torch_cifar10 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-set_target_properties(12_RegNet_torch_cifar10 PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-
-# ---------------------------------------------------------------------
-# --- ResNet torch_cifar10
-add_executable(12_ResNet_torch_cifar10)
-target_sources(12_ResNet_torch_cifar10 PRIVATE ResNet/torch_cifar10/resnet-cifar-demo.cpp
-									cifar10.h
-									cifar10.cpp
-									ResNet/torch_cifar10/resnet.h
-									ResNet/torch_cifar10/resnet.cpp
-)
-target_link_libraries(12_ResNet_torch_cifar10 PRIVATE "${TORCH_LIBRARIES}")
-
-set_target_properties(12_ResNet_torch_cifar10 PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
-# ---------------------------------------------------------------------
-
-# --- ResNet torchvision
-add_executable(12_ResNet_torchvision)
-target_sources(12_ResNet_torchvision PRIVATE  ResNet/torchvision/main.cpp
-    ResNet/torchvision/resnet.cpp
-    ResNet/torchvision/resnet.h
-    dataSet.cpp
-    dataSet.h
-    modelsimpl.h
-)
-
-target_link_libraries(12_ResNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-set_target_properties(12_ResNet_torchvision PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
 # --- MobileNet V1 ---------------------------------------------------
 add_executable(12_MobileNet_V1)
-target_sources(12_MobileNet_V1 PRIVATE  MobileNet/V1/main.cpp
+
+target_sources(12_MobileNet_V1 PRIVATE MobileNet/V1/main.cpp
     MobileNet/V1/mobilenetv1.cpp
     MobileNet/V1/mobilenetv1.h
-    dataSet.cpp
-    dataSet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_MobileNet_V1 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_MobileNet_V1 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_MobileNet_V1 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_MobileNet_V1 PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED YES
+)
+
+# --- PNASNet_custom ---------------------------------------------------
+add_executable(12_PnasNet_custom)
+
+target_sources(12_PnasNet_custom PRIVATE  PnasNet/PnasNet_custom/main.cpp
+    PnasNet/PnasNet_custom/pnasnet.cpp
+    PnasNet/PnasNet_custom/pnasnet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
+)
+
+target_include_directories(12_PnasNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_PnasNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+
+set_target_properties(12_PnasNet_custom PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED YES
+)
+
+#---------------------------------------------------------------------
+# --- PreactResNet_32 torch_cifar10
+add_executable(12_PreactResNet_32)
+
+target_sources(12_PreactResNet_32 PRIVATE PreactResnet/PreactResNet_32/main.cpp
+    PreactResnet/PreactResNet_32/PreactResNet.cpp
+    PreactResnet/PreactResNet_32/PreactResNet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
+)
+
+target_include_directories(12_PreactResNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_PreactResNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+
+set_target_properties(12_PreactResNet_32 PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED YES
+)
+
+#---------------------------------------------------------------------
+# --- RegNet_32 torch_cifar10
+add_executable(12_RegNet_32)
+
+target_sources(12_RegNet_32 PRIVATE RegNet/RegNet_32/main.cpp
+    RegNet/RegNet_32/regnet.cpp
+    RegNet/RegNet_32/regnet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
+)
+
+target_include_directories(12_RegNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_RegNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+
+set_target_properties(12_RegNet_32 PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED YES
+)
+
+# ---------------------------------------------------------------------
+# --- ResNet
+add_executable(12_ResNet_custom)
+
+target_sources(12_ResNet_custom PRIVATE ResNet/resnet_custom/resnet.cpp
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
+)
+
+target_include_directories(12_ResNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_ResNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+
+set_target_properties(12_ResNet_custom PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED YES
+)
+
+# ---------------------------------------------------------------------
+# --- ResNet torchvision
+add_executable(12_ResNet_torchvision)
+
+target_sources(12_ResNet_torchvision PRIVATE ResNet/torchvision/main.cpp
+    ResNet/torchvision/resnet.cpp
+    ResNet/torchvision/resnet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
+)
+
+target_include_directories(12_ResNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_ResNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+
+set_target_properties(12_ResNet_torchvision PROPERTIES
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
 # ---------------------------------------------------------------------------------
 # --- ShuffleNet torchvision V2 ---------------------------------------------------
 add_executable(12_ShuffleNet_torchvisionV2)
-target_sources(12_ShuffleNet_torchvisionV2 PRIVATE  ShuffleNet/torchvisionV2/main.cpp
+
+target_sources(12_ShuffleNet_torchvisionV2 PRIVATE ShuffleNet/torchvisionV2/main.cpp
 	modelsimpl.h
     ShuffleNet/torchvisionV2/shufflenetv2.cpp
     ShuffleNet/torchvisionV2/shufflenetv2.h
-    dataSet.cpp
-    dataSet.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_ShuffleNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_ShuffleNet_torchvisionV2 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_ShuffleNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_ShuffleNet_torchvisionV2 PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
 # ------------------------------------------------------------------------------
 # --- SqueezeNet torchvision ---------------------------------------------------
 add_executable(12_SqueezeNet_torchvision)
-target_sources(12_SqueezeNet_torchvision PRIVATE  SqueezeNet/torchvision/main.cpp
+
+target_sources(12_SqueezeNet_torchvision PRIVATE ShuffleNet/torchvisionV2/main.cpp
 	modelsimpl.h
-    SqueezeNet/torchvision/squeezenet.cpp
-    SqueezeNet/torchvision/squeezenet.h
-    dataSet.cpp
-    dataSet.h
+    ShuffleNet/torchvisionV2/shufflenetv2.cpp
+    ShuffleNet/torchvisionV2/shufflenetv2.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_SqueezeNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_SqueezeNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_SqueezeNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_SqueezeNet_torchvision PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
@@ -366,10 +414,10 @@ add_executable(12_VGG_custom)
 target_sources(12_VGG_custom PRIVATE  VGG/custom/VGG_demo.cpp
     VGG/custom/vgg.cpp
     VGG/custom/vgg.h
-    dataSet.cpp
-    dataSet.h
     VGG/custom/Classification.cpp
     VGG/custom/Classification.h
+    dataSet.cpp
+    dataSet.h
 )
 
 target_link_libraries(12_VGG_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES})
@@ -378,39 +426,52 @@ set_target_properties(12_VGG_custom PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
 )
-# --------------------------------------------------------------------
 
-# --- VGG_custom_cifar
-add_executable(12_VGG_custom_cifar)
-target_sources(12_VGG_custom_cifar PRIVATE  VGG/custom_cifar/main.cpp
-    VGG/custom_cifar/vgg.cpp
-    VGG/custom_cifar/vgg.h
-    dataSet.cpp
-    dataSet.h
+# --------------------------------------------------------------------
+# --- VGG_custom_mc
+add_executable(12_VGG_custom_mc)
+
+target_sources(12_VGG_custom_mc PRIVATE VGG/custom_mc/main.cpp
+    VGG/custom_mc/vgg.cpp
+    VGG/custom_mc/vgg.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_VGG_custom_cifar ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_VGG_custom_mc PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_VGG_custom_mc ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
-set_target_properties(12_VGG_custom_cifar PROPERTIES
-  CXX_STANDARD 14
+set_target_properties(12_VGG_custom_mc PROPERTIES
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
 
 # -----------------------------------------------------------------------
 # --- VGG torchvision 
 add_executable(12_VGG_torchvision)
-target_sources(12_VGG_torchvision PRIVATE  VGG/torchvision/main.cpp	
+
+target_sources(12_VGG_torchvision PRIVATE VGG/torchvision/main.cpp	
     VGG/torchvision/vgg.cpp
     VGG/torchvision/vgg.h
-    dataSet.cpp
-    dataSet.h
-    modelsimpl.h
+    ../image_tools/dataloader.hpp
+	../image_tools/dataloader.cpp
+	../image_tools/datasets.hpp
+	../image_tools/datasets.cpp
+	../image_tools/transforms.hpp
+	../image_tools/transforms.cpp
 )
 
-target_link_libraries(12_VGG_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_include_directories(12_VGG_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(12_VGG_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(12_VGG_torchvision PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED YES
 )
+
+
 

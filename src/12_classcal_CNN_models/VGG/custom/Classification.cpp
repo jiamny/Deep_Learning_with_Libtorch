@@ -5,8 +5,7 @@ Classifier::Classifier(int gpu_id)
 {
     if (gpu_id >= 0) {
         device = torch::Device(torch::kCUDA, gpu_id);
-    }
-    else {
+    } else {
         device = torch::Device(torch::kCPU);
     }
 }
@@ -19,8 +18,7 @@ void Classifier::Initialize(int _num_classes, std::string _pretrained_path){
     torch::OrderedDict<std::string, at::Tensor> pretrained_dict = net_pretrained->named_parameters();
     torch::OrderedDict<std::string, at::Tensor> model_dict = vgg->named_parameters();
 
-    for (auto n = pretrained_dict.begin(); n != pretrained_dict.end(); n++)
-    {
+    for (auto n = pretrained_dict.begin(); n != pretrained_dict.end(); n++) {
         if (strstr((*n).key().data(), "classifier")) {
             continue;
         }

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 project(Deep_learning_with_pytorch VERSION 1.0.0 LANGUAGES CXX)
 
@@ -7,7 +7,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(DOWNLOAD_DATASETS "Automatically download required datasets at build-time." OFF)
 option(CREATE_SCRIPTMODULES "Automatically create all required scriptmodule files at build-time (requires python3)." OFF)
 
-set(PYTORCH_VERSION "1.9.1")
+set(PYTORCH_VERSION "1.10.1")
 
 set(CMAKE_CXX_STANDARD 14)
 #--------------------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ message(STATUS "    libraries: ${TORCH_LIBRARIES}")
 message(STATUS "    include path: ${TORCH_INCLUDE_DIRS}") 
 
 # add opencv package to the project
-find_package( OpenCV 4.3.0 REQUIRED PATHS "/usr/local/")
+find_package( OpenCV 4.5.3 REQUIRED PATHS "/usr/local/")
 #find_package( OpenCV REQUIRED )
 INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} ) 
 SET(OpenCV_LIBRARIES ${OpenCV_LIBS})
@@ -77,6 +77,7 @@ add_subdirectory("extern")
 
 # Utils
 add_subdirectory("utils/image_io")
+add_subdirectory("src/image_tools")
     
 # Add  sub-projects:
 add_subdirectory("src/01_Introducing/pytorch_basics")

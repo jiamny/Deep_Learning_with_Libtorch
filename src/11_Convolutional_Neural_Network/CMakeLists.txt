@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 set(EXECUTABLE_NAME 11_cifar10_classifier)
 
@@ -7,7 +7,7 @@ find_package(Python3 COMPONENTS Development NumPy)
 
 add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
 
-set(requiredlibs "python3.6m")
+set(requiredlibs "python3.8")
 list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")

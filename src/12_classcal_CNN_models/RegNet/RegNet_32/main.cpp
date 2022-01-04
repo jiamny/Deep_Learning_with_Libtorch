@@ -1,135 +1,283 @@
 
-
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <stdint.h>
 #include <torch/torch.h>
+#include <torch/script.h>
+#include <torch/autograd.h>
+#include <torch/utils.h>
+#include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
-#include <iomanip>
+#include <cstring>
+#include <sstream>
+
+#include <dirent.h>           //get files in directory
+#include <sys/stat.h>
+#include <cmath>
+#include <map>
+#include <tuple>
+
 #include "regnet.h"
-#include "../../cifar10.h"
+
+#include "../../../image_tools/transforms.hpp"              // transforms_Compose
+#include "../../../image_tools/datasets.hpp"                // datasets::ImageFolderClassesWithPaths
+#include "../../../image_tools/dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
+
+
+std::vector<std::string> Set_Class_Names(const std::string path, const size_t class_num) {
+    // (1) Memory Allocation
+    std::vector<std::string> class_names = std::vector<std::string>(class_num);
+
+    // (2) Get Class Names
+    std::string class_name;
+    std::ifstream ifs(path, std::ios::in);
+    size_t i = 0;
+    if( ! ifs.fail() ) {
+    	while( getline(ifs, class_name) ) {
+//    		std::cout << class_name.length() << std::endl;
+    		if( class_name.length() > 2 ) {
+    			class_names.at(i) = class_name;
+    			i++;
+    		}
+    	}
+    } else {
+    	std::cerr << "Error : can't open the class name file." << std::endl;
+    	std::exit(1);
+    }
+
+    ifs.close();
+    if( i != class_num ){
+        std::cerr << "Error : The number of classes does not match the number of lines in the class name file." << std::endl;
+        std::exit(1);
+    }
+    // End Processing
+    return class_names;
+}
 
 int main() {
-    std::cout << "RegNet Classifier\n\n";
 
-    // Loading and normalizing CIFAR10
-    const std::string CIFAR_data_path = "./data/cifar/";
-    const int64_t batch_size{64};
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
 
-    bool saveModel{false};
+	int64_t img_size = 32;
+	size_t batch_size = 200;
+	const std::string path = "./data/CIFAR10_names.txt";
+	const size_t class_num = 10;
+	const size_t valid_batch_size = 1;
+	std::vector<std::string> class_names = Set_Class_Names( path, class_num);
+	constexpr bool train_shuffle = true;    // whether to shuffle the training dataset
+	constexpr size_t train_workers = 2;  	// the number of workers to retrieve data from the training dataset
+    constexpr bool valid_shuffle = true;    // whether to shuffle the validation dataset
+    constexpr size_t valid_workers = 2;     // the number of workers to retrieve data from the validation dataset
 
-    auto train_dataset = CIFAR10(CIFAR_data_path)
-        .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465},
-                {0.2023, 0.1994, 0.2010}))
-        .map(torch::data::transforms::Stack<>());
-    auto train_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
-        std::move(train_dataset), batch_size);
+    bool valid = false;						// has valid dataset
+    bool test  = true;						// has test dataset
 
-    auto test_dataset = CIFAR10(CIFAR_data_path, CIFAR10::Mode::kTest)
-        .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465},
-                {0.2023, 0.1994, 0.2010}))
-        .map(torch::data::transforms::Stack<>());
-    auto test_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-        std::move(test_dataset), batch_size);
+    // (4) Set Transforms
+    std::vector<transforms_Compose> transform {
+        transforms_Resize(cv::Size(img_size, img_size), cv::INTER_LINEAR),        // {IH,IW,C} ===method{OW,OH}===> {OH,OW,C}
+        transforms_ToTensor(),                                                     // Mat Image [0,255] or [0,65535] ===> Tensor Image [0,1]
+		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
+    };
 
-    std::string classes[10] = {"plane", "car", "bird", "cat",
-           "deer", "dog", "frog", "horse", "ship", "truck"};
+	std::string dataroot = "./data/CIFAR10/train";
+    std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
+    torch::Tensor loss, image, label, output;
+    datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
+    DataLoader::ImageFolderClassesWithPaths dataloader, valid_dataloader, test_dataloader; 	// dataloader;
 
-    // Define a Convolutional Neural Network
-    RegNet net = RegNetX_200MF(10);
-    net->to(torch::kCPU);
+    // (1) Get Dataset
+    dataset = datasets::ImageFolderClassesWithPaths(dataroot, transform, class_names);
+    dataloader = DataLoader::ImageFolderClassesWithPaths(dataset, batch_size, /*shuffle_=*/train_shuffle, /*num_workers_=*/train_workers);
 
-    // // Define a Loss function and optimizer
-    torch::nn::CrossEntropyLoss criterion;
-    torch::optim::SGD optimizer(net->parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
+	std::cout << "total training images : " << dataset.size() << std::endl;
 
-    // Train the network
-    for (size_t epoch = 0; epoch < 2; ++epoch) {
-        double running_loss = 0.0;
+	if( valid ) {
+		std::string valid_dataroot = "./data/CIFAR10/valid";
+		valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
+		valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
 
-        int i = 0;
-        for (auto& batch : *train_loader) {
-            // get the inputs; data is a list of [inputs, labels]
-            auto inputs = batch.data.to(torch::kCPU);
-            auto labels = batch.target.to(torch::kCPU);
-            //std::cout << inputs << std::endl;
-            //std::cout << labels << std::endl;
+		std::cout << "total validation images : " << valid_dataset.size() << std::endl;
+	}
+    bool vobose = false;
 
-            // zero the parameter gradients
-            optimizer.zero_grad();
+    RegNet model = RegNetX_200MF(class_num);
+//	model->init();
+	model->to(device);
+	std::cout << model << std::endl;
 
-            // forward + backward + optimize
-            auto outputs = net->forward(inputs);
-            auto loss = criterion(outputs, labels);
-            loss.backward();
-            optimizer.step();
+	auto dict = model->named_parameters();
+	for (auto n = dict.begin(); n != dict.end(); n++) {
+		std::cout << (*n).key() << std::endl;
+	}
 
-            // print statistics
-            running_loss += loss.item<double>();
-            if (i % 2000 == 1999) {  // print every 2000 mini-batches
-                std::cout << "[" << epoch + 1 << ", " << i + 1 << "] loss: "
-                    << running_loss / 2000 << '\n';
-                running_loss = 0.0;
-            }
-            i++;
-        }
-    }
-    std::cout << "Finished Training\n\n";
+	std::cout << "Test model ..." << std::endl;
+	torch::Tensor x = torch::randn({1,3,img_size, img_size}).to(device);
+	torch::Tensor y = model->forward(x);
+	std::cout << y << std::endl;
 
-    if( saveModel ) {
-    	std::string PATH = "./models/cifar_net.pth";
-    	torch::save(net, PATH);
+	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-4).betas({0.5, 0.999}));
 
-    	// Test the network on the test data
-    	net = RegNetX_200MF(10);
-    	torch::load(net, PATH);
-    }
+	auto criterion = torch::nn::NLLLoss(torch::nn::NLLLossOptions().ignore_index(-100).reduction(torch::kMean));
 
-    int correct = 0;
-    int total = 0;
-    for (const auto& batch : *test_loader) {
-        auto images = batch.data.to(torch::kCPU);
-        auto labels = batch.target.to(torch::kCPU);
+	size_t epoch;
+	size_t total_iter = dataloader.get_count_max();
+	size_t start_epoch, total_epoch;
+	start_epoch = 1;
+	total_iter = dataloader.get_count_max();
+	total_epoch = 1;
 
-        auto outputs = net->forward(images);
+	bool first = true;
+	std::vector<float> train_loss_ave;
+	std::vector<float> train_epochs;
 
-        auto out_tuple = torch::max(outputs, 1);
-        auto predicted = std::get<1>(out_tuple);
-        total += labels.size(0);
-        correct += (predicted == labels).sum().item<int>();
-    }
+	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
+		model->train();
+		std::cout << "--------------- Training --------------------\n";
+		first = true;
+		float loss_sum = 0.0;
+		while (dataloader(mini_batch)) {
+			image = std::get<0>(mini_batch).to(device);
+			label = std::get<1>(mini_batch).to(device);
 
-    std::cout << "Accuracy of the network on the 10000 test images: "
-        << (100 * correct / total) << "%\n\n";
+			if( first && vobose ) {
+				for(size_t i = 0; i < label.size(0); i++)
+					std::cout << label[i].item<int64_t>() << " ";
+				std::cout << "\n";
+				first = false;
+			}
 
-    float class_correct[10];
-    float class_total[10];
-    for (int i = 0; i < 10; ++i) {
-        class_correct[i] = 0.0;
-        class_total[i] = 0.0;
-    }
+			image = std::get<0>(mini_batch).to(device);
+			label = std::get<1>(mini_batch).to(device);
+			output = model->forward(image);
+			auto out = torch::nn::functional::log_softmax(output, 1); // dim
+			//std::cout << output.sizes() << "\n" << out.sizes() << std::endl;
 
-    torch::NoGradGuard no_grad;
+			loss = criterion(out, label); //torch::mse_loss(out, label);
 
-    for (const auto& batch : *test_loader) {
-        auto images = batch.data.to(torch::kCPU);
-        auto labels = batch.target.to(torch::kCPU);
+			optimizer.zero_grad();
+			loss.backward();
+			optimizer.step();
 
-        auto outputs = net->forward(images);
+			loss_sum += loss.item<float>();
+		}
 
-        auto out_tuple = torch::max(outputs, 1);
-        auto predicted = std::get<1>(out_tuple);
-        auto c = (predicted == labels).squeeze();
+		train_loss_ave.push_back(loss_sum/total_iter);
+		train_epochs.push_back(epoch*1.0);
+		std::cout << "epoch: " << epoch << "/"  << total_epoch << ", avg_loss: " << (loss_sum/total_iter) << std::endl;
 
-        if( c.dim() > 0 ) {
-        	for (int i = 0; i < c.dim(); ++i) {
-        		auto label = labels[i].item<int>();
-        		class_correct[label] += c[i].item<float>();
-        		class_total[label] += 1;
-        	}
-        }
-    }
+		// ---------------------------------
+		// validation
+		// ---------------------------------
+		if( valid && (epoch % 5 == 0) ) {
+			std::cout << "--------------- validation --------------------\n";
+			model->eval();
+			size_t iteration = 0;
+			float total_loss = 0.0;
+			size_t total_match = 0, total_counter = 0;
+			torch::Tensor responses;
+			first = true;
+			while (valid_dataloader(mini_batch)){
 
-    for (int i = 0; i < 10; ++i) {
-        std::cout << "Accuracy of " << classes[i] << " "
-            << 100 * class_correct[i] / class_total[i] << "%\n";
-    }
+				image = std::get<0>(mini_batch).to(device);
+			    label = std::get<1>(mini_batch).to(device);
+			    size_t mini_batch_size = image.size(0);
+
+			    if( first && vobose ) {
+			    	for(size_t i = 0; i < label.size(0); i++)
+			    		std::cout << label[i].item<int64_t>() << " ";
+			    	std::cout << "\n";
+			    	first = false;
+			    }
+
+			    output = model->forward(image);
+			    auto out = torch::nn::functional::log_softmax(output, 1); // dim=
+			    loss = criterion(out, label);
+
+			    responses = output.exp().argmax(1); // dim
+
+			    for (size_t i = 0; i < mini_batch_size; i++){
+			        int64_t response = responses[i].item<int64_t>();
+			        int64_t answer = label[i].item<int64_t>();
+
+			        total_counter++;
+			        if (response == answer) total_match++;
+			    }
+			    total_loss += loss.item<float>();
+			    iteration++;
+			}
+			// (3) Calculate Average Loss
+			float ave_loss = total_loss / (float)iteration;
+
+			// (4) Calculate Accuracy
+			float total_accuracy = (float)total_match / (float)total_counter;
+			std::cout << "Validation accuracy: " << total_accuracy << std::endl << std::endl;
+		}
+	}
+
+	//
+	if( test ) {
+		std::cout << "--------------- Testing --------------------\n";
+		std::string test_dataroot = "./data/CIFAR10/test";
+		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
+
+		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, 1, false, 0);
+
+		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
+
+		float  ave_loss = 0.0;
+		size_t match = 0;
+		size_t counter = 0;
+		std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> data;
+		std::vector<size_t> class_match = std::vector<size_t>(class_num, 0);
+		std::vector<size_t> class_counter = std::vector<size_t>(class_num, 0);
+		std::vector<float> class_accuracy = std::vector<float>(class_num, 0.0);
+
+	    model->eval();
+	    while( test_dataloader(data) ){
+	        image = std::get<0>(data).to(device);
+	        label = std::get<1>(data).to(device);
+	        output = model->forward(image);
+	        auto out = torch::nn::functional::log_softmax(output, 1);
+
+	        loss = criterion(out, label);
+
+	        ave_loss += loss.item<float>();
+
+	        output = output.exp();
+
+	        int64_t response = output.argmax(1).item<int64_t>();
+
+	        int64_t answer = label[0].item<int64_t>();
+	        counter += 1;
+	        class_counter[answer]++;
+
+	        if (response == answer){
+	        	class_match[answer]++;
+	            match += 1;
+	        }
+	    }
+
+	    // (7.1) Calculate Average
+	    ave_loss = ave_loss / (float)dataset.size();
+
+	    // (7.2) Calculate Accuracy
+	    std::cout << "Test accuracy ==========\n";
+	    for (size_t i = 0; i < class_num; i++){
+	    	class_accuracy[i] = (float)class_match[i] / (float)class_counter[i];
+	    	std::cout << class_names[i] << ": " << class_accuracy[i] << "\n";
+	    }
+	    float accuracy = (float)match / float(counter);
+	    std::cout << "\nTest accuracy: " << accuracy << std::endl;
+	}
+
+    std::cout << "Done!\n";
 }
+
+
