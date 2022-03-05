@@ -41,6 +41,8 @@ data/17_flowers/
 data/flickr_8k/
 data/facades/
 data/ADEChallengeData/
+test_result/
+checkpoints/
 
 # Model files
 models/*.pt
