@@ -130,7 +130,7 @@ int main() {
 	size_t start_epoch, total_epoch;
 	start_epoch = 1;
 	total_iter = dataloader.get_count_max();
-	total_epoch = 30;
+	total_epoch = 3;
 
 	bool first = true;
 	std::vector<float> train_loss_ave;
@@ -174,7 +174,7 @@ int main() {
 		// ---------------------------------
 		// validation
 		// ---------------------------------
-		if( valid && (epoch % 5 == 0) ) {
+		if( valid && (epoch % 1 == 0) ) {
 			std::cout << "--------------- validation --------------------\n";
 			model->eval();
 			size_t iteration = 0;

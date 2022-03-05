@@ -19,8 +19,6 @@ list(APPEND requiredlibs "jsoncpp") # link to libjsoncpp.so/libjsoncpp.a
 list(APPEND requiredlibs ${PNG_LIBRARIES})
 list(APPEND requiredlibs ${OpenMP_CXX_LIBRARIES})
 
-find_package(OpenMP)
-
 if(OpenMP_CXX_FOUND)
     list(APPEND requiredlibs "OpenMP::OpenMP_CXX")
 endif()

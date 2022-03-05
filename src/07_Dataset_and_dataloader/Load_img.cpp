@@ -26,11 +26,10 @@ int main() {
 			return 0;
 		} else {
 			// Display the image
-			/*
 			cv::namedWindow("Original Image");
 			cv::imshow("Original Image",image);
 			cv::waitKey(0);
-			*/
+
 		}
 	}
 //	std::string dir = "ttfolder";
@@ -78,7 +77,6 @@ int main() {
 
 	closedir(dp);
 */
-
 
 	return 0;
 }

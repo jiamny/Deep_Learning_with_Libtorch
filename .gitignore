@@ -39,7 +39,8 @@ data/DogsVSCats/
 data/CelebA/
 data/17_flowers/
 data/flickr_8k/
-
+data/facades/
+data/ADEChallengeData/
 
 # Model files
 models/*.pt
@@ -81,7 +82,6 @@ cmake-build-*/
 src/14_NeuralStyleTransfer/style_transfer/output/*.png
 src/18_RecurrentNeuralNetwork/RNN_LM/output/*txt
 
-
 # Notebooks
 .ipynb_checkpoints
 
@@ -89,3 +89,4 @@ src/18_RecurrentNeuralNetwork/RNN_LM/output/*txt
 extern/*
 !extern/CMakeLists.txt
 .vscode/
+

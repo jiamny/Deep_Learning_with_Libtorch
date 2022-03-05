@@ -106,6 +106,7 @@ add_subdirectory("src/16_Autoencoder")
 add_subdirectory("src/17_ImageCaptioning")
 add_subdirectory("src/18_RecurrentNeuralNetwork")
 add_subdirectory("src/19_ObjectDetection")
-
+add_subdirectory("src/20_Img-to-Img_Translation")
+#add_subdirectory("src/21_Semantic_Segmentation")
 
 
