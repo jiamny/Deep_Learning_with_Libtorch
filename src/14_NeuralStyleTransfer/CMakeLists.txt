@@ -4,6 +4,7 @@ project(neural-style-transfer VERSION 1.0.0 LANGUAGES CXX)
 
 set(EXECUTABLE_NAME 14_style_transfer)
 
+# -----------------------------------------------------------------------------------------
 add_executable(${EXECUTABLE_NAME})
 target_sources(${EXECUTABLE_NAME} PRIVATE style_transfer/main.cpp
                                           style_transfer/vggnet.cpp

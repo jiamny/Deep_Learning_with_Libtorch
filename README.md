@@ -4,9 +4,9 @@ Collected deep learning projects with LibTorch C++
 
 ## Dependency
 
-- cmake 3.16+
+- cmake 3.20+
 
-- PyTorch 1.10.1
+- PyTorch 1.11.0
 
 - python3.8
 
@@ -33,6 +33,8 @@ Collected deep learning projects with LibTorch C++
 - [pytorch_cpp](https://github.com/koba-jon/pytorch_cpp)
 
 - [torchvision](https://github.com/pytorch/vision)
+
+- [How to eat Pytorch in 20 days ?](https://github.com/lyhue1991/eat_pytorch_in_20_days)
 
 - [pytorch-tutorials-examples-and-books](https://github.com/bat67/pytorch-tutorials-examples-and-books)
 

@@ -34,8 +34,8 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lm -ldl")
 
+# -----------------------------------------------------------------------------------------
 add_executable(08_LoadByInfoFile)
-
 target_sources(08_LoadByInfoFile PRIVATE LoadByInfoFile.cpp dataSet.h dataSet.cpp)
 
 target_link_libraries(08_LoadByInfoFile ${TORCH_LIBRARIES} ${OpenCV_LIBS})
@@ -45,9 +45,8 @@ set_target_properties(08_LoadByInfoFile PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
-
+# -----------------------------------------------------------------------------------------
 add_executable(08_LoadWithSplitRatio)
-
 target_sources(08_LoadWithSplitRatio PRIVATE LoadWithSplitRatio.cpp dataSet.h dataSet.cpp)
 
 target_link_libraries(08_LoadWithSplitRatio ${TORCH_LIBRARIES} ${OpenCV_LIBS})
@@ -58,9 +57,8 @@ set_target_properties(08_LoadWithSplitRatio PROPERTIES
 )
 
 # data already splitted in train/test/valid
-
+# -----------------------------------------------------------------------------------------
 add_executable(08_LoadInSplitFolder)
-
 target_sources(08_LoadInSplitFolder PRIVATE LoadInSplitFolder.cpp dataSet.h dataSet.cpp)
 
 target_link_libraries(08_LoadInSplitFolder ${TORCH_LIBRARIES} ${OpenCV_LIBS})
@@ -71,9 +69,8 @@ set_target_properties(08_LoadInSplitFolder PROPERTIES
 )
 
 # data already in folder
-
+# -----------------------------------------------------------------------------------------
 add_executable(08_LoadFromFolder)
-
 target_sources(08_LoadFromFolder PRIVATE LoadFromFolder.cpp dataSet.h dataSet.cpp)
 
 target_link_libraries(08_LoadFromFolder ${TORCH_LIBRARIES} ${OpenCV_LIBS})

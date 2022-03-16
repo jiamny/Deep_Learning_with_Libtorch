@@ -14,7 +14,7 @@
 #include <torch/script.h>
 #include <torch/torch.h>
 
-#include <torch/csrc/WindowsTorchApiMacro.h>
+//#include <torch/csrc/WindowsTorchApiMacro.h>
 
 #include <cstddef>
 #include <string>

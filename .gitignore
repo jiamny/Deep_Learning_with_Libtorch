@@ -56,6 +56,7 @@ src/17_ImageCaptioning/model/*.pt
 src/19_ObjectDetection/YOLOv4/dataset/
 src/19_ObjectDetection/YOLOv4/weights/*.pt
 src/19_ObjectDetection/YOLOv5/*.pt
+src/21_Semantic_Segmentation/*.pt
 
 # CMake
 CMakeLists.txt.user

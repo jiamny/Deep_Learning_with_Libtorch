@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <iomanip>
 
-void print_tensor_size(const torch::Tensor&);
+
 void print_script_module(const torch::jit::script::Module& module, size_t spaces = 0);
 
 int main() {

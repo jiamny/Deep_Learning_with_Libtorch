@@ -4,6 +4,7 @@ project(image-captioning VERSION 1.0.0 LANGUAGES CXX)
 
 set(EXECUTABLE_NAME 17_image-captioning)
 
+# -----------------------------------------------------------------------------------------
 add_executable(${EXECUTABLE_NAME})
 target_sources(${EXECUTABLE_NAME} PRIVATE src/main.cpp
                                           include/vocabulary.h

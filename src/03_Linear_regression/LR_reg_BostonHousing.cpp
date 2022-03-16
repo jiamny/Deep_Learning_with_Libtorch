@@ -7,7 +7,7 @@
 #include <iostream>
 #include <torch/torch.h>
 #include <exception>
-#include "csvloader.h"
+#include "../csvloader.h"
 #include <unistd.h>
 
 // for slice/subset tensor
@@ -135,10 +135,10 @@ int main(int argc, char** argv) {
 	// Data created
 	// Convert vectors to a tensor
 	// These fields should not be hardcoded (506, 1, 13)
-	auto train_label = torch::from_blob(trainLabel.data(), {int(trainLabel.size()), 1});
-	auto train_data = torch::from_blob(trainData.data(), {int(trainLabel.size()), int(trainData.size()/trainLabel.size())});
-	std::cout << "szie = " << train_label.data().sizes() << "\n";
-	std::cout << "szie = " << train_data.data().size(0) << "\n";
+	auto train_label = torch::from_blob(trainLabel.data(), {int(trainLabel.size()), 1}).clone();
+	auto train_data = torch::from_blob(trainData.data(), {int(trainLabel.size()), int(trainData.size()/trainLabel.size())}).clone();
+	std::cout << "size = " << train_label.data().sizes() << "\n";
+	std::cout << "size = " << train_data.data().size(0) << "\n";
 
 	// Create Network
 	auto net = std::make_shared<Net>(int(train_data.sizes()[1]), 1);

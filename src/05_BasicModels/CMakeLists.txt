@@ -5,6 +5,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lm -ldl")
 
+# -----------------------------------------------------------------------------------------
 add_executable(05_BasicModels)
 target_sources(05_BasicModels PRIVATE main.cpp
                                    BaseModule.h

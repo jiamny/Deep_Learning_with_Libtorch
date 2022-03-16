@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 project(Deep_learning_with_pytorch VERSION 1.0.0 LANGUAGES CXX)
 
@@ -7,7 +7,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(DOWNLOAD_DATASETS "Automatically download required datasets at build-time." OFF)
 option(CREATE_SCRIPTMODULES "Automatically create all required scriptmodule files at build-time (requires python3)." OFF)
 
-set(PYTORCH_VERSION "1.10.1")
+set(PYTORCH_VERSION "1.11.0")
 
 set(CMAKE_CXX_STANDARD 14)
 #--------------------------------------------------------------------------------------------
@@ -107,6 +107,6 @@ add_subdirectory("src/17_ImageCaptioning")
 add_subdirectory("src/18_RecurrentNeuralNetwork")
 add_subdirectory("src/19_ObjectDetection")
 add_subdirectory("src/20_Img-to-Img_Translation")
-#add_subdirectory("src/21_Semantic_Segmentation")
+add_subdirectory("src/21_Semantic_Segmentation")
 
 

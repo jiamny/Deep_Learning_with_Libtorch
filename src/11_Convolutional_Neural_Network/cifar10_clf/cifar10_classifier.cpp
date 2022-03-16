@@ -12,7 +12,7 @@ int main() {
     std::cout << "Training a Classifier\n\n";
 
     // Loading and normalizing CIFAR10
-    const std::string CIFAR_data_path = "/root/cifar";
+    const std::string CIFAR_data_path = "./data/cifar";
 
     auto train_dataset = CIFAR10(CIFAR_data_path)
         .map(torch::data::transforms::Normalize<>({0.5, 0.5, 0.5}, {0.5, 0.5, 0.5}))

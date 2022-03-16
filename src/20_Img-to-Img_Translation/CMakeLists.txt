@@ -21,9 +21,7 @@ find_package(PNG REQUIRED)
 list(APPEND requiredlibs ${PNG_LIBRARIES})
 
 #----------------------------------------------------------------------------------
-
 add_executable(20_pix2pix_demo)
-
 target_sources(20_pix2pix_demo PRIVATE 
 	pix2pix/pix2pix_demo.cpp 
 	pix2pix/networks.hpp
@@ -47,7 +45,6 @@ set_target_properties(20_pix2pix_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_RE
 
 # -----------------------------------------------------------------------------------------
 add_executable(20_U-Net_Regression_demo)
-
 target_sources(20_U-Net_Regression_demo PRIVATE 
 	U-Net_Regression/U-Net_Regression_demo.cpp 
 	U-Net_Regression/networks.hpp

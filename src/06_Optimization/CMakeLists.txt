@@ -14,8 +14,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(Eigen3 REQUIRED)
 
-add_executable(06_TrainPPO TrainPPO.cpp)
-
+# -----------------------------------------------------------------------------------------
+add_executable(06_TrainPPO)
 target_sources(06_TrainPPO PRIVATE TrainPPO.cpp
                                 ProximalPolicyOptimization.h
                                 Models.h
@@ -30,7 +30,7 @@ set_target_properties(06_TrainPPO PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
-
+# -----------------------------------------------------------------------------------------
 add_executable(06_TestPPO TestPPO.cpp) 
 target_sources(06_TestPPO PRIVATE TestPPO.cpp
                                ProximalPolicyOptimization.h

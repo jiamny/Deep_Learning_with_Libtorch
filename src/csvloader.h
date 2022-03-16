@@ -150,7 +150,8 @@ std::pair<std::vector<float>, std::vector<float>> process_data(
 
 	while (file >> row) {
 		features.emplace_back();
-		for (std::size_t loop = 0; loop < row.size(); ++loop) {
+		// last column is label
+		for (std::size_t loop = 0; loop < (row.size() - 1); ++loop) {
 			features.back().emplace_back(row[loop]);
 		}
 		features.back() = normalize_feature(features.back());
@@ -193,7 +194,8 @@ void process_split_data(std::ifstream &file, std::unordered_set<int> train_idx,
 
 		if (train_idx.count(j)) {
 			trainData.emplace_back();
-			for (std::size_t loop = 0; loop < row.size(); ++loop) {
+			// last column for label
+			for (std::size_t loop = 0; loop < (row.size() - 1); ++loop) {
 				trainData.back().emplace_back(row[loop]);
 			}
 			trainData.back() = normalize_feature(trainData.back());
@@ -202,7 +204,8 @@ void process_split_data(std::ifstream &file, std::unordered_set<int> train_idx,
 			trainLabel.push_back(row[row.size() - 1]);
 		} else {
 			testData.emplace_back();
-			for (std::size_t loop = 0; loop < row.size(); ++loop) {
+			// last column for label
+			for (std::size_t loop = 0; loop < (row.size() - 1); ++loop) {
 				testData.back().emplace_back(row[loop]);
 			}
 			testData.back() = normalize_feature(testData.back());

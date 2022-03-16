@@ -46,4 +46,6 @@ int main() {
     }
 
     std::cout << "Training finished!\n";
+
+    return 0;
 }

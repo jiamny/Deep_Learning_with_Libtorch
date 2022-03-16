@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
+# -----------------------------------------------------------------------------------------
 add_executable(18_RNN)
 target_sources(18_RNN PRIVATE RNN/main.cpp
                               RNN/rnn.cpp
@@ -13,6 +14,7 @@ set_target_properties(18_RNN PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
+# -----------------------------------------------------------------------------------------
 add_executable(18_bi_RNN)
 target_sources(18_bi_RNN PRIVATE bi_RNN/main.cpp
                                  bi_RNN/bi_rnn.cpp
@@ -26,6 +28,7 @@ set_target_properties(18_bi_RNN PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
+# -----------------------------------------------------------------------------------------
 add_executable(18_RNN_LM)
 target_sources(18_RNN_LM PRIVATE RNN_LM/main.cpp
                                  RNN_LM/rnn_lm.cpp

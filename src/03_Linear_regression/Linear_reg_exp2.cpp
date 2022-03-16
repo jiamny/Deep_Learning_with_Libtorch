@@ -47,5 +47,7 @@ int main() {
         epoch_loss /= 10;
         std::cout << "loss: " << epoch_loss << std::endl;
     }
+
+    return 0;
 }
 

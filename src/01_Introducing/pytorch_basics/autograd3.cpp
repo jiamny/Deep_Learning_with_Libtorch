@@ -7,7 +7,7 @@ void basic_autograd_operations_example() {
   std::cout << "====== Running: \"Basic autograd operations\" ======" << std::endl;
 
   // Create a tensor and set ``torch::requires_grad()`` to track computation with it
-  auto x = torch::ones({2, 2}, torch::requires_grad());
+  auto x = torch::ones({2, 2}, torch::requires_grad(true));
   std::cout << x << std::endl;
 
   // Do a tensor operation:
@@ -45,7 +45,7 @@ void basic_autograd_operations_example() {
   std::cout << x.grad() << std::endl;
 
   // Now let's take a look at an example of vector-Jacobian product:
-  x = torch::randn(3, torch::requires_grad());
+  x = torch::randn(3, torch::requires_grad(true));
 
   y = x * 2;
   while (y.norm().item<double>() < 1000) {

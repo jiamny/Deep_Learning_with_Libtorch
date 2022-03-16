@@ -22,18 +22,18 @@ torch::Tensor read_data(std::string loc) {
 
 /* Converts label to tensor type in the integer argument */
 torch::Tensor read_label(int label) {
-  // Read label here
-  // Convert to tensor and return
-  torch::Tensor label_tensor = torch::full({1}, label);
+    // Read label here
+    // Convert to tensor and return
+    torch::Tensor label_tensor = torch::full({1}, label);
 	return label_tensor.clone();
 }
 
 /* Loads images to tensor type in the string argument */
-vector<torch::Tensor> process_images(vector<string> list_images) {
-  cout << "Reading Images..." << endl;
-  // Return vector of Tensor form of all the images
-  vector<torch::Tensor> states;
-	for (std::vector<string>::iterator it = list_images.begin(); it != list_images.end(); ++it) {
+std::vector<torch::Tensor> process_images(std::vector<std::string> list_images) {
+    std::cout << "Reading Images..." << std::endl;
+    // Return vector of Tensor form of all the images
+    std::vector<torch::Tensor> states;
+	for (std::vector<std::string>::iterator it = list_images.begin(); it != list_images.end(); ++it) {
 		torch::Tensor img = read_data(*it);
 		states.push_back(img);
 	}
@@ -41,10 +41,10 @@ vector<torch::Tensor> process_images(vector<string> list_images) {
 }
 
 /* Loads labels to tensor type in the string argument */
-vector<torch::Tensor> process_labels(vector<string> list_labels) {
-  cout << "Reading Labels..." << endl;
-  // Return vector of Tensor form of all the labels
-  vector<torch::Tensor> labels;
+std::vector<torch::Tensor> process_labels(std::vector<std::string> list_labels) {
+	std::cout << "Reading Labels..." << std::endl;
+    // Return vector of Tensor form of all the labels
+	std::vector<torch::Tensor> labels;
 	for (std::vector<int>::iterator it = list_labels.begin(); it != list_labels.end(); ++it) {
 		torch::Tensor label = read_label(*it);
 		labels.push_back(label);
@@ -55,10 +55,10 @@ vector<torch::Tensor> process_labels(vector<string> list_labels) {
 class CustomDataset : public torch::data::dataset<CustomDataset> {
 private:
   // Declare 2 vectors of tensors for images and labels
-  vector<torch::Tensor> images, labels;
+	std::vector<torch::Tensor> images, labels;
 public:
   // Constructor
-  CustomDataset(vector<string> list_images, vector<string> list_labels) {
+  CustomDataset(std::vector<std::string> list_images, std::vector<std::string> list_labels) {
     images = process_images(list_images);
     labels = process_labels(list_labels);
   };
@@ -77,8 +77,8 @@ public:
 };
 
 int main(int argc, char** argv) {
-  vector<string> list_images; // list of path of images
-  vector<int> list_labels; // list of integer labels
+	std::vector<std::string> list_images; // list of path of images
+	std::vector<int> list_labels; 		  // list of integer labels
 
   // Dataset init and apply transforms - None!
   auto custom_dataset = CustomDataset(list_images, list_labels).map(torch::data::transforms::Stack<>());
