@@ -14,42 +14,6 @@ namespace plt = matplotlibcpp;
 using torch::indexing::Slice;
 using torch::indexing::None;
 
-/*
-// 构建数据管道迭代器
-std::list<std::pair<torch::Tensor, torch::Tensor>> data_iter(torch::Tensor X, torch::Tensor Y, int64_t batch_size=8) {
-	int64_t num_examples = X.size(0);
-	std::list<std::pair<torch::Tensor, torch::Tensor>> batched_data;
-	// data index
-	std::vector<int64_t> index;
-	for (int64_t i = 0; i < num_examples; ++i) {
-		index.push_back(i);
-	}
-	std::random_shuffle(index.begin(), index.end());
-	//std::copy(index.begin(), index.end(), std::ostream_iterator<int64_t>(std::cout, " "));
-	//std::cout << "\n";
-
-	//int cnt = 0;
-	for (int64_t i = 0; i < index.size(); i +=batch_size) {
-		std::vector<int64_t>::const_iterator first = index.begin() + i;
-		std::vector<int64_t>::const_iterator last = index.begin() + std::min(i + batch_size, num_examples);
-		std::vector<int64_t> indices(first, last);
-		//std::copy(indices.begin(), indices.end(), std::ostream_iterator<int64_t>(std::cout, " "));
-		//std::cout << "\n";
-		int64_t idx_size = indices.size();
-		torch::Tensor idx = (torch::from_blob(indices.data(), {idx_size}, torch::kInt64)).clone();
-		//std::cout << "idx:\n" << idx << "\n";
-		auto batch_x = X.index_select(0, idx);
-		auto batch_y = Y.index_select(0, idx);
-		//std::cout << "batch_x:\n" << batch_x << "\n";
-		//std::cout << "batch_y:\n" << batch_y << "\n";
-		//cnt++;
-		batched_data.push_back(std::make_pair(batch_x, batch_y));
-	}
-	//std::cout << "cnt: " << cnt << "\n";
-	return( batched_data );
-}
-*/
-
 // 定义模型
 struct LinearRegression : public torch::nn::Module {
 	torch::Tensor w;

@@ -72,12 +72,12 @@ int main(int argc, char *argv[]) {
 	// ------------------------------------------------------
     cv::Mat image = cv::imread("./src/21_Semantic_Segmentation/voc_person_seg/val/2007_004000.jpg");
 
-    Segmentor<FPN> segmentor;
-    segmentor.Initialize(-1,512,512,{"background","person"},
+    Segmentor<FPN> segmentor2;
+    segmentor2.Initialize(-1,512,512,{"background","person"},
     	                         "resnet34","./src/21_Semantic_Segmentation/weights/resnet34.pt");
 
-    segmentor.LoadWeight("./src/21_Semantic_Segmentation/segmentor.pt");
-    segmentor.Predict(image,"person", "./src/21_Semantic_Segmentation");
+    segmentor2.LoadWeight("./src/21_Semantic_Segmentation/segmentor.pt");
+    segmentor2.Predict(image,"person", "./src/21_Semantic_Segmentation");
 
     std::cout << "Done!\n";
     return 0;

@@ -36,6 +36,8 @@ Collected deep learning projects with LibTorch C++
 
 - [How to eat Pytorch in 20 days ?](https://github.com/lyhue1991/eat_pytorch_in_20_days)
 
+- [PyTorch_Tutorial](https://github.com/tensor-yu/PyTorch_Tutorial)
+
 - [pytorch-tutorials-examples-and-books](https://github.com/bat67/pytorch-tutorials-examples-and-books)
 
 - [pytorch-cifar](https://github.com/kuangliu/pytorch-cifar)

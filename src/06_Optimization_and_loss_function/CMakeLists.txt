@@ -50,8 +50,18 @@ add_executable(06_simple_optimization_example)
 target_sources(06_simple_optimization_example PRIVATE simple_optimization_example.cpp)
 
 target_link_libraries(06_simple_optimization_example ${TORCH_LIBRARIES})
+set_target_properties(06_simple_optimization_example PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
 
-set_target_properties(06_simple_optimization_example PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+# -------------------------------------------------------------------------------------------
+add_executable(06_Loss_function) 
+target_sources(06_Loss_function PRIVATE Loss_function.cpp
+										../matplotlibcpp.h 
+										../LRdataset.h
+										../LRdataset.cpp)
+
+target_include_directories(06_Loss_function PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(06_Loss_function ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+
+set_target_properties(06_Loss_function PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
+
+

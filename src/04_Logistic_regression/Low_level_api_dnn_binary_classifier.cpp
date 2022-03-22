@@ -86,6 +86,7 @@ int main() {
 	//汇总样本
 	auto X = torch::cat({Xp,Xn}, 0);
 	auto Y = torch::cat({Yp,Yn}, 0);
+	//std::cout << "Y:\n" << Y << "\n";
 
 	//可视化
 	plt::figure_size(800,800);
@@ -101,6 +102,7 @@ int main() {
 	plt::scatter(xxn, yyn, 5.0, {{"c", "g"}, {"label", "negative"}});
 	plt::legend();
 	plt::show();
+	plt::close();
 
 	// 测试数据管道效果
 	int64_t batch_size = 8;
@@ -116,8 +118,8 @@ int main() {
 
 	torch::Tensor predictions = model.forward(features);
 
-	torch::Tensor loss = model.loss_func(labels,predictions);
-	torch::Tensor metric = model.metric_func(labels,predictions);
+	torch::Tensor loss = model.loss_func(predictions, labels);
+	torch::Tensor metric = model.metric_func(predictions, labels);
 
 	std::cout << "init loss: " <<  loss.item<float>() << std::endl;
 	std::cout << "init metric: " <<  metric.item<float>() << std::endl;
@@ -162,7 +164,7 @@ int main() {
 
 		if( (epoch+1) % 20 == 0 ) {
 		    std::cout << "epoch = " << (epoch+1) << ", loss = " << loss_list/n_batch
-		              << ", acc =" << metric_list/n_batch << std::endl;
+		              << ", acc = " << metric_list/n_batch << std::endl;
 		}
 	}
 
