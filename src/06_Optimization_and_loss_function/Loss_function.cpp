@@ -319,7 +319,7 @@ int main() {
 	if( show_plot ) {
 		// # 结果可视化
 		plt::figure_size(1200,500);
-		plt::subplot(1,2,1);
+		plt::subplot2grid(1, 2, 0, 0, 1, 1);
 		auto xp = Xp.index({Slice(),0});
 		auto yp = Xp.index({Slice(),1});
 		auto xn = Xn.index({Slice(),0});
@@ -333,7 +333,7 @@ int main() {
 		plt::legend();
 		plt::title("y_true");
 
-		plt::subplot(1,2,2);
+		plt::subplot2grid(1, 2, 0, 1, 1, 1);
 		auto idx = torch::where(model.forward(X) >= 0.5);
 		//std::cout << torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]) << std::endl;
 		auto Xp_pred = torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]);

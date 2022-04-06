@@ -294,6 +294,7 @@ int main() {
 	plt::xlabel("epoch");
 	plt::legend();
 	plt::show();
+	plt::close();
 
     std::cout << "Done!\n";
 }

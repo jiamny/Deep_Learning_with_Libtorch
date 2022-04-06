@@ -34,7 +34,7 @@ int main() {
     const size_t num_epochs = 50;
     const double learning_rate = 0.001;
 
-    const std::string FASHION_data_path = "/root/MNIST/fashion/";
+    const std::string FASHION_data_path = "./data/fashion/";
 
     // MNIST custom dataset
     auto train_dataset = FASHION(FASHION_data_path, FASHION::Mode::kTrain)

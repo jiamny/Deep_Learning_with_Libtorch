@@ -64,7 +64,7 @@ int main() {
 
 	// 数据可视化
 	plt::figure_size(800, 600);
-//	plt::subplot(1, 2, 1);
+//	plt::subplot2grid(1, 2, 0, 0, 1, 1);
 	auto x1 = X.data().index({Slice(), 0});
 //	std::cout << "x1:\n" << x1 << std::endl;
 	auto y1 = Y.index({Slice(), 0});
@@ -77,7 +77,7 @@ int main() {
 	plt::show();
 	plt::close();
 /*
-	plt::subplot(1, 2, 2);
+	plt::subplot2grid(1, 2, 0, 1, 1, 1);
 	auto x2 = X.data().index({Slice(), 1});
 	std::vector<float> xx2(x2.data_ptr<float>(), x2.data_ptr<float>() + x2.numel());
 	plt::scatter(xx2, yy, 5.0, {{"c", "r"}, {"label", "samples"}});
@@ -133,7 +133,7 @@ int main() {
 	}
 
 	plt::figure_size(800, 600);
-//	plt::subplot(1,2,1);
+//  plt::subplot2grid(1, 2, 0, 0, 1, 1);
 	plt::scatter(xx, yy, 5.0, {{"c", "g"}, {"label", "samples"}});
 	auto yp = model.w[0].data()*X.index({Slice(), 0})+model.b[0].data();
 	std::vector<float> yyp(yp.data_ptr<float>(), yp.data_ptr<float>() + yp.numel());
@@ -144,7 +144,7 @@ int main() {
     plt::show();
   	plt::close();
 /*
-    plt::subplot(1, 2, 2);
+    plt::subplot2grid(1, 2, 0, 1, 1, 1);
     plt::scatter(xx2, yy, 2.0, {{"c", "g"}, {"label", "samples"}});
     yp = model.w[1].data()*X.index({Slice(), 1})+model.b[0].data();
     std::vector<float> yyp2(yp.data_ptr<float>(), yp.data_ptr<float>() + yp.numel());

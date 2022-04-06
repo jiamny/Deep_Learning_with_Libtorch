@@ -1134,14 +1134,16 @@ bool plot(const std::vector<NumericX>& x, const std::vector<NumericY>& y, const 
 }
 
 template <typename NumericX, typename NumericY, typename NumericZ>
-bool contour(const std::vector<NumericX>& x, const std::vector<NumericY>& y,
-             const std::vector<NumericZ>& z,
+bool contour(const std::vector<std::vector<NumericX>>& x, const std::vector<std::vector<NumericY>>& y,
+             const std::vector<std::vector<NumericZ>>& z,
              const std::map<std::string, std::string>& keywords = {}) {
     assert(x.size() == y.size() && x.size() == z.size());
 
-    PyObject* xarray = get_array(x);
-    PyObject* yarray = get_array(y);
-    PyObject* zarray = get_array(z);
+    detail::_interpreter::get();
+
+    PyObject* xarray = detail::get_2darray(x); //detail::get_array(x);
+    PyObject* yarray = detail::get_2darray(y); //detail::get_array(y);
+    PyObject* zarray = detail::get_2darray(z); //detail::get_array(z);
 
     PyObject* plot_args = PyTuple_New(3);
     PyTuple_SetItem(plot_args, 0, xarray);

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 project(Deep_Learning_with_PyTorch_CPP VERSION 1.0.0 LANGUAGES CXX)
 
@@ -11,12 +11,11 @@ find_package(PNG REQUIRED)
 
 include_directories(${PNG_INCLUDE_DIRS})
 
-set(requiredlibs "python3.8")
+set(requiredlibs "python3.9")
 list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
 list(APPEND requiredlibs "png")
-list(APPEND requiredlibs "jsoncpp") # link to libjsoncpp.so/libjsoncpp.a
 
 list(APPEND requiredlibs ${PNG_LIBRARIES})
 list(APPEND requiredlibs ${OpenMP_CXX_LIBRARIES})

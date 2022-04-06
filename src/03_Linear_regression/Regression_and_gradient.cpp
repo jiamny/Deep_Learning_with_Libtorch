@@ -41,7 +41,7 @@ int main() {
     		w_target[0].item<double>(), w_target[1].item<double>(), w_target[2].item<double>()); // 打印出函数的式子
 
     plt::figure_size(1200, 800);
-    plt::subplot(2, 2, 1); // 2 rows, 2 column, first plot
+    plt::subplot2grid(2, 2, 0, 0, 1, 1);  // 2 rows, 2 column,
 
     // 画出这个函数的曲线
     auto x_sample = torch::arange(-3.0, 3.1, 0.1, dtype_option);
@@ -84,7 +84,7 @@ int main() {
 //std::cout << xx2 << '\n';
 	std::vector<double> yy2(y_pred.data_ptr<double>(), y_pred.data_ptr<double>() + y_pred.numel());
 
-	plt::subplot(2, 2, 2);
+	plt::subplot2grid(2, 2, 0, 1, 1, 1);
 	plt::named_plot("real curve", xx, yy, "r");
 	plt::named_plot("pred curve", xx, yy2, "b");
 	plt::legend();
@@ -112,7 +112,7 @@ int main() {
 	// 画出更新一次之后的模型
 	auto y_pred2 = multi_linear(x_train, w, b);
 
-	plt::subplot(2, 2, 3);
+	plt::subplot2grid(2, 2, 1, 0, 1, 1);
 	std::vector<double> yy3(y_pred2.data_ptr<double>(), y_pred2.data_ptr<double>() + y_pred2.numel());
 	plt::named_plot("fitting curve", xx, yy3, "b");
 	plt::named_plot("real curve", xx, yy, "r");
@@ -145,7 +145,7 @@ int main() {
 	// 画出更新之后的结果
 	auto y_pred3 = multi_linear(x_train, w, b);
 
-	plt::subplot(2,2,4);
+	plt::subplot2grid(2, 2, 1, 1, 1, 1);
 	std::vector<double> yy4(y_pred3.data_ptr<double>(), y_pred3.data_ptr<double>() + y_pred3.numel());
 	plt::named_plot("fitting curve", xx, yy4, "b");
 	plt::named_plot("real curve", xx, yy, "r");

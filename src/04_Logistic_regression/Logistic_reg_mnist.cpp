@@ -36,7 +36,7 @@ int main() {
     const size_t num_epochs = 20;
     const double learning_rate = 0.001;
 
-    const std::string MNIST_data_path = "/root/MNIST/fashion/";
+    const std::string MNIST_data_path = "./data/fashion/";
 
     // MNIST Dataset (images and labels)
     auto train_dataset = torch::data::datasets::MNIST(MNIST_data_path)
@@ -147,6 +147,7 @@ int main() {
     plt::figure_size(1600, 900);
     auto dtype_option = torch::TensorOptions().dtype(torch::kDouble).device(torch::kCPU);
 
+    int rid = 0, cid = 0;
     for (auto& batch : *test_loader) {
     	auto data = batch.data.view({batch_size, -1}).to(device);;
     	auto target = batch.target.to(device);
@@ -170,7 +171,9 @@ int main() {
 
         	int pred_type_id = prediction.data()[j].item<int64_t>();
 
-        	plt::subplot(3, 4, (j - 10 + 1)); // 3 rows, 4 column, first plot
+        	cid = (j - 10) % 4;
+        	rid = static_cast<int>(std::ceil((j - 10) / 4));
+        	plt::subplot2grid(3, 4, rid, cid, 1, 1); // 3 rows, 4 column
         	int ncols = 28, nrows = 28;
         	std::vector<float> z(image.data_ptr<double>(), image.data_ptr<double>() + image.numel());;
         	const float* zptr = &(z[0]);

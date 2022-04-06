@@ -4,23 +4,21 @@ Collected deep learning projects with LibTorch C++
 
 ## Dependency
 
-- cmake 3.20+
+- cmake 3.18+
 
 - PyTorch 1.11.0
 
-- python3.8
+- python3.9
 
-- opencv 4.5.3
+- opencv 4.5.3/4.5.5
 
 - matplotlib-cpp
 
-- jsoncpp
-
 - png++
 
-- ubuntu 20.04
+- ubuntu 21.10
 
-- gcc-9/g++-9 for C++ 17
+- gcc-11/g++-11 for C++ 17
 
 ## Image data
 

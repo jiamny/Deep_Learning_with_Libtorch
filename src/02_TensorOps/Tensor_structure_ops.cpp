@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <vector>
 
-
 int main() {
 	std::cout << "Current path is " << get_current_dir_name() << '\n';
 

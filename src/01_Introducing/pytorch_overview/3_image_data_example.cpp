@@ -204,6 +204,7 @@ int main() {
 	plt::ylabel("loss");
 	plt::legend();
 	plt::show();
+	plt::close();
 
 	std::cout << "Done!\n";
 	return 0;

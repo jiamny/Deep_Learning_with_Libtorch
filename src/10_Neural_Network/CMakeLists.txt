@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 find_package(Python3 COMPONENTS Development NumPy)
 
 add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
 
-set(requiredlibs "python3.8")
+set(requiredlibs "python3.9")
 list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
@@ -65,6 +65,18 @@ target_include_directories(10_function_approx PRIVATE ${Python3_INCLUDE_DIRS} ${
 target_link_libraries(10_function_approx ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(10_function_approx PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+)
+
+# -----------------------------------------------------------------------------------------
+add_executable(10_DefineModel)
+target_sources(10_DefineModel PRIVATE DefineModel.cpp)
+
+target_include_directories(10_DefineModel PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
+target_link_libraries(10_DefineModel ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+
+set_target_properties(10_DefineModel PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
 )

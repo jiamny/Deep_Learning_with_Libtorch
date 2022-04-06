@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 project(Deep_learning_with_pytorch VERSION 1.0.0 LANGUAGES CXX)
 
@@ -108,5 +108,6 @@ add_subdirectory("src/18_RecurrentNeuralNetwork")
 add_subdirectory("src/19_ObjectDetection")
 add_subdirectory("src/20_Img-to-Img_Translation")
 add_subdirectory("src/21_Semantic_Segmentation")
+add_subdirectory("src/22_Reinforcement_Learning")
 
 

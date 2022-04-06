@@ -125,22 +125,45 @@ std::vector<float> normalize_feature(std::vector<float> feat) {
 	using ConstIter = std::vector<float>::const_iterator;
 	ConstIter max_element; //= *std::max_element(feat.begin(), feat.end());
 	ConstIter min_element; //= *std::min_element(feat.begin(), feat.end());
-	std::tie(min_element, max_element) = std::minmax_element(std::begin(feat),
-			std::end(feat));
+	std::tie(min_element, max_element) = std::minmax_element(std::begin(feat), std::end(feat));
 
-	float extra = *max_element == *min_element ? 1.0 : 0.0;
-	for (auto &val : feat) {
+	float max=*max_element, min=*min_element;
+
+	float extra = max == min ? 1.0 : 0.0;
+	std::vector<float> rlt;
+	for(auto &val : feat) {
 		// max_element - min_element + 1 to avoid divide by zero error
-		val = (val - *min_element) / (*max_element - *min_element + extra);
+		rlt.push_back((val - min) / (max - min + extra));
 	}
 
-	return feat;
+	return rlt;
 }
 
-// This function processes data, Loads CSV file to vectors and normalizes features to (0, 1)
+// Normalize , Formula: (x - mean)/(stdev)
+std::vector<float> normalize_data(std::vector<float> feat) {
+
+	float sum = std::accumulate(std::begin(feat), std::end(feat), 0.0);
+	float m =  sum / feat.size();
+
+	double accum = 0.0;
+	std::for_each (std::begin(feat), std::end(feat), [&](const float d) {
+	    accum += (d - m) * (d - m);
+	});
+
+	double stdev = sqrt(accum / (feat.size()-1));
+
+	std::vector<float> rlt;
+	for(auto &val : feat) {
+		rlt.push_back((val - m) / stdev );
+	}
+
+	return rlt;
+}
+
+// This function processes data, Loads CSV file to vectors and normalizes
 // Assumes last column to be label and first row to be header (or name of the features)
 std::pair<std::vector<float>, std::vector<float>> process_data(
-		std::ifstream &file) {
+		std::ifstream &file, bool normalize_lable=false, bool zscore = false) {
 	std::vector<std::vector<float>> features;
 	std::vector<float> label;
 
@@ -148,38 +171,57 @@ std::pair<std::vector<float>, std::vector<float>> process_data(
 	// Read and throw away the first row.
 	file >> row;
 
+	int64_t n = 0;
+	// last column is label
 	while (file >> row) {
-		features.emplace_back();
-		// last column is label
-		for (std::size_t loop = 0; loop < (row.size() - 1); ++loop) {
-			features.back().emplace_back(row[loop]);
+		if( n == 0 ) {
+			for( std::size_t loop = 0; loop < (row.size() - 1); ++loop ) {
+				std::vector<float> v;
+				v.push_back(row[loop]*1.0);
+				features.push_back(v);
+			}
+
+		} else {
+			for( std::size_t loop = 0; loop < (row.size() - 1); ++loop )
+				features[loop].push_back(row[loop]*1.0);
 		}
-		features.back() = normalize_feature(features.back());
 
 		// Push final column to label vector
 		label.push_back(row[row.size() - 1]);
+		n++;
+	}
+
+	for( int b = 0; b < features.size(); b++ ) {
+		if( zscore ) {
+			features[b] = normalize_data(features[b]);
+		} else {
+			features[b] = normalize_feature(features[b]);
+		}
+	}
+
+	if( normalize_lable ) {
+		if( zscore ) {
+			label = normalize_data(label);
+		} else {
+			label = normalize_feature(label);
+		}
 	}
 
 	// Flatten features vectors to 1D
-	std::vector<float> inputs = features[0];
-	int64_t total = std::accumulate(std::begin(features) + 1,
-			std::end(features), 0UL,
-			[](std::size_t s, std::vector<float> const &v) {
-				return s + v.size();
-			});
-
-	inputs.reserve(total);
-	for (std::size_t i = 1; i < features.size(); i++) {
-		inputs.insert(inputs.end(), features[i].begin(), features[i].end());
+	std::vector<float> inputs;
+	for (std::size_t i = 0; i < features[0].size(); i++) {
+		for( int c = 0; c < features.size(); c++ )
+			inputs.push_back((features[c])[i]);
 	}
+
 	return std::make_pair(inputs, label);
 }
 
 // This function processes data, Loads CSV file to vectors and normalizes features to (0, 1)
 // Assumes last column to be label and first row to be header (or name of the features)
 void process_split_data(std::ifstream &file, std::unordered_set<int> train_idx,
-		std::vector<float> &train, std::vector<float> &trainLabel,
-		std::vector<float> &test, std::vector<float> &testLabel) {
+		std::vector<float> &train, std::vector<float> &trainLabel, std::vector<float> &test,
+		std::vector<float> &testLabel, bool normalize_lable=false, bool zscore = false) {
 
 	std::vector<std::vector<float>> trainData;
 	std::vector<std::vector<float>> testData;
@@ -193,22 +235,38 @@ void process_split_data(std::ifstream &file, std::unordered_set<int> train_idx,
 	while (file >> row) {
 
 		if (train_idx.count(j)) {
-			trainData.emplace_back();
-			// last column for label
-			for (std::size_t loop = 0; loop < (row.size() - 1); ++loop) {
-				trainData.back().emplace_back(row[loop]);
+
+			if( j == 0 ) {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop ) {
+					std::vector<float> v;
+					v.push_back(row[loop]*1.0);
+					trainData.push_back(v);
+
+					std::vector<float> m;
+					testData.push_back(m);
+				}
+
+			} else {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop )
+					trainData[loop].push_back(row[loop]*1.0);
 			}
-			trainData.back() = normalize_feature(trainData.back());
 
 			// Push final column to label vector
 			trainLabel.push_back(row[row.size() - 1]);
 		} else {
-			testData.emplace_back();
-			// last column for label
-			for (std::size_t loop = 0; loop < (row.size() - 1); ++loop) {
-				testData.back().emplace_back(row[loop]);
+			if( j == 0 ) {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop ) {
+					std::vector<float> v;
+					v.push_back(row[loop]*1.0);
+					testData.push_back(v);
+
+					std::vector<float> m;
+					trainData.push_back(m);
+				}
+			} else {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop )
+					testData[loop].push_back(row[loop]*1.0);
 			}
-			testData.back() = normalize_feature(testData.back());
 
 			// Push final column to label vector
 			testLabel.push_back(row[row.size() - 1]);
@@ -216,27 +274,36 @@ void process_split_data(std::ifstream &file, std::unordered_set<int> train_idx,
 		j++;
 	}
 
-	// Flatten features vectors to 1D
-	train = trainData[0];
-	int64_t total = std::accumulate(std::begin(trainData) + 1,
-			std::end(trainData), 0UL,
-			[](std::size_t s, std::vector<float> const &v) {
-				return s + v.size();
-			});
+	for( int b = 0; b < trainData.size(); b++ ) {
+		if( zscore ) {
+			trainData[b] = normalize_data(trainData[b]);
+		} else {
+			trainData[b] = normalize_feature(trainData[b]);
+		}
 
-	train.reserve(total);
-	for (std::size_t i = 1; i < trainData.size(); i++) {
-		train.insert(train.end(), trainData[i].begin(), trainData[i].end());
 	}
 
-	test = testData[0];
-	total = std::accumulate(std::begin(testData) + 1, std::end(testData), 0UL,
-			[](std::size_t s, std::vector<float> const &v) {
-				return s + v.size();
-			});
+	for( int b = 0; b < testData.size(); b++ ) {
+		if( zscore ) {
+			testData[b] = normalize_data(testData[b]);
+		} else {
+			testData[b] = normalize_feature(testData[b]);
+		}
 
-	test.reserve(total);
-	for (std::size_t i = 1; i < testData.size(); i++) {
-		test.insert(test.end(), testData[i].begin(), testData[i].end());
+	}
+
+	// Flatten features vectors to 1D
+	train.clear();
+	for (std::size_t i = 0; i < trainData[0].size(); i++) {
+		for( int c = 0; c < trainData.size(); c++ )
+			train.push_back((trainData[c])[i]);
+	}
+
+	test.clear();
+	for (std::size_t i = 0; i < testData[0].size(); i++) {
+		for( int c = 0; c < testData.size(); c++ )
+			test.push_back((testData[c])[i]);
 	}
 }
+
+
