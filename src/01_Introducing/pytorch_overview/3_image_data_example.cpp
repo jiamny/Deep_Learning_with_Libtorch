@@ -183,7 +183,7 @@ int main() {
 			features = std::get<0>(test_batch).to(device);
 			labels = std::get<1>(test_batch).to(device);
 
-			torch::NoNamesGuard no_grad();
+			torch::NoGradGuard no_grad;
 			auto output = net->forward(features);
 			auto predictions = torch::nn::functional::log_softmax(output, 1);
 			auto val_loss = loss_func(predictions,labels);

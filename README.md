@@ -2,6 +2,7 @@
 
 Collected deep learning projects with LibTorch C++
 
+
 ## Dependency
 
 - cmake 3.18+
@@ -23,6 +24,7 @@ Collected deep learning projects with LibTorch C++
 ## Image data
 
 [102 Category Flower Dataset](http://www.robots.ox.ac.uk/~vgg/data/flowers/102/index.html). The prepared dataset contains images of 102 different flower species with lables could be downloaded from (https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz). The flower category names are saved in json file "flowers_cat_to_name.json" of data folder.
+
 
 ## Reference links
 
@@ -51,4 +53,10 @@ Collected deep learning projects with LibTorch C++
 - [LibtorchDetection](https://github.com/AllentDan/LibtorchDetection)
 
 - [matplotlib-cpp](https://github.com/lava/matplotlib-cpp)
+
+- [libtorch-yolov3](https://github.com/walktree/libtorch-yolov3)
+
+- [libtorch yolov4](https://github.com/rockyzhengwu/libtorch-yolov4)
+
+- [LibtorchDetection](https://github.com/AllentDan/LibtorchDetection)
 

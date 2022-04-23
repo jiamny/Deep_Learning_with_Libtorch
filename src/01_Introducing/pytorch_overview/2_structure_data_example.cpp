@@ -165,7 +165,7 @@ int main() {
 			auto features = batch.data;
 			auto labels = batch.target;
 
-			torch::NoNamesGuard no_grad();
+			torch::NoGradGuard no_grad;
 			auto predictions = net->forward(features);
 			auto val_loss = loss_func(predictions,labels);
 			val_loss_sum += val_loss.item<float>();

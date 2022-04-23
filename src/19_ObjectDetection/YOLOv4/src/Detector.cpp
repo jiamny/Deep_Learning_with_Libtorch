@@ -255,6 +255,7 @@ void Detector::LoadWeight(std::string weight_path) {
 			detector->to(device);
 		} else {
 			torch::load(detector, weight_path, torch::Device(torch::kCPU));
+			detector->to(torch::Device(torch::kCPU));
 		}
 	} catch (const std::exception& e) {
 		std::cout << e.what();
@@ -275,12 +276,12 @@ void show_bbox(cv::Mat image, torch::Tensor bboxes, std::vector<std::string> nam
 	if (bboxes.equal(torch::zeros_like(bboxes))) return;
 	memcpy(bbox, bboxes.cpu().data_ptr(), bboxes.size(0) * sizeof(float));
 
-	cv::imwrite("prediction_before_add_box.jpg", image);
+	cv::imwrite("./src/19_ObjectDetection/YOLOv4/prediction_before_add_box.jpg", image);
 	cv::imshow("img_before_add_box", image);
 	cv::waitKey(0);
 
 	for (int i = 0; i < bboxes.size(0); i = i + 7) {
-//		std::cout << "name = " << name_list[bbox[i + 6]] << std::endl;
+		std::cout << "name = " << name_list[bbox[i + 6]] << std::endl;
 
 		cv::rectangle(image, cv::Rect(bbox[i + 0], bbox[i + 1], bbox[i + 2] - bbox[i + 0], bbox[i + 3] - bbox[i + 1]), cv::Scalar(0, 0, 255));
 
@@ -290,7 +291,7 @@ void show_bbox(cv::Mat image, torch::Tensor bboxes, std::vector<std::string> nam
 		cv::putText(image, name_list[bbox[i + 6]], origin, font_face, font_scale, cv::Scalar(0, 0, 255), thickness, 1, 0);
 	}
 
-	cv::imwrite("prediction.jpg", image);
+	cv::imwrite("./src/19_ObjectDetection/YOLOv4/prediction.jpg", image);
 	cv::imshow("img_after_add_box", image);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
@@ -301,12 +302,13 @@ void Detector::Predict(cv::Mat image, bool show, float conf_thresh, float nms_th
 	int origin_width = image.cols;
 	int origin_height = image.rows;
 	cv::resize(image, image, { width,height });
+
 	auto img_tensor = torch::from_blob(image.data, { image.rows, image.cols, 3 }, torch::kByte);
 	img_tensor = img_tensor.permute({ 2, 0, 1 }).unsqueeze(0).to(torch::kFloat) / 255.0;
 
 	float anchor[12] = { 10,14,  23,27,  37,58,  81,82,  135,169,  344,319 };
 	auto anchors_ = torch::from_blob(anchor, { 6,2 }, torch::TensorOptions(torch::kFloat32));
-	int image_size[2] = { width,height };
+	int image_size[2] = { width, height };
 	img_tensor = img_tensor.to(device);
 
 	auto outputs = detector->forward(img_tensor);
@@ -319,7 +321,7 @@ void Detector::Predict(cv::Mat image, bool show, float conf_thresh, float nms_th
 	output_decoded = DecodeBox(tensor_input, anchors_.narrow(0, 3, 3), name_list.size(), image_size);
 	output_list.push_back(output_decoded);
 
-	//std::cout << tensor_input << anchors_.narrow(0, 3, 3);
+//	std::cout << tensor_input << anchors_.narrow(0, 3, 3);
 
 	auto output = torch::cat(output_list, 1);
 	auto detection = non_maximum_suppression(output, name_list.size(), conf_thresh, nms_thresh);
@@ -337,7 +339,9 @@ void Detector::Predict(cv::Mat image, bool show, float conf_thresh, float nms_th
 	}
 
 	cv::resize(image, image, { origin_width, origin_height });
-	if(show)
+	std::cout << "show: " << show << "\n";
+	if(show) {
 		show_bbox(image, detection[0], name_list);
+	}
 	return;
 }

@@ -32,6 +32,8 @@
 libtorch/
 
 # Datasets
+data/*.mp4
+data/*avi
 data/CIFAR10/
 data/CIFAR10_org/
 data/Caltech_101/
@@ -53,6 +55,7 @@ src/01_Introducing/pytorch_basics/output/*.pt
 src/05_BasicModels/*pt
 src/15_GenerativeAdversarialNetwork/GAN/output/*.png
 src/17_ImageCaptioning/model/*.pt
+src/19_ObjectDetection/YOLOv3/models/*.weights
 src/19_ObjectDetection/YOLOv4/dataset/
 src/19_ObjectDetection/YOLOv4/weights/*.pt
 src/19_ObjectDetection/YOLOv5/*.pt
