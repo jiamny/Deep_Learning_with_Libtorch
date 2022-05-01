@@ -357,6 +357,8 @@ int main() {
 
     cv::imshow("rev BGR image", rev_bgr_mat);
     cv::waitKey(0);
+    cv::destroyAllWindows();
+
 
     plt::figure_size(800, 500);
 

@@ -28,35 +28,37 @@ Collected deep learning projects with LibTorch C++
 
 ## Reference links
 
-- [pytorch-cpp](https://github.com/prabhuomkar/pytorch-cpp)
+- [pytorch-cpp] (https://github.com/prabhuomkar/pytorch-cpp)
 
-- [pytorch_cpp](https://github.com/koba-jon/pytorch_cpp)
+- [pytorch_cpp] (https://github.com/koba-jon/pytorch_cpp)
 
-- [torchvision](https://github.com/pytorch/vision)
+- [torchvision] (https://github.com/pytorch/vision)
 
-- [How to eat Pytorch in 20 days ?](https://github.com/lyhue1991/eat_pytorch_in_20_days)
+- [How to eat Pytorch in 20 days ?] (https://github.com/lyhue1991/eat_pytorch_in_20_days)
 
-- [PyTorch_Tutorial](https://github.com/tensor-yu/PyTorch_Tutorial)
+- [PyTorch_Tutorial] (https://github.com/tensor-yu/PyTorch_Tutorial)
 
-- [pytorch-tutorials-examples-and-books](https://github.com/bat67/pytorch-tutorials-examples-and-books)
+- [pytorch-tutorials-examples-and-books] (https://github.com/bat67/pytorch-tutorials-examples-and-books)
 
-- [pytorch-cifar](https://github.com/kuangliu/pytorch-cifar)
+- [pytorch-cifar] (https://github.com/kuangliu/pytorch-cifar)
 
-- [yolo_v1_pytorch](https://github.com/motokimura/yolo_v1_pytorch)
+- [yolo_v1_pytorch] (https://github.com/motokimura/yolo_v1_pytorch)
 
-- [yolov5](https://github.com/ultralytics/yolov5)
+- [yolov5] (https://github.com/ultralytics/yolov5)
 
-- [LibtorchTutorials](https://github.com/AllentDan/LibtorchTutorials)
+- [yolov5-opencv-cpp-python] (https://github.com/doleron/yolov5-opencv-cpp-python)
 
-- [LibtorchSegmentation](https://github.com/AllentDan/LibtorchSegmentation)
+- [LibtorchTutorials] (https://github.com/AllentDan/LibtorchTutorials)
 
-- [LibtorchDetection](https://github.com/AllentDan/LibtorchDetection)
+- [LibtorchSegmentation] (https://github.com/AllentDan/LibtorchSegmentation)
 
-- [matplotlib-cpp](https://github.com/lava/matplotlib-cpp)
+- [LibtorchDetection] (https://github.com/AllentDan/LibtorchDetection)
 
-- [libtorch-yolov3](https://github.com/walktree/libtorch-yolov3)
+- [matplotlib-cpp] (https://github.com/lava/matplotlib-cpp)
 
-- [libtorch yolov4](https://github.com/rockyzhengwu/libtorch-yolov4)
+- [libtorch-yolov3] (https://github.com/walktree/libtorch-yolov3)
 
-- [LibtorchDetection](https://github.com/AllentDan/LibtorchDetection)
+- [libtorch yolov4] (https://github.com/rockyzhengwu/libtorch-yolov4)
+
+- [LibtorchDetection] (https://github.com/AllentDan/LibtorchDetection)
 

@@ -26,9 +26,20 @@ set_target_properties(19_YOLOV4 PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
+# --------------------------------------------------------------
+add_executable(19_YOLOV4_2)
+target_sources(19_YOLOV4_2 PRIVATE YOLOv4_2/yolo4.cpp)
+
+target_link_libraries(19_YOLOV4_2 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+
+set_target_properties(19_YOLOV4_2 PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+)
+
 # -------------------------------------------------------------
 add_executable(19_YOLOV5)
-target_sources(19_YOLOV5 PRIVATE YOLOv5/src/YOLOv5LibTorch.cpp)
+target_sources(19_YOLOV5 PRIVATE YOLOv5/yolo.cpp)
 
 target_link_libraries(19_YOLOV5 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
 
@@ -36,4 +47,5 @@ set_target_properties(19_YOLOV5 PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
 )
+
 

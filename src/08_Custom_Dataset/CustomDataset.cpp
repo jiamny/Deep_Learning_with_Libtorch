@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
 	std::vector<std::string> list_images; // list of path of images
 	std::vector<int> list_labels; 		  // list of integer labels
 
-  // Dataset init and apply transforms - None!
-  auto custom_dataset = CustomDataset(list_images, list_labels).map(torch::data::transforms::Stack<>());
+   // Dataset init and apply transforms - None!
+   auto custom_dataset = CustomDataset(list_images, list_labels).map(torch::data::transforms::Stack<>());
+
 }
