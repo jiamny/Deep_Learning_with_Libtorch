@@ -151,8 +151,7 @@ int main(int argc, char **argv) {
 
     while (true)  {
         capture.read(frame);
-        if (frame.empty())
-        {
+        if (frame.empty()) {
             std::cout << "End of stream\n";
             break;
         }
@@ -206,6 +205,8 @@ int main(int argc, char **argv) {
     }
 
     std::cout << "Total frames: " << total_frames << "\n";
+
+    capture.release();
 
     return 0;
 }

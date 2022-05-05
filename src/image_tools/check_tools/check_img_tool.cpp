@@ -228,7 +228,7 @@ torch::Tensor load_image(std::string path) {
 void displayImage(std::string f1, std::string f2) {
 	torch::manual_seed(0);
 	plt::figure_size(800, 500);
-	plt::subplot(1, 2, 1);
+	plt::subplot2grid(1, 2, 0, 0, 1, 1);
 
 	torch::Tensor a = load_image(f1);
 	torch::Tensor b = load_image(f2);
@@ -266,7 +266,7 @@ void displayImage(std::string f1, std::string f2) {
 	 std::memcpy(&(za[0]), aa.data_ptr<uchar>(),sizeof(uchar)*aa.numel());
 
 	 const uchar* zptra = &(za[0]);
-	 plt::subplot(1, 2, 2);
+	 plt::subplot2grid(1, 2, 0, 1, 1, 1);
 	 plt::title("image aa");
 	 plt::imshow(zptra, aa.size(0), aa.size(1), aa.size(2));
 	 plt::show();
@@ -381,12 +381,12 @@ int main() {
     std::memcpy(&(rev_bgr_tensor_z[0]), rev_bgr_tensor.data_ptr<uchar>(), sizeof(uchar)*rev_bgr_tensor.numel());
 
     const uchar* zptr = &(rev_rgb_tensor_z[0]);
-    plt::subplot(1, 2, 1);
+    plt::subplot2grid(1, 2, 0, 0, 1, 1);
     plt::title("image rev_RGB_tensor");
     plt::imshow(zptr, rev_rgb_tensor.size(0), rev_rgb_tensor.size(1), rev_rgb_tensor.size(2));
 
     const uchar* zptr2 = &(rev_bgr_tensor_z[0]);
-    plt::subplot(1, 2, 2);
+    plt::subplot2grid(1, 2, 0, 1, 1, 1);
     plt::title("image rev_BGR_tensor");
     plt::imshow(zptr2, rev_bgr_tensor.size(0), rev_bgr_tensor.size(1), rev_bgr_tensor.size(2));
     plt::show();
