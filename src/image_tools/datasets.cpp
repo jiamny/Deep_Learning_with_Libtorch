@@ -1,5 +1,5 @@
 #include <fstream>
-#include <filesystem>
+//#include <filesystem>
 #include <string>
 #include <sstream>
 #include <tuple>
@@ -15,28 +15,100 @@
 #include "transforms.hpp"
 #include "datasets.hpp"
 
-namespace fs = std::filesystem;
+/* Returns a list of files in a directory (except the ones that begin with a dot) */
+
+std::vector<std::string> datasets::GetFilesInDirectory(std::string directory) {
+	std::vector<std::string> out;
+#ifdef WINDOWS
+    HANDLE dir;
+    WIN32_FIND_DATA file_data;
+
+    if ((dir = FindFirstFile((directory + "/*").c_str(), &file_data)) == INVALID_HANDLE_VALUE)
+        return; /* No files found */
+
+    do {
+        const string file_name = file_data.cFileName;
+        const string full_file_name = directory + "/" + file_name;
+        const bool is_directory = (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+
+        if (file_name[0] == '.')
+            continue;
+
+        if (is_directory)
+            continue;
+
+        out.push_back(full_file_name);
+    } while (FindNextFile(dir, &file_data));
+
+    FindClose(dir);
+#else
+    DIR *dir;
+    class dirent *ent;
+    class stat st;
+
+    dir = opendir(directory.c_str());
+    while ((ent = readdir(dir)) != NULL) {
+        const std::string file_name = ent->d_name;
+        const std::string full_file_name = directory + "/" + file_name;
+
+        if (file_name[0] == '.')
+            continue;
+
+        if (stat(full_file_name.c_str(), &st) == -1)
+            continue;
+
+        const bool is_directory = (st.st_mode & S_IFDIR) != 0;
+
+        if (is_directory)
+            continue;
+
+        out.push_back(full_file_name);
+        //paths.push_back(directory);
+        //fnames.push_back(file_name);
+    }
+    closedir(dir);
+#endif
+    return(out);
+} // GetFilesInDirectory
 
 
 // -----------------------------------------------
 // namespace{datasets} -> function{collect}
 // -----------------------------------------------
-void datasets::collect(const std::string root, const std::string sub, std::vector<std::string> &paths, std::vector<std::string> &fnames){
-    fs::path ROOT(root);
-    for (auto &p : fs::directory_iterator(ROOT)){
-        if (!fs::is_directory(p)){
-            std::stringstream rpath, fname;
-            rpath << p.path().string();
-            fname << p.path().filename().string();
-            paths.push_back(rpath.str());
-            fnames.push_back(sub + fname.str());
-        }
-        else{
-            std::stringstream subsub;
-            subsub << p.path().filename().string();
-            datasets::collect(root + '/' + subsub.str(), sub + subsub.str() + '/', paths, fnames);
-        }
-    }
+void datasets::collect(std::string root, std::string sub, std::vector<std::string> &paths, std::vector<std::string> &fnames){
+
+	struct stat s;
+	DIR* root_dir;
+	struct dirent *dirs;
+	if(root.back() != '/') {
+		root.push_back('/');
+	}
+   	//std::cout << root << std::endl;
+   	//it's a directory
+   	if( stat(root.c_str(), &s) == 0 ) {
+   	    if( s.st_mode & S_IFDIR ){
+   	    	std::vector<std::string> fpaths, names;
+
+   	        auto files = GetFilesInDirectory(root);
+
+   	        for(auto it = files.begin(); it != files.end(); ++it) {
+   	        	std::string filename = *it;
+   	        	if(filename.length() > 4 ) {
+   	        		// check image format type
+   	        		try {
+   	        			cv::Mat img = cv::imread(filename.c_str(), 1);
+   	        			//std::cout << "empty = " << ( ! img.empty() ) << std::endl;
+   	        			if( ! img.empty() ) {
+   	        				//data.push_back(std::make_pair(filename, i));
+   	        				std::string base_filename = filename.substr(filename.find_last_of("/\\") + 1);
+   	        				paths.push_back(filename);
+   	        				fnames.push_back(sub + base_filename);
+   	        			}
+   	        		} catch( cv::Exception& e ) {}
+   	        	}
+   	        }
+   	    }
+   	}
     return;
 }
 
@@ -66,7 +138,6 @@ torch::Tensor datasets::Data1d_Loader(std::string &path){
     return data;
 
 }
-
 
 // -----------------------------------------------
 // namespace{datasets} -> function{RGB_Loader}
@@ -239,8 +310,6 @@ size_t datasets::Data1dFolderPairWithPaths::size(){
     return this->fnames1.size();
 }
 
-
-
 /*******************************************************************************/
 /*                                   Data 2d                                   */
 /*******************************************************************************/
@@ -380,8 +449,7 @@ size_t datasets::ImageFolderPairAndRandomSamplingWithPaths::size_rand(){
 // -------------------------------------------------------------------------
 // namespace{datasets} -> class{ImageFolderSegmentWithPaths} -> constructor
 // -------------------------------------------------------------------------
-datasets::ImageFolderSegmentWithPaths::ImageFolderSegmentWithPaths(const std::string root1, const std::string root2,
-		std::vector<transforms_Compose> &transformI_, std::vector<transforms_Compose> &transformO_){
+datasets::ImageFolderSegmentWithPaths::ImageFolderSegmentWithPaths(const std::string root1, const std::string root2, std::vector<transforms_Compose> &transformI_, std::vector<transforms_Compose> &transformO_){
 
     datasets::collect(root1, "", this->paths1, this->fnames1);
     std::sort(this->paths1.begin(), this->paths1.end());
@@ -392,7 +460,8 @@ datasets::ImageFolderSegmentWithPaths::ImageFolderSegmentWithPaths(const std::st
     for (auto &f : this->fnames1){
         if ((pos = f.find_last_of(".")) == std::string::npos){
             f_png = f + ".png";
-        }else{
+        }
+        else{
             f_png = f.substr(0, pos) + ".png";
         }
         std::string path2 = root2 + '/' + f_png;
@@ -447,7 +516,7 @@ datasets::ImageFolderClassesWithPaths::ImageFolderClassesWithPaths(const std::st
         std::vector<std::string> paths_tmp, fnames_tmp;
         class_name = class_names.at(i);
         class_root = root + '/' + class_name;
-        
+ 
         datasets::collect(class_root, class_name + '/', paths_tmp, fnames_tmp);
         std::sort(paths_tmp.begin(), paths_tmp.end());
         std::sort(fnames_tmp.begin(), fnames_tmp.end());

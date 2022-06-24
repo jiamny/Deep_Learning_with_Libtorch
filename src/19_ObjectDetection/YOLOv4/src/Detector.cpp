@@ -303,7 +303,7 @@ void Detector::Predict(cv::Mat image, bool show, float conf_thresh, float nms_th
 	int origin_height = image.rows;
 	cv::resize(image, image, { width,height });
 
-	auto img_tensor = torch::from_blob(image.data, { image.rows, image.cols, 3 }, torch::kByte);
+	auto img_tensor = torch::from_blob(image.data, { image.rows, image.cols, 3 }, at::TensorOptions(torch::kByte));
 	img_tensor = img_tensor.permute({ 2, 0, 1 }).unsqueeze(0).to(torch::kFloat) / 255.0;
 
 	float anchor[12] = { 10,14,  23,27,  37,58,  81,82,  135,169,  344,319 };

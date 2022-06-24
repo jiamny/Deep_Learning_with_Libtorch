@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef DATASETS_HPP
 #define DATASETS_HPP
 
@@ -10,6 +8,8 @@
 #include <torch/torch.h>
 #include <opencv2/opencv.hpp>
 
+#include <dirent.h>           //get files in directory
+#include <sys/stat.h>
 // For Original Header
 #include "transforms.hpp"
 
@@ -20,7 +20,8 @@
 namespace datasets{
 
     // Function Prototype
-    void collect(const std::string root, const std::string sub, std::vector<std::string> &paths, std::vector<std::string> &fnames);
+    std::vector<std::string> GetFilesInDirectory(std::string directory);
+    void collect(std::string root, std::string sub, std::vector<std::string> &paths, std::vector<std::string> &fnames);
     torch::Tensor Data1d_Loader(std::string &path);
     cv::Mat RGB_Loader(std::string &path);
     cv::Mat Index_Loader(std::string &path);
@@ -117,10 +118,8 @@ namespace datasets{
         std::vector<std::tuple<unsigned char, unsigned char, unsigned char>> label_palette;
     public:
         ImageFolderSegmentWithPaths(){}
-        ImageFolderSegmentWithPaths(const std::string root1, const std::string root2,
-        		std::vector<transforms_Compose> &transformI_, std::vector<transforms_Compose> &transformO_);
-        void get(const size_t idx, std::tuple<torch::Tensor, torch::Tensor, std::string,
-        		std::string, std::vector<std::tuple<unsigned char, unsigned char, unsigned char>>> &data);
+        ImageFolderSegmentWithPaths(const std::string root1, const std::string root2, std::vector<transforms_Compose> &transformI_, std::vector<transforms_Compose> &transformO_);
+        void get(const size_t idx, std::tuple<torch::Tensor, torch::Tensor, std::string, std::string, std::vector<std::tuple<unsigned char, unsigned char, unsigned char>>> &data);
         size_t size();
     };
     

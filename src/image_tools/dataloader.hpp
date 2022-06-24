@@ -165,11 +165,8 @@ namespace DataLoader{
         std::mt19937 mt;
     public:
         ImageFolderSegmentWithPaths(){}
-        ImageFolderSegmentWithPaths(datasets::ImageFolderSegmentWithPaths &dataset_,
-        		const size_t batch_size_=1, const bool shuffle_=false, const size_t num_workers_=0,
-				const bool pin_memory_=false, const bool drop_last_=false);
-        bool operator()(std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>,
-        		std::vector<std::string>, std::vector<std::tuple<unsigned char, unsigned char, unsigned char>>> &data);
+        ImageFolderSegmentWithPaths(datasets::ImageFolderSegmentWithPaths &dataset_, const size_t batch_size_=1, const bool shuffle_=false, const size_t num_workers_=0, const bool pin_memory_=false, const bool drop_last_=false);
+        bool operator()(std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>, std::vector<std::string>, std::vector<std::tuple<unsigned char, unsigned char, unsigned char>>> &data);
         void reset();
         size_t get_count_max();
     };

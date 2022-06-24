@@ -890,11 +890,11 @@ bool DataLoader::ImageFolderClassesWithPaths::operator()(std::tuple<torch::Tenso
     for (i = 1; i < mini_batch_size; i++){
         group = data_before[i];
         tensor1 = std::get<0>(group);
-        tensor1 = torch::unsqueeze(tensor1, /*dim=*/0);  // {C,H,W} ===> {1,C,H,W}
-        data1 = torch::cat({data1, tensor1}, /*dim=*/0);  // {i,C,H,W} + {1,C,H,W} ===> {i+1,C,H,W}
+        tensor1 = torch::unsqueeze(tensor1,    /*dim=*/0);  // {C,H,W} ===> {1,C,H,W}
+        data1   = torch::cat({data1, tensor1}, /*dim=*/0);  // {i,C,H,W} + {1,C,H,W} ===> {i+1,C,H,W}
         tensor2 = std::get<1>(group);
-        tensor2 = torch::unsqueeze(tensor2, /*dim=*/0);  // {} ===> {1}
-        data2 = torch::cat({data2, tensor2}, /*dim=*/0);  // {i} + {1} ===> {i+1}
+        tensor2 = torch::unsqueeze(tensor2,    /*dim=*/0);  // {} ===> {1}
+        data2   = torch::cat({data2, tensor2}, /*dim=*/0);  // {i} + {1} ===> {i+1}
         data3.push_back(std::get<2>(group));
     }
     data1 = data1.contiguous().detach().clone();

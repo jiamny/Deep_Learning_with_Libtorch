@@ -729,7 +729,12 @@ bool fill_between(const std::vector<Numeric>& x, const std::vector<Numeric>& y1,
     // construct keyword args
     PyObject* kwargs = PyDict_New();
     for(std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it) {
-        PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
+    	// recommendation from: https://github.com/lava/matplotlib-cpp/issues/75
+    	
+        if (it->first == "alpha")
+            PyDict_SetItemString(kwargs, it->first.c_str(), PyFloat_FromDouble(std::stod(it->second)));
+    	else 
+            PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
     }
 
     PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_fill_between, args, kwargs);
@@ -994,8 +999,13 @@ bool bar(const std::vector<Numeric> &               x,
          keywords.begin();
        it != keywords.end();
        ++it) {
-    PyDict_SetItemString(
-      kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
+       
+       // recommendation from: https://github.com/lava/matplotlib-cpp/issues/75
+       
+       if (it->first == "width")
+           PyDict_SetItemString(kwargs, it->first.c_str(), PyFloat_FromDouble(std::stod(it->second)));
+       else
+           PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
   }
 
   PyObject * plot_args = PyTuple_New(2);
