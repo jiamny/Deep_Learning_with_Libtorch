@@ -1,14 +1,4 @@
-#include <torch/torch.h>
-#include <torch/script.h>
-#include <torch/autograd.h>
-#include <torch/utils.h>
-#include <iostream>
-#include <unistd.h>
-#include <iomanip>
-#include <torch/script.h> // One-stop header.
-
-#include <fstream>
-#include <opencv2/opencv.hpp>
+#include "yolo5.h"
 
 std::vector<std::string> load_class_list(std::string classfilePath)
 {
@@ -36,21 +26,6 @@ void load_net(cv::dnn::Net &net, bool is_cuda, std::string onnxFile) {
     }
     net = result;
 }
-
-const std::vector<cv::Scalar> colors = {cv::Scalar(255, 255, 0), cv::Scalar(0, 255, 0), cv::Scalar(0, 255, 255), cv::Scalar(255, 0, 0)};
-
-const float INPUT_WIDTH = 640.0;
-const float INPUT_HEIGHT = 640.0;
-const float SCORE_THRESHOLD = 0.2;
-const float NMS_THRESHOLD = 0.4;
-const float CONFIDENCE_THRESHOLD = 0.4;
-
-struct Detection
-{
-    int class_id;
-    float confidence;
-    cv::Rect box;
-};
 
 cv::Mat format_yolov5(const cv::Mat &source) {
     int col = source.cols;
@@ -140,89 +115,21 @@ void setLabel(cv::Mat& im, std::string label, cv::Scalar text_color, cv::Scalar 
 }
 
 
-int main(int argc, char **argv) {
+void detect_objects(cv::Mat& frame, cv::dnn::Net net, std::vector<std::string> class_list) {
 
-    std::vector<std::string> class_list = load_class_list("./src/19_ObjectDetection/YOLOv5/config_files/classes.txt");
+    std::vector<Detection> output;
 
-    cv::Mat frame;
-    cv::VideoCapture capture("./data/sample.mp4");
-    //cv::VideoCapture capture("./data/videos/project_video.mp4");
-    if (!capture.isOpened()) {
-        std::cerr << "Error opening video file\n";
-        return -1;
+    detect(frame, net, output, class_list);
+    int detections = output.size();
+
+    for (int i = 0; i < detections; ++i) {
+    	auto detection = output[i];
+    	auto box = detection.box;
+    	auto classId = detection.class_id;
+    	const auto color = colors[classId % colors.size()];
+    	cv::rectangle(frame, box, color, 1);
+
+    	setLabel(frame, class_list[classId].c_str(), cv::Scalar(0, 0, 0), color,
+    	                                		   cv::Point(box.x, box.y - 4));
     }
-
-    bool is_cuda = torch::cuda::is_available();
-
-    cv::dnn::Net net;
-    load_net(net, is_cuda, "./src/19_ObjectDetection/YOLOv5/config_files/yolov5s.onnx");
-
-    auto start = std::chrono::high_resolution_clock::now();
-    int frame_count = 0;
-    float fps = -1;
-    int total_frames = 0;
-
-    while (true)  {
-        capture.read(frame);
-        if (frame.empty()) {
-            std::cout << "End of stream\n";
-            break;
-        }
-
-        std::vector<Detection> output;
-        detect(frame, net, output, class_list);
-
-        frame_count++;
-        total_frames++;
-
-        int detections = output.size();
-
-        for (int i = 0; i < detections; ++i) {
-
-            auto detection = output[i];
-            auto box = detection.box;
-            auto classId = detection.class_id;
-            const auto color = colors[classId % colors.size()];
-            cv::rectangle(frame, box, color, 1);
-
-            //cv::rectangle(frame, cv::Point(box.x, box.y - 20), cv::Point(box.x + box.width, box.y), color, cv::FILLED);
-            //cv::putText(frame, class_list[classId].c_str(), cv::Point(box.x, box.y - 5),
-            //		cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
-            setLabel(frame, class_list[classId].c_str(), cv::Scalar(0, 0, 0), color,
-                            		   cv::Point(box.x, box.y - 4));
-        }
-
-        if (frame_count >= 30) {
-
-            auto end = std::chrono::high_resolution_clock::now();
-            fps = frame_count * 1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-            frame_count = 0;
-            start = std::chrono::high_resolution_clock::now();
-        }
-
-        if (fps > 0) {
-
-            std::ostringstream fps_label;
-            fps_label << std::fixed << std::setprecision(2);
-            fps_label << "FPS: " << fps;
-            std::string fps_label_str = fps_label.str();
-
-            cv::putText(frame, fps_label_str.c_str(), cv::Point(10, 25), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
-        }
-
-        cv::imshow("output", frame);
-
-        if (cv::waitKey(1) != -1) {
-            capture.release();
-            std::cout << "finished by user\n";
-            break;
-        }
-    }
-
-    std::cout << "Total frames: " << total_frames << "\n";
-
-    capture.release();
-
-    return 0;
 }

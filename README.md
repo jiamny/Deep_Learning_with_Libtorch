@@ -64,6 +64,8 @@ Collected deep learning projects with LibTorch C++
 
 - [opencv_tutorial](https://github.com/gloomyfish1998/opencv_tutorial)
 
+- [libtorch_nlp_demo] (https://github.com/tashaxing/libtorch_nlp_demo)
+
 
 
 

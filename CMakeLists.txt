@@ -110,5 +110,13 @@ add_subdirectory("src/19_ObjectDetection")
 add_subdirectory("src/20_Img-to-Img_Translation")
 add_subdirectory("src/21_Semantic_Segmentation")
 add_subdirectory("src/22_Reinforcement_Learning")
+add_subdirectory("src/23_Vehicle_and_traffic_lane_detection")
+add_subdirectory("src/24_Natural_Language_Processing")
+
+
+
+
+
+
 
 
