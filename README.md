@@ -7,7 +7,7 @@ Collected deep learning projects with LibTorch C++
 
 - cmake 3.18+
 
-- PyTorch 1.11.0
+- PyTorch 1.12.0
 
 - python3.9
 
