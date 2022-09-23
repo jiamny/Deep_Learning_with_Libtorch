@@ -9,7 +9,7 @@ find_package(PNG REQUIRED)
 
 include_directories(${PNG_INCLUDE_DIRS})
 
-set(requiredlibs "python3.9")
+set(requiredlibs "python3.10")
 list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")

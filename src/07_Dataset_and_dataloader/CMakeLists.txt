@@ -13,7 +13,7 @@ add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
 # tell CMake to search for the static libraries ONLY
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-set(requiredlibs "python3.9")
+set(requiredlibs "python3.10")
 list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")

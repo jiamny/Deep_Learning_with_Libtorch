@@ -73,11 +73,11 @@ void print_probabilities(std::string loc, std::string model_path, std::string mo
 }
 
 int main(int arc, char** argv) {
-	// get current directory
-	char tmp[256];
-	getcwd(tmp, 256);
-	std::cout << "Current working directory: " << tmp << std::endl;
-	std::string cdir(tmp);
+    // get current directory
+    char tmp[256];
+    getcwd(tmp, 256);
+    std::cout << "Current working directory: " << tmp << std::endl;
+    std::string cdir(tmp);
 
     // argv[1] should is the test image
     std::string img_location = cdir + "/data/cat_dog/"; //argv[1];
@@ -86,7 +86,7 @@ int main(int arc, char** argv) {
     
     // argv[2] contains pre-trained model without last layer
     // argv[3] contains trained last FC layer
-    std::string model_path = "./models/resnet18_without_last_layer.pt"; //argv[2];
+    std::string model_path = "./models/Transfer_learning/resnet18_without_last_layer.pt"; //argv[2];
     //std::string model_path = "./models/Tf_model.pt";
     std::string model_path_linear = "./models/Tf_model_linear.pt";      //argv[3];
 

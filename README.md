@@ -7,17 +7,17 @@ Collected deep learning projects with LibTorch C++
 
 - cmake 3.18+
 
-- PyTorch 1.12.0
+- PyTorch 1.12.1
 
-- python3.9
+- python3.10
 
-- opencv 4.5.3/4.5.5
+- opencv 4.5.3/4.5.5/4.6.0
 
 - matplotlib-cpp
 
 - png++
 
-- ubuntu 21.10
+- ubuntu 22.04
 
 - gcc-11/g++-11 for C++ 17
 
