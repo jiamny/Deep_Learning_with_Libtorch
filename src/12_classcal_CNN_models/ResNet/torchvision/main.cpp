@@ -130,7 +130,7 @@ int main() {
 	size_t start_epoch, total_epoch;
 	start_epoch = 1;
 	total_iter = dataloader.get_count_max();
-	total_epoch = 3;
+	total_epoch = 30;
 
 	bool first = true;
 	std::vector<float> train_loss_ave;

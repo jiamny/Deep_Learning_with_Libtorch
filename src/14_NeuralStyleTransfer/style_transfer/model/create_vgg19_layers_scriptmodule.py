@@ -1,10 +1,10 @@
 import torch
 import torchvision
-
+from torchvision.models import vgg19, VGG19_Weights
 
 def main():
     # Download and load the pretrained VGG19 layers.
-    vgg_19_layers = torchvision.models.vgg19(pretrained=True).features
+    vgg_19_layers = torchvision.models.vgg19(weights=VGG19_Weights.DEFAULT).features
 
     for param in vgg_19_layers.parameters():
         param.requires_grad = False

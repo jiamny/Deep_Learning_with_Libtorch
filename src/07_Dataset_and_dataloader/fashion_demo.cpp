@@ -34,7 +34,7 @@ int main() {
     const size_t num_epochs = 50;
     const double learning_rate = 0.001;
 
-    const std::string FASHION_data_path = "./data/fashion/";
+    const std::string FASHION_data_path = "/media/stree/localssd/DL_data/fashion_MNIST/";
 
     // MNIST custom dataset
     auto train_dataset = FASHION(FASHION_data_path, FASHION::Mode::kTrain)
@@ -52,9 +52,10 @@ int main() {
          std::move(train_dataset), batch_size);
 
     for(auto &batch: *train_loader){
-            auto data = batch.data;
-            auto target = batch.target;
-            std::cout << data.sizes() << " " << target << std::endl;
+            auto data = batch.data.to(device);
+            auto target = batch.target.to(device);
+            std::cout << data.sizes()   << " " << data.device()   << std::endl;
+            std::cout << target.sizes() << " " << target.device() << std::endl;
     }
 
     std::cout << "Done!\n";

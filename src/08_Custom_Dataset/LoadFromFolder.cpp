@@ -1,9 +1,11 @@
 #include "dataSet.h"
 
+// Download dataset from: https://download.pytorch.org/tutorial/hymenoptera_data.zip
+
 int main(int argc, char *argv[])
 {
     int batch_size = 8;
-    std::string image_dir = "./data/hymenoptera_data/train";
+    std::string image_dir = "/media/stree/localssd/DL_data/hymenoptera_data/train";
 
     auto mdataset = myDataset(image_dir, ".jpg", 64, 3).map(torch::data::transforms::Stack<>());
 

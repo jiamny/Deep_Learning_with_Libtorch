@@ -91,9 +91,9 @@ int main(int /*argc*/, char* /*argv*/[]) {
                     kBatchesPerEpoch, d_loss_real.item<double>());
 
           auto test_x = -2 * M_PI + torch::rand(1) * 4 * M_PI;
-          auto test_y = func_approximator->forward(test_x.toBackend(c10::Backend::CPU));
+          auto test_y = func_approximator->forward(test_x.to(device)); //Backend(c10::Backend::CPU));
           std::printf("x = %.5f, target y = %.5f, predicted y = %.5f\n ", test_x[0].item<double>(),
-          std::cos(test_x[0].item<double>()), test_y[0].item<double>());
+          std::cos(test_x.cpu()[0].item<double>()), test_y.cpu()[0].item<double>());
 
       }
 

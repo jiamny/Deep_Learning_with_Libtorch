@@ -7,11 +7,15 @@ Collected deep learning projects with LibTorch C++
 
 - cmake 3.18+
 
-- PyTorch 1.12.1
+- PyTorch 1.13.1
+
+- NVIDIA CUDA 11.7
+
+- NVIDIA cudnn 8.7
 
 - python3.10
 
-- opencv 4.5.3/4.5.5/4.6.0
+- opencv 4.5.4
 
 - matplotlib-cpp
 
@@ -27,6 +31,8 @@ Collected deep learning projects with LibTorch C++
 
 
 ## Reference links
+
+- [library-conflict-between-libtorch-and-opencv] (https://discuss.pytorch.org/t/library-conflict-between-libtorch-and-opencv/64489/9)
 
 - [pytorch-cpp] (https://github.com/prabhuomkar/pytorch-cpp)
 

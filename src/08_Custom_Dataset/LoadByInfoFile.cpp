@@ -1,9 +1,9 @@
 // Include libraries
 #include "dataSet.h"
-
+//Image data avaiable at: http://www.vision.caltech.edu/datasets/
 
 int main(int argc, char** argv) {
-	std::string datasetPath = "./data/Caltech_101/";
+	std::string datasetPath = "/media/stree/localssd/DL_data/Caltech_101/";
 	std::string infoFilePath = "./data/Caltech_101_info.txt";
 
 	int batch_size = 8;

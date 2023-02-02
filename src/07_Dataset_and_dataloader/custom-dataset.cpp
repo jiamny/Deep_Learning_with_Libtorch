@@ -12,12 +12,13 @@
 
 struct Options {
   int image_size = 224;
-  size_t train_batch_size = 8;
+  size_t train_batch_size = 32;
   size_t test_batch_size = 200;
-  size_t iterations = 3;
+  size_t iterations = 30;
   size_t log_interval = 20;
+
   // path must end in delimiter
-  std::string datasetPath = "./data/Caltech_101/";
+  std::string datasetPath = "/media/stree/localssd/DL_data/Caltech_101/";
   std::string infoFilePath = "./data/Caltech_101_info.txt";
   torch::DeviceType device = torch::kCPU;
 };
@@ -52,20 +53,21 @@ class CustomDataset : public torch::data::datasets::Dataset<CustomDataset> {
     	auto R = torch::from_blob(
     	        channels[2].ptr(),
     	        {options.image_size, options.image_size},
-    	        torch::kUInt8);
+				at::kByte);
     	auto G = torch::from_blob(
     	        channels[1].ptr(),
     	        {options.image_size, options.image_size},
-    	        torch::kUInt8);
+				at::kByte);
     	auto B = torch::from_blob(
     	        channels[0].ptr(),
     	        {options.image_size, options.image_size},
-    	        torch::kUInt8);
+				at::kByte);
 
     	auto tdata = torch::cat({R, G, B})
     	                     .view({3, options.image_size, options.image_size})
     	                     .to(torch::kFloat);
     	auto tlabel = torch::from_blob(&data[index].second, {1}, torch::kLong);
+
     	return {tdata, tlabel};
     } else {
 
@@ -90,13 +92,14 @@ std::pair<Data, Data> readInfo() {
 
   while (true) {
     stream >> path >> label >> type;
-//    std::cout << path << " " << label << " " << type << std::endl;
+
     if (type == "train")
-      train.push_back(std::make_pair(path, label));
+      train.push_back(std::make_pair( path, label));
     else if (type == "test")
-      test.push_back(std::make_pair(path, label));
+      test.push_back(std::make_pair( path, label));
     else
       assert(false);
+    //std::cout << path << " " << label << " " << type << std::endl;
 
     if (stream.eof())
       break;
@@ -207,10 +210,7 @@ void test(Network& network, DataLoader& loader, size_t data_size) {
 int main() {
   torch::manual_seed(1);
 
-  if (torch::cuda::is_available())
-    options.device = torch::kCUDA;
-  std::cout << "Running on: "
-            << (options.device == torch::kCUDA ? "CUDA" : "CPU") << std::endl;
+  std::cout << "Running on: " << options.device << std::endl;
 
   auto data = readInfo();
 
@@ -218,9 +218,10 @@ int main() {
       CustomDataset(data.first).map(torch::data::transforms::Stack<>());
   auto train_size = train_set.size().value();
   std::cout << "train_size = " << train_size << std::endl;
+
   auto train_loader =
       torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-          std::move(train_set), options.train_batch_size);
+    		  std::move(train_set), options.train_batch_size);
 
   auto test_set =
       CustomDataset(data.second).map(torch::data::transforms::Stack<>());
@@ -230,7 +231,7 @@ int main() {
           std::move(test_set), options.test_batch_size);
 
   Network network;
-  network->to(options.device);
+  //network->to(options.device);
 
   torch::optim::SGD optimizer(
       network->parameters(), torch::optim::SGDOptions(0.001).momentum(0.5));

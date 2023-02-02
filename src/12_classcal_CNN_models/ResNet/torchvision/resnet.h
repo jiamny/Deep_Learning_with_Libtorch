@@ -126,39 +126,39 @@ ResNetImpl<Block>::ResNetImpl(
       layer3(_make_layer(256, layers[2], 2)),
       layer4(_make_layer(512, layers[3], 2)),
       fc(512 * Block::expansion, num_classes) {
-  register_module("conv1", conv1);
-  register_module("bn1", bn1);
-  register_module("fc", fc);
+    register_module("conv1", conv1);
+    register_module("bn1", bn1);
+    register_module("fc", fc);
 
-  register_module("layer1", layer1);
-  register_module("layer2", layer2);
-  register_module("layer3", layer3);
-  register_module("layer4", layer4);
+    register_module("layer1", layer1);
+    register_module("layer2", layer2);
+    register_module("layer3", layer3);
+    register_module("layer4", layer4);
 
-  for (auto& module : modules(/*include_self=*/false)) {
-    if (auto M = dynamic_cast<torch::nn::Conv2dImpl*>(module.get()))
-      torch::nn::init::kaiming_normal_(
-          M->weight,
-          /*a=*/0,
-          torch::kFanOut,
-          torch::kReLU);
-    else if (auto M = dynamic_cast<torch::nn::BatchNorm2dImpl*>(module.get())) {
-      torch::nn::init::constant_(M->weight, 1);
-      torch::nn::init::constant_(M->bias, 0);
-    }
-  }
-
-  // Zero-initialize the last BN in each residual branch, so that the residual
-  // branch starts with zeros, and each residual block behaves like an
-  // identity. This improves the model by 0.2~0.3% according to
-  // https://arxiv.org/abs/1706.02677
-  if (zero_init_residual)
     for (auto& module : modules(/*include_self=*/false)) {
-      if (auto* M = dynamic_cast<Bottleneck*>(module.get()))
-        torch::nn::init::constant_(M->bn3->weight, 0);
-      else if (auto* M = dynamic_cast<BasicBlock*>(module.get()))
-        torch::nn::init::constant_(M->bn2->weight, 0);
+    	if (auto M = dynamic_cast<torch::nn::Conv2dImpl*>(module.get()))
+    		torch::nn::init::kaiming_normal_(
+            M->weight,
+            /*a=*/0,
+            torch::kFanOut,
+            torch::kReLU);
+    	else if (auto M = dynamic_cast<torch::nn::BatchNorm2dImpl*>(module.get())) {
+        torch::nn::init::constant_(M->weight, 1);
+        torch::nn::init::constant_(M->bias, 0);
+      }
     }
+
+    // Zero-initialize the last BN in each residual branch, so that the residual
+    // branch starts with zeros, and each residual block behaves like an
+    // identity. This improves the model by 0.2~0.3% according to
+    // https://arxiv.org/abs/1706.02677
+    if (zero_init_residual)
+    	for (auto& module : modules(/*include_self=*/false)) {
+    		if (auto* M = dynamic_cast<Bottleneck*>(module.get()))
+    			torch::nn::init::constant_(M->bn3->weight, 0);
+    		else if (auto* M = dynamic_cast<BasicBlock*>(module.get()))
+    			torch::nn::init::constant_(M->bn2->weight, 0);
+    	}
 }
 
 template <typename Block>

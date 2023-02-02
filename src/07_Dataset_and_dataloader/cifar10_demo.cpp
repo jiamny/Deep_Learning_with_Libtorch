@@ -11,7 +11,7 @@ int main() {
     std::cout << "Load cifar10 ...\n\n";
 
     // Loading and normalizing CIFAR10
-    const std::string CIFAR_data_path = "./data/cifar-10-batches-bin/";
+    const std::string CIFAR_data_path = "/media/stree/localssd/DL_data/cifar/cifar10/";
 
     auto train_dataset = CIFAR10(CIFAR_data_path)
         .map(torch::data::transforms::Normalize<>({0.5, 0.5, 0.5}, {0.5, 0.5, 0.5}))

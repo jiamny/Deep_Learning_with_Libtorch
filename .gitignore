@@ -60,6 +60,7 @@ src/19_ObjectDetection/YOLOv4/dataset/
 src/19_ObjectDetection/YOLOv4/weights/*.pt
 src/19_ObjectDetection/YOLOv5/*.pt
 src/21_Semantic_Segmentation/*.pt
+src/19_ObjectDetection/YOLOv4_2/yolov4.weights
 
 # CMake
 CMakeLists.txt.user

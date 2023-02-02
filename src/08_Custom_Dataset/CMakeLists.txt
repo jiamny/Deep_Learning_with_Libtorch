@@ -80,5 +80,3 @@ set_target_properties(08_LoadFromFolder PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
-
-

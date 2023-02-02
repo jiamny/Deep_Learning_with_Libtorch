@@ -1,13 +1,18 @@
 
-#include <iostream>
-#include <stdexcept>
 #include <torch/script.h>
 #include <torch/torch.h>
+
+#include <iostream>
+#include <stdexcept>
 #include <tuple>
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <unistd.h>
 #include <iomanip>
+
 
 #include "../../matplotlibcpp.h"
 
@@ -129,7 +134,6 @@ std::pair<Data, Data> readInfo( std::string infoFilePath ) {
   return std::make_pair(train, test);
 }
 
-
 torch::Tensor load_image(std::string path) {
     cv::Mat mat;
 
@@ -227,8 +231,9 @@ torch::Tensor load_image(std::string path) {
 
 void displayImage(std::string f1, std::string f2) {
 	torch::manual_seed(0);
-	plt::figure_size(800, 500);
-	plt::subplot2grid(1, 2, 0, 0, 1, 1);
+
+//	plt::figure_size(800, 500);
+//	plt::subplot2grid(1, 2, 0, 0, 1, 1);
 
 	torch::Tensor a = load_image(f1);
 	torch::Tensor b = load_image(f2);
@@ -251,6 +256,7 @@ void displayImage(std::string f1, std::string f2) {
 //	 a = a.to(torch::kByte);
 	 std::cout << a.sizes() << std::endl;
 
+/*
 	 std::vector<uchar> z(a.size(0) * a.size(1) * a.size(2));
 	 std::memcpy(&(z[0]), a.data_ptr<uchar>(),sizeof(uchar)*a.numel());
 
@@ -270,7 +276,7 @@ void displayImage(std::string f1, std::string f2) {
 	 plt::title("image aa");
 	 plt::imshow(zptra, aa.size(0), aa.size(1), aa.size(2));
 	 plt::show();
-
+*/
 
 	 auto t4mat = c[0].clone().permute({1,2,0}).mul(255).to(torch::kByte);
 
@@ -290,6 +296,7 @@ std::vector<unsigned char> tensorToMatrix(torch::Tensor data) {
 	std::memcpy(&(z[0]), mimg.data_ptr<unsigned char>(),sizeof(unsigned char)*mimg.numel());
 	return z;
 }
+
 
 
 int main() {
@@ -394,6 +401,7 @@ int main() {
 /*
     plt::figure_size(800, 500);
     plt::subplot(1, 2, 1);
+
     auto batch = *train_data_loader->begin();
     std::vector<unsigned char> z = tensorToMatrix(batch.data[1]);
     const uchar* zptr = &(z[0]);
@@ -413,6 +421,6 @@ int main() {
     plt::imshow(zptr2, img_size, img_size, 3);
     plt::show();
 */
-
+    std::cout << "Done!\n";
     return 0;
 }

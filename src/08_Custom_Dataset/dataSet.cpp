@@ -72,7 +72,8 @@ void readSplittedDataInfo(std::string dir, std::string infoFilePath, std::string
 	    stream >> path >> label >> type;
 	//    std::cout << path << " " << label << " " << type << std::endl;
 	    if (load_type == type) {
-	    	if( path.find(dir.c_str()) ) {
+	    	// check if path containg dir ???
+	    	if( path.length() > dir.length() ) {
 	    		list_images.push_back(path);
 	    		list_labels.push_back(label);
 	    	} else {
@@ -98,13 +99,15 @@ void load_data_from_folder_and_split(std::string file_root, float train_pct, std
 		file_root.push_back('/');
 	}
 
-    //std::cout << "root = " << file_root << std::endl;
+    //std::cout << "root = " << file_root << "\n" << file_root.c_str() << std::endl;
     struct stat s;
     DIR* root_dir;
     struct dirent *dirs;
 
     int label = 0;
+
     if((root_dir = opendir(file_root.c_str())) != NULL) {
+
     	while ((dirs = readdir(root_dir))) {
         	std::string fd(dirs->d_name);
         	std::string fdpath = file_root + fd;

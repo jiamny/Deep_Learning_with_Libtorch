@@ -15,6 +15,8 @@ int main() {
 	/**************************************************************
 	 * auto guess data type
 	 */
+	std::cout <<"---- auto guess data type:\n";
+
 	auto i = torch::tensor({1});
 	std::cout << i << " " << i.dtype() << std::endl;
 
@@ -27,6 +29,8 @@ int main() {
 	/**************************************************************
 	 * define tensor data tyep
 	 */
+	std::cout <<"---- define tensor data tyep:\n";
+
 	d = torch::tensor({1},torch::kInt32);
 	std::cout << d << " " << d.dtype() << std::endl;
 	j = torch::tensor({2.0}, torch::kDouble);
@@ -42,6 +46,8 @@ int main() {
 	/***************************************************************
 	 * tensor dimension
 	 */
+	std::cout <<"---- tensor dimension:\n";
+
 	auto scalar = torch::tensor(true);
 	std::cout << "dim = " << scalar.dim() << std::endl;
 	std::cout << "size = " << scalar.sizes() << std::endl;
@@ -66,6 +72,8 @@ int main() {
 	/***************************************************************
 	 * change tensor view shape
 	 */
+	std::cout <<"---- change tensor view shape:\n";
+
 	vector = torch::arange(0,12);
 	std::cout << vector << std::endl;
 
@@ -80,6 +88,8 @@ int main() {
 	/***************************************************************
 	 * change tensor shape
 	 */
+	std::cout <<"---- change tensor shape:\n";
+
 	auto matrix26 = torch::arange(0,12).view({2,6});
 	std::cout << "dim = "  << matrix26.dim() << std::endl;
 	std::cout << "size = " << matrix26.sizes() << std::endl;
@@ -93,9 +103,10 @@ int main() {
 	std::cout << "size = " << matrix34.sizes() << std::endl;
 
 	auto tensor = torch::zeros(3);
-	auto arr = tensor.numpy_T();
+	//  tensor.mT is only supported on matrices or batches of matrices. Got 1-D tensor.
+	auto arr = tensor.t(); //numpy_T();
 	std::cout << tensor << std::endl;
-	std::cout << arr << std::endl;
+	std::cout << "tensor.t(): " << arr << std::endl;
 
 	tensor.add_(1);
 	std::cout << tensor << std::endl;

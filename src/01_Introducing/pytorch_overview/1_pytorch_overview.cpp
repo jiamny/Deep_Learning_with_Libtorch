@@ -73,9 +73,9 @@ int main() {
 	}
 
 	// Loss
-	auto input = torch::autograd::Variable(torch::randn(5)); //.requires_grad();
+	auto input = torch::autograd::Variable( torch::randn(5, torch::requires_grad(true) ).to(device));
 	input = input.view({1, -1});
-	auto target = torch::autograd::Variable(torch::randn(5));
+	auto target = torch::autograd::Variable( torch::randn(5, torch::requires_grad(true) ).to(device));
 	target = target.view({1, -1});
 	auto loss = torch::nn::functional::cross_entropy(input, target);
 	loss.backward();
@@ -83,6 +83,7 @@ int main() {
 	// Optimizer
 	torch::optim::Adam optimizer(my_network->parameters(), torch::optim::AdamOptions(0.01));
 
+	std::cout << "Done!\n";
 	return 0;
 }
 

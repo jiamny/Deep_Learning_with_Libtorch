@@ -92,6 +92,16 @@ Tensor MyPowForward(const Tensor & self, Scalar exponent) {
 
 
 int main() {
+
+	/*
+	 * Simple C++ custom autograd function code throws error "CUDA error: driver shutting down"
+	 * terminate called after throwing an instance of 'c10::Error'
+	 *  what():  CUDA error: driver shutting down
+	 *  CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+	 */
+
+	auto cuda_available = torch::cuda::is_available(); // add this line will let everything OK.
+
     auto a = 3*torch::ones({3,3});
     a.set_requires_grad(true);
 

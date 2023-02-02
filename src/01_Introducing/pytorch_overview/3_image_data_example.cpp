@@ -28,44 +28,34 @@
 #include "../../matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
-class INetImpl : public torch::nn::Module {
-private:
-	torch::nn::Conv2d conv1{nullptr}, conv2{nullptr};
-	torch::nn::MaxPool2d pool{nullptr};
-	torch::nn::Dropout2d dropout{nullptr};
-	torch::nn::AdaptiveMaxPool2d adaptive_pool{nullptr};
-	torch::nn::Flatten flatten{nullptr};
-	torch::nn::Linear linear1{nullptr}, linear2{nullptr};
-	torch::nn::ReLU relu{nullptr};
+struct INetImpl : public torch::nn::Module {
+	torch::nn::Sequential features{nullptr}, classifier{nullptr};
 
-public:
-	INetImpl(int num_classes) {
-        conv1 = torch::nn::Conv2d(3, 32, 3);
-        pool = torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions({2,2}));
-        conv2 = torch::nn::Conv2d(32, 64, 5);
-        dropout = torch::nn::Dropout2d(0.1);
-        adaptive_pool = torch::nn::AdaptiveMaxPool2d(torch::nn::AdaptiveMaxPool2dOptions({1,1}));
-        flatten = torch::nn::Flatten();
-        linear1 = torch::nn::Linear(64,32);
-        relu = torch::nn::ReLU();
-        linear2 = torch::nn::Linear(32, num_classes);
-        register_module("conv1", conv1);
-        register_module("conv2", conv2);
-        register_module("linear1", linear1);
-        register_module("linear2", linear2);
+	explicit INetImpl(int num_classes) {
+
+		features = torch::nn::Sequential(
+				torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 32, 3)),
+				torch::nn::Functional(torch::relu),
+				torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions({2,2})),
+				torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 64, 5)),
+				torch::nn::Functional(torch::relu),
+				torch::nn::Dropout2d(torch::nn::Dropout2dOptions().p(0.1)),
+				torch::nn::AdaptiveMaxPool2d(torch::nn::AdaptiveMaxPool2dOptions({1,1}))
+				);
+
+		classifier = torch::nn::Sequential(
+		      torch::nn::Linear(64, 32),
+		      torch::nn::Functional(torch::relu),
+			  torch::nn::Linear(32, num_classes));
+
+		register_module("features", features);
+		register_module("classifier", classifier);
 	}
 
     torch::Tensor forward( torch::Tensor x) {
-        x = conv1->forward(x);
-        x = pool->forward(x);
-        x = conv2->forward(x);
-        x = pool->forward(x);
-        x = dropout->forward(x);
-        x = adaptive_pool->forward(x);
-        x = flatten->forward(x);
-        x = linear1->forward(x);
-        x = relu->forward(x);
-        x = linear2->forward(x);
+    	  x = features->forward(x);
+    	  x = x.view({x.size(0), -1});
+    	  x = classifier->forward(x);
         return x;
     }
 };
@@ -94,7 +84,7 @@ int main() {
 	std::cout << net << "\n\n";
 
     // Let’s try a random 32x32 input:
-    auto input = torch::randn({1, 3, 32, 32});
+    auto input = torch::randn({1, 3, 32, 32}).to(device);
     auto out = net->forward(input);
     std::cout << out << "\n\n";
 
@@ -123,7 +113,7 @@ int main() {
 
     // Get Dataset
     dataset = datasets::ImageFolderClassesWithPaths(dataroot, transform, class_names);
-    dataloader = DataLoader::ImageFolderClassesWithPaths(dataset, batch_size, /*shuffle_=*/train_shuffle, /*num_workers_=*/train_workers);
+    dataloader = DataLoader::ImageFolderClassesWithPaths(dataset, batch_size, train_shuffle, train_workers);
 
     std::cout << "total training images : " << dataset.size() << std::endl;
 
@@ -136,7 +126,7 @@ int main() {
     	std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
     }
 
-    auto optimizer = torch::optim::SGD(net->parameters(), /*lr =*/ 0.01);
+    auto optimizer = torch::optim::SGD(net->parameters(),  0.01);
     //auto loss_func = torch::nn::BCELoss();
     auto loss_func = torch::nn::NLLLoss(torch::nn::NLLLossOptions().ignore_index(-100).reduction(torch::kMean));
 

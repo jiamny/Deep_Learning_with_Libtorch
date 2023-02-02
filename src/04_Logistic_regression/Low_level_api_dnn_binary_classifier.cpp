@@ -107,8 +107,8 @@ int main() {
 	// 测试数据管道效果
 	int64_t batch_size = 8;
 	auto dataloader = data_iter(X, Y, batch_size);
-	torch::Tensor features = dataloader.front().first;
-	torch::Tensor labels = dataloader.front().second;
+	torch::Tensor features = dataloader.front().first.to(device);
+	torch::Tensor labels = dataloader.front().second.to(device);
 	std::cout << features << std::endl;
 	std::cout << labels << std::endl;
 
@@ -137,8 +137,8 @@ int main() {
 		metric_list = 0.0;
 		int64_t n_batch = 0;
 		for( auto& batch : dataloader) {
-			torch::Tensor features = batch.first;
-			torch::Tensor labels = batch.second;
+			torch::Tensor features = batch.first.to(device);
+			torch::Tensor labels = batch.second.to(device);
 
 			//正向传播求损失
 			predictions = model.forward(features);
@@ -157,8 +157,8 @@ int main() {
 
     		// 梯度清零
 			model.zero_grad();
-			loss_list += loss.data().item<float>();
-			metric_list += metric.data().item<float>();
+			loss_list += loss.cpu().data().item<float>();
+			metric_list += metric.cpu().data().item<float>();
 			n_batch++;
 		}
 
@@ -177,16 +177,17 @@ int main() {
 	plt::title("y_true");
 
 	plt::subplot2grid(1, 2, 0, 1, 1, 1);
-	auto idx = torch::where(model.forward(X) >= 0.5);
+	auto idx = torch::where(model.forward(X.to(device)) >= 0.5);
 	//std::cout << torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]) << std::endl;
-	auto Xp_pred = torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]);
-	idx = torch::where(model.forward(X) < 0.5);
-	auto Xn_pred = torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]);
+	auto Xp_pred = torch::index_select(X.to(device), /*dim =*/ 0, /*index =*/ idx[0]);
+	idx = torch::where(model.forward(X.to(device)) < 0.5);
+	auto Xn_pred = torch::index_select(X.to(device), /*dim =*/ 0, /*index =*/ idx[0]);
 
-	xp = Xp_pred.index({Slice(),0});
-	yp = Xp_pred.index({Slice(),1});
-    xn = Xn_pred.index({Slice(),0});
-    yn = Xn_pred.index({Slice(),1});
+	xp = Xp_pred.index({Slice(),0}).cpu();
+	yp = Xp_pred.index({Slice(),1}).cpu();
+    xn = Xn_pred.index({Slice(),0}).cpu();
+    yn = Xn_pred.index({Slice(),1}).cpu();
+
 	std::vector<float> xpp(xp.data_ptr<float>(), xp.data_ptr<float>() + xp.numel());
 	std::vector<float> ypp(yp.data_ptr<float>(), yp.data_ptr<float>() + yp.numel());
 	std::vector<float> xpn(xn.data_ptr<float>(), xn.data_ptr<float>() + xn.numel());

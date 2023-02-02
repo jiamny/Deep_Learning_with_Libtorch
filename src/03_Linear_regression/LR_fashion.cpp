@@ -15,9 +15,36 @@ using transform::RandomHorizontalFlip;
 
 int main() {
     std::cout << "Linear Regression FASHION dataset\n\n";
-    std::cout << "Training on CPU.\n";
 
-    auto dtype_option = torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU);
+    // Device
+    auto cuda_available = torch::cuda::is_available();
+
+    torch::Device device = torch::Device(torch::kCPU);
+
+    if( cuda_available ) {
+    	int gpu_id = 0;
+    	device = torch::Device(torch::kCUDA, gpu_id);
+
+    	if(gpu_id >= 0) {
+    		if(gpu_id >= torch::getNumGPUs()) {
+    			std::cout << "No GPU id " << gpu_id << " abailable, use CPU." << std::endl;
+    			device = torch::Device(torch::kCPU);
+    			cuda_available = false;
+    		} else {
+    			device = torch::Device(torch::kCUDA, gpu_id);
+    		}
+    	} else {
+    		device = torch::Device(torch::kCPU);
+    		cuda_available = false;
+    	}
+    }
+
+
+    std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+
+    std::cout << device << '\n';
+
+    auto dtype_option = torch::TensorOptions().dtype(torch::kFloat32).device(device);
 
     // Create an unordered_map to hold label names
     std::unordered_map<int, std::string> fashionMap;
@@ -33,18 +60,13 @@ int main() {
     fashionMap.insert({9, "Ankle boot"});
 
 
-    // Device
-    auto cuda_available = torch::cuda::is_available();
-    torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-    std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
-
     // Hyper parameters
     const int64_t num_classes = 10;
     const int64_t batch_size = 100;
     const size_t num_epochs = 50;
     const double learning_rate = 0.001;
 
-    const std::string FASHION_data_path = "/root/MNIST/fashion/";
+    const std::string FASHION_data_path = "/media/stree/localssd/DL_data/fashion_MNIST/";
 
     // MNIST custom dataset
     auto train_dataset = FASHION(FASHION_data_path, FASHION::Mode::kTrain)

@@ -44,8 +44,7 @@ int main() {
     // Counter.
     uint c = 0;
 
-    for (uint i=0;i<n_iter;i++)
-    {
+    for (uint i=0;i<n_iter;i++) {
         // Play.
         auto av = ac->forward(env.State());
         auto action = std::get<0>(av);
@@ -60,8 +59,7 @@ int main() {
         // episode, agent_x, agent_y, goal_x, goal_y, AGENT=(PLAYING, WON, LOST, RESETTING)
         out << 1 << ", " << env.pos_(0) << ", " << env.pos_(1) << ", " << env.goal_(0) << ", " << env.goal_(1) << ", " << std::get<1>(sd) << "\n";
 
-        if (done[0][0].item<double>() == 1.) 
-        {
+        if (done[0][0].item<double>() == 1.) {
             // Set new goal.
             double x_new = double(dist(re)); 
             double y_new = double(dist(re));

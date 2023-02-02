@@ -54,6 +54,7 @@ class LinearFunction : public torch::autograd::Function<LinearFunction> {
 };
 
 int main() {
+
 	/************************************************************
 	 * 一，动态计算图简介
 	 *
@@ -96,9 +97,12 @@ int main() {
 	 * 这些Function和我们Python中的函数有一个较大的区别，那就是它同时包括正向计算逻辑和反向传播的逻辑。
 	 * 我们可以通过继承torch.autograd.Function来创建这种支持反向传播的Function
 	 */
+	std::cout << "\n二，计算图中的Function:\n";
 	auto x = torch::randn({2, 3}).requires_grad_();
 	auto weight = torch::randn({4, 3}).requires_grad_();
 	auto y = LinearFunction::apply(x, weight);
+	//x.retain_grad();
+	//w.retain_grad();
 	y.sum().backward();
 
 	std::cout << "x.grad():\n" << x.grad() << std::endl;
@@ -123,6 +127,8 @@ int main() {
 	 * （注意，1,2,3步骤的求梯度顺序和对多个梯度值的累加规则恰好是求导链式法则的程序表述）
 	 * 正因为求导链式法则衍生的梯度累加规则，张量的grad梯度不会自动清零，在需要的时候需要手动置零。
 	 */
+	std::cout << "\n三，计算图与反向传播:\n";
+
 	x = torch::tensor({3.0}, torch::requires_grad(true));
 	auto y1 = x + 1;
 	auto y2 = 2*x;
@@ -142,10 +148,23 @@ int main() {
 	 * 所有依赖于叶子节点张量的张量, 其requires_grad 属性必定是True的，但其梯度值只在计算过程中被用到，不会最终存储到grad属性中。
 	 * 如果需要保留中间计算结果的梯度到grad属性中，可以使用 retain_grad方法。如果仅仅是为了调试代码查看梯度值，可以利用register_hook打印日志。
 	 */
+	std::cout << "\n四，叶子节点和非叶子节点:\n";
+
 	x = torch::tensor({3.0}, torch::requires_grad(true));
 	y1 = x + 1;
 	y2 = 2*x;
 	loss = torch::pow((y1-y2), 2);
+	/*
+	 * [W TensorBody.h:480] Warning: The .grad attribute of a Tensor that is not a leaf Tensor is being accessed.
+	 * Its .grad attribute won't be populated during autograd.backward(). If you indeed want the .grad field
+	 * to be populated for a non-leaf Tensor, use .retain_grad() on the non-leaf Tensor. If you access the non-leaf
+	 * Tensor by mistake, make sure you access the leaf Tensor instead. See github.com/pytorch/pytorch/pull/30531
+	 * for more informations. (function grad)
+	 */
+	x.retain_grad();
+	y1.retain_grad();
+	y2.retain_grad();
+	loss.retain_grad();
 
 	loss.backward();
 

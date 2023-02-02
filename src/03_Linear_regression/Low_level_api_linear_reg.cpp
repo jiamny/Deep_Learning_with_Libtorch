@@ -43,8 +43,30 @@ int main() {
 
 	// Device
 	auto cuda_available = torch::cuda::is_available();
-	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+
+	torch::Device device = torch::Device(torch::kCPU);
+
+	if( cuda_available ) {
+		int gpu_id = 0;
+		device = torch::Device(torch::kCUDA, gpu_id);
+
+		if(gpu_id >= 0) {
+			if(gpu_id >= torch::getNumGPUs()) {
+				std::cout << "No GPU id " << gpu_id << " abailable, use CPU." << std::endl;
+				device = torch::Device(torch::kCPU);
+				cuda_available = false;
+			} else {
+				device = torch::Device(torch::kCUDA, gpu_id);
+			}
+		} else {
+			device = torch::Device(torch::kCPU);
+			cuda_available = false;
+		}
+	}
+
 	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+
+	std::cout << device << '\n';
 
 	torch::manual_seed(1000);
 
@@ -102,8 +124,8 @@ int main() {
 		auto dataloader =  data_iter(X, Y, batch_size);
 
 		for( auto& batch : dataloader) {
-			auto features = batch.first;
-			auto labels = batch.second;
+			auto features = batch.first.to(device);
+			auto labels = batch.second.to(device);
 			//std::cout << "x:\n" << features << "\n";
 			//std::cout << "y:\n" << labels << "\n";
 			auto predictions = model.forward(features);
@@ -135,7 +157,13 @@ int main() {
 	plt::figure_size(800, 600);
 //  plt::subplot2grid(1, 2, 0, 0, 1, 1);
 	plt::scatter(xx, yy, 5.0, {{"c", "g"}, {"label", "samples"}});
-	auto yp = model.w[0].data()*X.index({Slice(), 0})+model.b[0].data();
+	torch::Tensor yp;
+
+	if(cuda_available )
+		yp = model.w[0].cpu().data()*X.index({Slice(), 0})+model.b[0].cpu().data();
+	else
+		yp = model.w[0].data()*X.index({Slice(), 0})+model.b[0].data();
+
 	std::vector<float> yyp(yp.data_ptr<float>(), yp.data_ptr<float>() + yp.numel());
 	plt::named_plot("model", xx, yyp, "-r");
     plt::legend();

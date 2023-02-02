@@ -109,7 +109,7 @@ public:
        	image_size = img_size;
        	channel_size = channels;
         readSplittedDataInfo(dir, info_path, std::string(type), image_paths, labels);
-        std::cout << image_size << " " << channel_size << std::endl;
+        //std::cout << image_size << " " << channel_size << std::endl;
     }
 
     myDataset(int img_size, int channels, std::vector<std::string> &img_paths, std::vector<int> &img_labels) {
@@ -122,6 +122,7 @@ public:
     // Override get() function to return tensor at location index
     torch::data::Example<> get(size_t index) override{
         std::string image_path = image_paths.at(index);
+
         cv::Mat image = cv::imread(image_path.c_str());
         cv::resize(image, image, cv::Size(image_size, image_size));
         int label = labels.at(index);

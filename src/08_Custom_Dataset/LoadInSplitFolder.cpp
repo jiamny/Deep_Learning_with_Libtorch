@@ -1,10 +1,12 @@
 
 #include "dataSet.h"
 
+// Download dataset from: https://download.pytorch.org/tutorial/hymenoptera_data.zip
+
 int main(int argc, char *argv[])
 {
     int batch_size = 2;
-    std::string image_dir = "./data/hymenoptera_data/train";
+    std::string image_dir = "/media/stree/localssd/DL_data/hymenoptera_data/train";
 
     // --- also get label to name map
     std::map<int, std::string> label_to_name;

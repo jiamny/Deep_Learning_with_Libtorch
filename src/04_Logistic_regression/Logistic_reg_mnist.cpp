@@ -36,7 +36,7 @@ int main() {
     const size_t num_epochs = 20;
     const double learning_rate = 0.001;
 
-    const std::string MNIST_data_path = "./data/fashion/";
+    const std::string MNIST_data_path = "/media/stree/localssd/DL_data/fashion_MNIST/";
 
     // MNIST Dataset (images and labels)
     auto train_dataset = torch::data::datasets::MNIST(MNIST_data_path)
@@ -186,4 +186,7 @@ int main() {
 
     	break;
     }
+
+    std::cout << "Done!\n";
+    return 0;
 }

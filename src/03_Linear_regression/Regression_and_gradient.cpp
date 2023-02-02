@@ -26,10 +26,36 @@ torch::Tensor get_loss(torch::Tensor y_pred, torch::Tensor y_train){
 
 
 int main() {
-    std::cout << "Linear Regression\n\n";
-    std::cout << "Training on CPU.\n";
+    std::cout << "Regression and gradient\n\n";
 
-    auto dtype_option = torch::TensorOptions().dtype(torch::kDouble).device(torch::kCPU);
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+
+	torch::Device device = torch::Device(torch::kCPU);
+
+	if( cuda_available ) {
+		int gpu_id = 3;
+		device = torch::Device(torch::kCUDA, gpu_id);
+
+		if(gpu_id >= 0) {
+			if(gpu_id >= torch::getNumGPUs()) {
+				std::cout << "No GPU id " << gpu_id << " abailable, use CPU." << std::endl;
+				device = torch::Device(torch::kCPU);
+				cuda_available = false;
+			} else {
+				device = torch::Device(torch::kCUDA, gpu_id);
+			}
+		} else {
+			device = torch::Device(torch::kCPU);
+			cuda_available = false;
+		}
+	}
+
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+
+	std::cout << device << '\n';
+
+    auto dtype_option = torch::TensorOptions().dtype(torch::kDouble).device(device);
 
 	//# 定义一个多变量函数
     double array [] = {0.5, 3.0, 2.4};
@@ -37,6 +63,8 @@ int main() {
     auto w_target = torch::tensor({0.5, 3.0, 2.4}, dtype_option); // 定义参数
     auto b_target = torch::tensor({0.9}, dtype_option);           // 定义参数
 
+    w_target = w_target.cpu();
+    b_target = b_target.cpu();
     std::printf("函数的式子:  y = %.2f + %.2f * x + %.2f * x^2 + %.2f * x^3", b_target.item<double>(),
     		w_target[0].item<double>(), w_target[1].item<double>(), w_target[2].item<double>()); // 打印出函数的式子
 
@@ -45,6 +73,9 @@ int main() {
 
     // 画出这个函数的曲线
     auto x_sample = torch::arange(-3.0, 3.1, 0.1, dtype_option);
+    if( cuda_available )
+    	x_sample = x_sample.cpu();
+
     //auto x_sample = torch::tensor({-3.0, 3.1, 0.1}, dtype_option);
     auto f1 = torch::mul(x_sample, w_target[0].item<double>());
     auto f2 = torch::mul(x_sample.pow(2), w_target[1].item<double>());
@@ -66,18 +97,21 @@ int main() {
 	auto x_sample2 = x_sample.pow(2);
 	auto x_sample3 = x_sample.pow(3);
 	auto x_train = torch::stack({x_sample, x_sample2, x_sample3}, 1).to(dtype_option); // default is  61 x 3
+	x_train = x_train.cpu();
 	std::cout << x_train.sizes() << '\n';
 	//auto y_train = torch::tensor(yy, dtype_option).view({63,1});
 
 	// # 定义参数和模型
-	auto w = torch::randn({3, 1}, torch::TensorOptions().dtype(torch::kDouble).device(torch::kCPU).requires_grad(true));
-	auto b = torch::zeros({1}, torch::TensorOptions().dtype(torch::kDouble).device(torch::kCPU).requires_grad(true));
-
+	auto w = torch::randn({3, 1}, torch::TensorOptions().dtype(torch::kDouble).device(device).requires_grad(true));
+	auto b = torch::zeros({1}, torch::TensorOptions().dtype(torch::kDouble).device(device).requires_grad(true));
+	w = w.cpu();
+	b = b.cpu();
 	// # 画出更新之前的模型
 	auto y_pred = multi_linear(x_train, w, b);
 	std::cout << "y_pred = " << y_pred.sizes() << '\n';
 
 	auto x_train1 = x_train.index({Slice(),0}).to(dtype_option).unsqueeze(1); //   view({63, 1});
+	x_train1 = x_train1.cpu();
 //std::cout << "x_train1 = " << x_train1.data() << '\n';
 	std::vector<double> xx2(x_train1.data_ptr<double>(),
 			x_train1.data_ptr<double>() + x_train1.numel());
@@ -153,6 +187,7 @@ int main() {
 	plt::title("After 100 epochs - real vs. fitting");
 	plt::show();
 
+	std::cout<< "Done!\n";
     return 0;
 }
 

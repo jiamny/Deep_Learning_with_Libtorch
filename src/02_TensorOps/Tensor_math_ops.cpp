@@ -133,7 +133,7 @@ int main() {
 
 	// 矩阵特征值和特征向量
 	a = torch::tensor({{1.0,2.0}, {-5.0, 4.0}}, torch::kFloat);
-	std::tuple<torch::Tensor, torch::Tensor> eig_rlt = torch::eig(a, true);
+	std::tuple<torch::Tensor, torch::Tensor> eig_rlt = torch::linalg::eig(a);
 	std::cout << "torch.eig(a, true):\n" << std::get<0>(eig_rlt) << std::endl;
 	std::cout << "torch.eig(a, true):\n" << std::get<1>(eig_rlt) << std::endl;
 

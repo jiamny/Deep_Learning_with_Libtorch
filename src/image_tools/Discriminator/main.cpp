@@ -99,6 +99,7 @@ int main(int argc, const char *argv[]){
     }
 
     // End Processing
+    std::cout << "Done\n";
     return 0;
 }
 

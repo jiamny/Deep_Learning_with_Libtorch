@@ -81,3 +81,15 @@ set_target_properties(10_DefineModel PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
+
+# -----------------------------------------------------------------------------------------
+add_executable(10_Fashion_template_demo)
+target_sources(10_Fashion_template_demo PRIVATE Fashion_template_demo.cpp)
+
+target_link_libraries(10_Fashion_template_demo ${TORCH_LIBRARIES} ${OpenCV_LIBS})
+
+set_target_properties(10_Fashion_template_demo PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+)
+

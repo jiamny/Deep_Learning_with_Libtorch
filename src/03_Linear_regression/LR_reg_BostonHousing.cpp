@@ -74,6 +74,34 @@ void FisherYatesShuffle(std::vector<int> &indices){
 int main(int argc, char** argv) {
 
 	std::cout << "Current path is " << get_current_dir_name() << '\n';
+
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+
+	torch::Device device = torch::Device(torch::kCPU);
+
+	if( cuda_available ) {
+		int gpu_id = 0;
+		device = torch::Device(torch::kCUDA, gpu_id);
+
+		if(gpu_id >= 0) {
+			if(gpu_id >= torch::getNumGPUs()) {
+				std::cout << "No GPU id " << gpu_id << " abailable, use CPU." << std::endl;
+				device = torch::Device(torch::kCPU);
+				cuda_available = false;
+			} else {
+				device = torch::Device(torch::kCUDA, gpu_id);
+			}
+		} else {
+			device = torch::Device(torch::kCPU);
+			cuda_available = false;
+		}
+	}
+
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+
+	std::cout << device << '\n';
+
 	// Load CSV data
 	std::ifstream file;
 	std::string path = "./data/BostonHousing.csv";
@@ -145,7 +173,7 @@ int main(int argc, char** argv) {
 	torch::optim::SGD optimizer(net->parameters(), 0.001);
 
 	// Train
-	std::size_t n_epochs = 10;
+	std::size_t n_epochs = 30;
 	for (std::size_t epoch = 1; epoch <= n_epochs; epoch++) {
 		auto out = net->forward(train_data);
 		optimizer.zero_grad();

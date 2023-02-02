@@ -182,7 +182,7 @@ int main() {
     std::cout << "---- INPUT PIPELINE ----\n";
 
     // Construct MNIST dataset
-    const std::string MNIST_data_path = "/root/MNIST/";
+    const std::string MNIST_data_path = "/media/stree/localssd/DL_data/mnist2/MNIST/raw/";
 
     auto dataset = torch::data::datasets::MNIST(MNIST_data_path)
         .map(torch::data::transforms::Normalize<>(0.1307, 0.3081))
@@ -236,7 +236,7 @@ int main() {
     // created in Python.
     // You can use the provided Python-script "create_resnet18_scriptmodule.py" in
     // tutorials/basics/pytorch-basics/model to create the necessary file.
-    const std::string pretrained_model_path = "./src/01_Introducing/pytorch_basics/model/resnet18_scriptmodule.pt";
+    const std::string pretrained_model_path = "/media/stree/localssd/DL_data/models/resnet18_scriptmodule.pt";
 
     torch::jit::script::Module resnet;
 
@@ -291,7 +291,7 @@ int main() {
 
     if( saveAndLoadModel ) {
     	// Path to the model output file (all folders must exist!).
-    	const std::string model_save_path = "./src/01_Introducing/pytorch_basics/output/model.pt";
+    	const std::string model_save_path = "./01_pytorch_basics_model.pt";
 
     	torch::save(model, model_save_path);
 

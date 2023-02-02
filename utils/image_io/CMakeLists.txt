@@ -4,8 +4,10 @@ project(image-io VERSION 1.0.0 LANGUAGES CXX)
 
 if(NOT Torch_FOUND)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-    find_package(Torch REQUIRED PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../libtorch")
+    # find_package(Torch REQUIRED PATHS "${CMAKE_CURRENT_SOURCE_DIR}/../../libtorch")
+    find_package(Torch REQUIRED PATHS "/home/stree/libtorch_gpu")
 endif()
+
 
 add_library(image-io SHARED)
 target_sources(image-io PUBLIC src/image_io.cpp
