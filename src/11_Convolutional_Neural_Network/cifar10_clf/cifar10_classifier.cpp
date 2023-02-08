@@ -11,41 +11,74 @@ int main() {
     std::cout << "Deep Learning with PyTorch: A 60 Minute Blitz\n\n";
     std::cout << "Training a Classifier\n\n";
 
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+
+	torch::Device device = torch::Device(torch::kCPU);
+
+	if( cuda_available ) {
+		int gpu_id = 0;
+		device = torch::Device(torch::kCUDA, gpu_id);
+
+		if(gpu_id >= 0) {
+			if(gpu_id >= torch::getNumGPUs()) {
+				std::cout << "No GPU id " << gpu_id << " abailable, use CPU." << std::endl;
+				device = torch::Device(torch::kCPU);
+				cuda_available = false;
+			} else {
+				device = torch::Device(torch::kCUDA, gpu_id);
+			}
+		} else {
+			device = torch::Device(torch::kCPU);
+			cuda_available = false;
+		}
+	}
+
+
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+
+	std::cout << device << '\n';
+
+	int batch_size = 4;
+
     // Loading and normalizing CIFAR10
-    const std::string CIFAR_data_path = "./data/cifar";
+    const std::string CIFAR_data_path = "/media/stree/localssd/DL_data/cifar/cifar10";
 
     auto train_dataset = CIFAR10(CIFAR_data_path)
         .map(torch::data::transforms::Normalize<>({0.5, 0.5, 0.5}, {0.5, 0.5, 0.5}))
         .map(torch::data::transforms::Stack<>());
     auto train_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
-        std::move(train_dataset), 4);
+        std::move(train_dataset), batch_size);
 
     auto test_dataset = CIFAR10(CIFAR_data_path, CIFAR10::Mode::kTest)
         .map(torch::data::transforms::Normalize<>({0.5, 0.5, 0.5}, {0.5, 0.5, 0.5}))
         .map(torch::data::transforms::Stack<>());
     auto test_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-        std::move(test_dataset), 4);
+        std::move(test_dataset), batch_size);
 
     std::string classes[10] = {"plane", "car", "bird", "cat",
            "deer", "dog", "frog", "horse", "ship", "truck"};
 
     // Define a Convolutional Neural Network
     NetImpl net = NetImpl();
-    net.to(torch::kCPU);
+    net.to(device); //torch::kCPU);
 
     // // Define a Loss function and optimizer
     torch::nn::CrossEntropyLoss criterion;
     torch::optim::SGD optimizer(net.parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
 
     // Train the network
-    for (size_t epoch = 0; epoch < 10; ++epoch) {
+    net.train();
+   	torch::AutoGradMode enable_grad(true);
+
+    for (size_t epoch = 0; epoch < 20; ++epoch) {
         double running_loss = 0.0;
 
         int i = 0;
         for (auto& batch : *train_loader) {
             // get the inputs; data is a list of [inputs, labels]
-            auto inputs = batch.data.to(torch::kCPU);
-            auto labels = batch.target.to(torch::kCPU);
+            auto inputs = batch.data.to(device);
+            auto labels = batch.target.to(device);
 
             // zero the parameter gradients
             optimizer.zero_grad();
@@ -75,11 +108,14 @@ int main() {
     net = Net();
     torch::load(net, PATH);
 */
+    net.eval();
+    torch::NoGradGuard no_grad;
+
     int correct = 0;
     int total = 0;
     for (const auto& batch : *test_loader) {
-        auto images = batch.data.to(torch::kCPU);
-        auto labels = batch.target.to(torch::kCPU);
+        auto images = batch.data.to(device);
+        auto labels = batch.target.to(device);
 
         auto outputs = net.forward(images);
 
@@ -92,14 +128,19 @@ int main() {
     std::cout << "Accuracy of the network on the 10000 test images: "
         << (100 * correct / total) << "%\n\n";
 
-    float class_correct[10];
-    float class_total[10];
+    int class_sz = sizeof(classes) / sizeof(classes[0]);
+    std::cout << class_sz << '\n';
 
-    torch::NoGradGuard no_grad;
+    int class_correct[class_sz];
+    int class_total[class_sz];
+    for(int n = 0; n < class_sz; n++) {
+    	class_correct[n] = 0;
+    	class_total[n] = 0;
+    }
 
     for (const auto& batch : *test_loader) {
-        auto images = batch.data.to(torch::kCPU);
-        auto labels = batch.target.to(torch::kCPU);
+        auto images = batch.data.to(device);
+        auto labels = batch.target.to(device);
 
         auto outputs = net.forward(images);
 
@@ -107,16 +148,18 @@ int main() {
         auto predicted = std::get<1>(out_tuple);
         auto c = (predicted == labels).squeeze();
 
-        for (int i = 0; i < 4; ++i) {
+
+        for (int i = 0; i < images.size(0); ++i) {
             auto label = labels[i].item<int>();
-            class_correct[label] += c[i].item<float>();
+            class_correct[label] += c[i].item<int>();
             class_total[label] += 1;
         }
+
     }
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < class_sz; ++i) {
         std::cout << "Accuracy of " << classes[i] << " "
-            << 100 * class_correct[i] / class_total[i] << "%\n";
+            << 100.0 * class_correct[i] / class_total[i] << "%\n";
     }
     std::cout << "Done!\n";
 }

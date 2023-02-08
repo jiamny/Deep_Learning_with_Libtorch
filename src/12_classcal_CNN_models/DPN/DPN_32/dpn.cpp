@@ -5,7 +5,7 @@ using Options = torch::nn::Conv2dOptions;
 using torch::indexing::Slice;
 using torch::indexing::None;
 
-BottleneckImpl::BottleneckImpl(int64_t last_planes, int64_t in_planes, int64_t out_planes,
+Bottleneck::Bottleneck(int64_t last_planes, int64_t in_planes, int64_t out_planes,
 		int64_t dense_depth, int64_t stride, bool first_layer) {
 	this->out_planes = out_planes;
 	this->dense_depth = dense_depth;
@@ -22,9 +22,16 @@ BottleneckImpl::BottleneckImpl(int64_t last_planes, int64_t in_planes, int64_t o
 		this->shortcut->push_back(torch::nn::Conv2d(Options(last_planes, out_planes+dense_depth, 1).stride(stride).bias(false)));
 		this->shortcut->push_back(torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(out_planes+dense_depth)));
 	}
+	register_module("conv1", conv1);
+	register_module("bn1", bn1);
+	register_module("conv2", conv2);
+	register_module("bn2", bn2);
+	register_module("conv3", conv3);
+	register_module("bn3", bn3);
+	register_module("shortcut", shortcut);
 }
 
-torch::Tensor BottleneckImpl::forward(torch::Tensor x) {
+torch::Tensor Bottleneck::forward(torch::Tensor x) {
 	 auto out = torch::relu(bn1->forward(conv1->forward(x)));
 	 out = torch::relu(bn2->forward(conv2->forward(out)));
 	 out = bn3->forward(conv3->forward(out));
@@ -46,7 +53,7 @@ torch::Tensor BottleneckImpl::forward(torch::Tensor x) {
 	 return out;
 }
 
-DPNImpl::DPNImpl(std::map<std::string, std::vector<int64_t>> cfg, int64_t num_classes) {
+DPN::DPN(std::map<std::string, std::vector<int64_t>> cfg, int64_t num_classes) {
 	this->in_planes = cfg.at("in_planes");
 	this->out_planes = cfg.at("out_planes");
 	this->num_blocks = cfg.at("num_blocks");
@@ -60,11 +67,36 @@ DPNImpl::DPNImpl(std::map<std::string, std::vector<int64_t>> cfg, int64_t num_cl
 	this->layer3 = _make_layer(in_planes[2], out_planes[2], num_blocks[2], dense_depth[2], 2);
 	this->layer4 = _make_layer(in_planes[3], out_planes[3], num_blocks[3], dense_depth[3], 2);
 	this->linear->push_back(torch::nn::Linear(out_planes[3]+(num_blocks[3]+1)*dense_depth[3], num_classes));
+
+	register_module("conv1", conv1);
+	register_module("bn1", bn1);
+	register_module("layer1", layer1);
+	register_module("layer2", layer2);
+	register_module("layer3", layer3);
+	register_module("layer4", layer4);
+	register_module("linear", linear);
+
+    // Initializing weights
+    for (auto& module : modules(/*include_self=*/false)) {
+    	if (auto M = dynamic_cast<torch::nn::Conv2dImpl*>(module.get()))
+    		torch::nn::init::kaiming_normal_(
+            M->weight,
+            /*a=*/0,
+            torch::kFanOut,
+            torch::kReLU);
+    	else if (auto M = dynamic_cast<torch::nn::BatchNorm2dImpl*>(module.get())) {
+    		torch::nn::init::constant_(M->weight, 1);
+    		torch::nn::init::constant_(M->bias, 0);
+        } else if (auto M = dynamic_cast<torch::nn::LinearImpl*>(module.get())) {
+    		torch::nn::init::normal_(M->weight, 0.0, 0.01);
+    		torch::nn::init::constant_(M->bias, 0);
+        }
+    }
 }
 
-std::vector<Bottleneck> DPNImpl::_make_layer(int64_t in_planes, int64_t out_planes,
+torch::nn::Sequential DPN::_make_layer(int64_t in_planes, int64_t out_planes,
 			int64_t num_blocks, int64_t dense_depth, int64_t stride) {
-	std::vector<Bottleneck> layers;
+	torch::nn::Sequential layers;
 	std::vector<int64_t> strides;
 	strides.push_back(stride);
 
@@ -72,37 +104,25 @@ std::vector<Bottleneck> DPNImpl::_make_layer(int64_t in_planes, int64_t out_plan
 
 	// [stride] + [1]*(num_blocks-1)
 	for(int64_t j = 0; j < strides.size(); j++ )  {
-		layers.push_back(Bottleneck(last_planes, in_planes, out_planes, dense_depth, strides[j], j==0));
+		layers->push_back(Bottleneck(last_planes, in_planes, out_planes, dense_depth, strides[j], j==0));
 		last_planes = out_planes + (j+2) * dense_depth;
 	}
 	//for i,stride in enumerate(strides):
 	return layers;
 }
 
-torch::Tensor DPNImpl::forward(torch::Tensor x) {
-	auto out = torch::relu(bn1->forward(conv1->forward(x)));
-//	std::cout <<"DNP==>out\n" << out.sizes() << std::endl;
-	for( auto layer : this->layer1 ) {
-	    out = layer->forward(out);
-	}
-//	std::cout <<"DNP==>ly1\n" << out.sizes() << std::endl;
-	for( auto layer : this->layer2 ) {
-		out = layer->forward(out);
-	}
-//	std::cout <<"DNP==>ly2\n" << out.sizes() << std::endl;
-	for( auto layer : this->layer3 ) {
-		out = layer->forward(out);
-	}
-//	std::cout <<"DNP==>ly3\n" << out.sizes() << std::endl;
-	for( auto layer : this->layer4 ) {
-		out = layer->forward(out);
-	}
-//	std::cout <<"DNP==>ly4\n" << out.sizes() << std::endl;
+torch::Tensor DPN::forward(torch::Tensor x) {
+	x = torch::relu(bn1->forward(conv1->forward(x)));
 
-	out = torch::avg_pool2d(out, 4);
-	out = out.view({out.size(0), -1});
-	out = linear->forward(out);
-	return out;
+    x = layer1->forward(x);
+    x = layer2->forward(x);
+    x = layer3->forward(x);
+    x = layer4->forward(x);
+
+	x = torch::avg_pool2d(x, 4);
+	x = x.view({x.size(0), -1});
+	x = linear->forward(x);
+	return x;
 }
 
 DPN DPN26(int64_t num_classes) {

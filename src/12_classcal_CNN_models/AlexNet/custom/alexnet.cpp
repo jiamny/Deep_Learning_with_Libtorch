@@ -81,19 +81,19 @@ torch::Tensor MC_AlexNetImpl::forward(torch::Tensor x){
 // function{weights_init}
 // ----------------------------
 void weights_init(nn::Module &m){
-    if ((typeid(m) == typeid(nn::Conv2d)) || (typeid(m) == typeid(nn::Conv2dImpl))) {
-        auto p = m.named_parameters(false);
-        auto w = p.find("weight");
-        auto b = p.find("bias");
-        if (w != nullptr) nn::init::normal_(*w, /*mean=*/0.0, /*std=*/0.01);
-        if (b != nullptr) nn::init::constant_(*b, /*bias=*/0.0);
-    }
-    else if ((typeid(m) == typeid(nn::Linear)) || (typeid(m) == typeid(nn::LinearImpl))){
-        auto p = m.named_parameters(false);
-        auto w = p.find("weight");
-        auto b = p.find("bias");
-        if (w != nullptr) nn::init::normal_(*w, /*mean=*/0.0, /*std=*/0.01);
-        if (b != nullptr) nn::init::constant_(*b, /*bias=*/0.0);
-    }
-    return;
+
+	 torch::NoGradGuard no_grad;
+
+	 if (auto* M = m.as<nn::Conv2d>()) {
+		 //M->weight.normal_(0.0, 0.02);
+		 //M->bias.constant_(0.0);
+		 nn::init::normal_(M->weight, /*mean=*/0.0, /*std=*/0.01);
+		 nn::init::constant_(M->bias, /*bias=*/0.0);
+
+	 }else if(auto* M = m.as<nn::Linear>()){
+		 nn::init::normal_(M->weight, /*mean=*/0.0, /*std=*/0.01);
+		 nn::init::constant_(M->bias, /*bias=*/0.0);
+	}
+	return;
+
 }

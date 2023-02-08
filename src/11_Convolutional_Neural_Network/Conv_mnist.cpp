@@ -7,7 +7,7 @@
 #include <vector>
 
 // Where to find the MNIST dataset.
-const char* kDataRoot = "./data/MNIST";
+const char* kDataRoot = "/media/stree/localssd/DL_data/mnist2/MNIST/raw";
 
 // The batch size for training.
 const int64_t kTrainBatchSize = 64;

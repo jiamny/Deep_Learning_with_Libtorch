@@ -84,11 +84,11 @@ torch::Tensor InceptionAuxImpl::forward(at::Tensor x) {
 
 GoogLeNetImpl::GoogLeNetImpl(
     int64_t num_classes,
-    bool aux_logits,
-    bool transform_input,
+    bool aux_logits_,
+    bool transform_input_,
     bool init_weights) {
-	this->aux_logits = aux_logits;
-    this->transform_input = transform_input;
+	aux_logits = aux_logits_;
+    transform_input = transform_input_;
 
     conv1 = BasicConv2d(Options(3, 64, 7).stride(2).padding(3));
     conv2 = BasicConv2d(Options(64, 64, 1));
@@ -106,7 +106,7 @@ GoogLeNetImpl::GoogLeNetImpl(
     inception5a = Inception(832, 256, 160, 320, 32, 128, 128);
     inception5b = Inception(832, 384, 192, 384, 48, 128, 128);
 
-    if (aux_logits) {
+    if(aux_logits) {
       aux1 = InceptionAux(512, num_classes);
       aux2 = InceptionAux(528, num_classes);
 
@@ -136,8 +136,8 @@ GoogLeNetImpl::GoogLeNetImpl(
     register_module("dropout", dropout);
     register_module("fc", fc);
 
-    if (init_weights)
-      _initialize_weights();
+    if(init_weights)
+    	_initialize_weights();
 }
 
 void GoogLeNetImpl::_initialize_weights() {
@@ -156,12 +156,12 @@ void GoogLeNetImpl::_initialize_weights() {
 }
 
 GoogLeNetOutput GoogLeNetImpl::forward(torch::Tensor x) {
-  if (transform_input) {
-    auto x_ch0 = torch::unsqueeze(x.select(1, 0), 1) * (0.229 / 0.5) + (0.485 - 0.5) / 0.5;
-    auto x_ch1 = torch::unsqueeze(x.select(1, 1), 1) * (0.224 / 0.5) + (0.456 - 0.5) / 0.5;
-    auto x_ch2 = torch::unsqueeze(x.select(1, 2), 1) * (0.225 / 0.5) + (0.406 - 0.5) / 0.5;
+  if(transform_input) {
+	  auto x_ch0 = torch::unsqueeze(x.select(1, 0), 1) * (0.229 / 0.5) + (0.485 - 0.5) / 0.5;
+	  auto x_ch1 = torch::unsqueeze(x.select(1, 1), 1) * (0.224 / 0.5) + (0.456 - 0.5) / 0.5;
+	  auto x_ch2 = torch::unsqueeze(x.select(1, 2), 1) * (0.225 / 0.5) + (0.406 - 0.5) / 0.5;
 
-    x = torch::cat({x_ch0, x_ch1, x_ch2}, 1);
+	  x = torch::cat({x_ch0, x_ch1, x_ch2}, 1);
   }
 
   // N x 3 x 224 x 224
@@ -184,9 +184,9 @@ GoogLeNetOutput GoogLeNetImpl::forward(torch::Tensor x) {
   // N x 480 x 14 x 14
   x = inception4a->forward(x);
   // N x 512 x 14 x 14
-  torch::Tensor aux1;
-  if (is_training() && aux_logits)
-    aux1 = this->aux1->forward(x);
+  torch::Tensor auxI;
+  if(is_training() && aux_logits)
+	  auxI = aux1->forward(x);
 
   x = inception4b->forward(x);
   // N x 512 x 14 x 14
@@ -194,9 +194,9 @@ GoogLeNetOutput GoogLeNetImpl::forward(torch::Tensor x) {
   // N x 512 x 14 x 14
   x = inception4d->forward(x);
   // N x 528 x 14 x 14
-  torch::Tensor aux2;
-  if (is_training() && aux_logits)
-    aux2 = this->aux2->forward(x);
+  torch::Tensor auxII;
+  if(is_training() && aux_logits)
+	  auxII = aux2->forward(x);
 
   x = inception4e(x);
   // N x 832 x 14 x 14
@@ -215,6 +215,6 @@ GoogLeNetOutput GoogLeNetImpl::forward(torch::Tensor x) {
   x = fc->forward(x);
   // N x 1000(num_classes)
 
-  return {x, aux1, aux2};
+  return {x, auxI, auxII};
 }
 

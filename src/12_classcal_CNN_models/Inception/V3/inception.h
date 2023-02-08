@@ -103,9 +103,9 @@ struct InceptionV3_Impl : torch::nn::Module {
   InceptionV3ModuleC block5_2 = InceptionV3ModuleC(1280, 320, 384, 384, 448, 384, 192);
   InceptionV3ModuleC block5_3 = InceptionV3ModuleC(2048, 320, 384, 384, 448, 384, 192);
 
-  torch::nn::Sequential linear;
+  torch::nn::Linear linear{nullptr};
 
-  explicit InceptionV3_Impl(int64_t num_classes, std::string stage);
+  explicit InceptionV3_Impl(int64_t num_classes_, std::string stage_);
 
   InceptionV3Output forward(torch::Tensor x);
 };

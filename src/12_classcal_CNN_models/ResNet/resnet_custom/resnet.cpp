@@ -64,14 +64,14 @@ struct Residual : public torch::nn::Module {
  * the number of channels is doubled compared with that of the previous module, and the height and width are halved.
  */
 
-std::vector<Residual> resnet_block(int64_t input_channels, int64_t num_channels, int num_residuals, bool first_block) {
-	std::vector<Residual> blk;
+torch::nn::Sequential resnet_block(int64_t input_channels, int64_t num_channels, int num_residuals, bool first_block) {
+	torch::nn::Sequential blk;
     for(int i= 0; i < num_residuals; i++ ){
         if( i == 0 && ! first_block )
-            blk.push_back(
+            blk->push_back(
                 Residual(input_channels, num_channels, true, 2));
         else
-            blk.push_back(Residual(num_channels, num_channels, false, 1));
+            blk->push_back(Residual(num_channels, num_channels, false, 1));
     }
     return blk;
 }
@@ -84,10 +84,8 @@ std::vector<Residual> resnet_block(int64_t input_channels, int64_t num_channels,
 */
 
 struct  ResNetImpl : public torch::nn::Module {
-	std::vector<Residual> b2, b3, b4, b5;
-	torch::nn::Sequential b1{nullptr};
-	torch::nn::Linear linear{nullptr};
-	torch::nn::Sequential classifier{nullptr};
+	torch::nn::Sequential b1{nullptr}, b2{nullptr}, b3{nullptr}, b4{nullptr}, b5{nullptr};
+	torch::nn::Linear classifier{nullptr};
 
 	ResNetImpl(int64_t num_classes) {
 		// The first module uses a 64-channel 7×7 convolutional layer.
@@ -100,23 +98,15 @@ struct  ResNetImpl : public torch::nn::Module {
 		b3 = resnet_block(64, 128, 2, false);
 		b4 = resnet_block(128, 256, 2, false);
 		b5 = resnet_block(256, 512, 2, false);
-		classifier = torch::nn::Sequential(torch::nn::Linear(512*6*6, num_classes));
+		classifier = torch::nn::Linear(512*6*6, num_classes);
 	}
 
 	torch::Tensor forward(torch::Tensor x) {
 		x = b1->forward(x);
-		for(int i =0; i < b2.size(); i++)
-			x = b2[i].forward(x);
-
-		for(int i =0; i < b3.size(); i++)
-			x = b3[i].forward(x);
-
-		for(int i =0; i < b4.size(); i++)
-			x = b4[i].forward(x);
-
-		for(int i =0; i < b5.size(); i++)
-			x = b5[i].forward(x);
-
+		x = b2->forward(x);
+		x = b3->forward(x);
+		x = b4->forward(x);
+		x = b5->forward(x);
 		//torch::nn::AdaptiveAvgPool2d(torch::nn::AdaptiveAvgPool2dOptions({1, 1})),
 		//torch::nn::Flatten()
 		x = torch::adaptive_avg_pool2d(x, {6, 6});
@@ -162,9 +152,17 @@ std::vector<std::string> Set_Class_Names(const std::string path, const size_t cl
 int main() {
 
 	// Device
-	auto cuda_available = torch::cuda::is_available();
-	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+	bool cpu_only = true;
+
+	torch::Device device( torch::kCPU );
+
+	if( ! cpu_only ) {
+		auto cuda_available = torch::cuda::is_available();
+		device = cuda_available ? torch::Device(torch::kCUDA) : torch::Device(torch::kCPU);
+		std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+	} else {
+		std::cout << "Training on CPU." << '\n';
+	}
 
 	int64_t img_size = 224;
 	size_t batch_size = 16;
@@ -187,7 +185,7 @@ int main() {
 		transforms_Normalize(std::vector<float>{0.5, 0.5, 0.5}, std::vector<float>{0.5, 0.5, 0.5})  // Pixel Value Normalization for ImageNet
     };
 
-	std::string dataroot = "./data/DogsVSCats/train";
+	std::string dataroot = "/media/stree/localssd/DL_data/DogsVSCats/train";
     std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
     torch::Tensor loss, image, label, output;
     datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
@@ -200,7 +198,7 @@ int main() {
 	std::cout << "total training images : " << dataset.size() << std::endl;
 
 	if( valid ) {
-		std::string valid_dataroot = "./data/DogsVSCats/valid";
+		std::string valid_dataroot = "/media/stree/localssd/DL_data/DogsVSCats/valid";
 		valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
 		valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
 
@@ -240,6 +238,8 @@ int main() {
 
 	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
 		model->train();
+		torch::AutoGradMode enable_grad(true);
+
 		std::cout << "--------------- Training --------------------\n";
 		first = true;
 		float loss_sum = 0.0;
@@ -279,6 +279,8 @@ int main() {
 		if( valid && (epoch % 5 == 0) ) {
 			std::cout << "--------------- validation --------------------\n";
 			model->eval();
+			torch::NoGradGuard no_grad;
+
 			size_t iteration = 0;
 			float total_loss = 0.0;
 			size_t total_match = 0, total_counter = 0;
@@ -325,7 +327,7 @@ int main() {
 	//
 	if( test ) {
 		std::cout << "--------------- Testing --------------------\n";
-		std::string test_dataroot = "./data/DogsVSCats/test";
+		std::string test_dataroot = "/media/stree/localssd/DL_data/DogsVSCats/test";
 		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
 
 		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, 1, false, 0);
@@ -341,6 +343,8 @@ int main() {
 		std::vector<float> class_accuracy = std::vector<float>(class_num, 0.0);
 
 	    model->eval();
+	    torch::NoGradGuard no_grad;
+
 	    while( test_dataloader(data) ){
 	        image = std::get<0>(data).to(device);
 	        label = std::get<1>(data).to(device);

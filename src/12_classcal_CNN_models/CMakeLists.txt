@@ -93,12 +93,8 @@ add_executable(12_DPN_32)
 target_sources(12_DPN_32 PRIVATE  DPN/DPN_32/main.cpp
     DPN/DPN_32/dpn.cpp
     DPN/DPN_32/dpn.h
-    ../image_tools/dataloader.hpp
-	../image_tools/dataloader.cpp
-	../image_tools/datasets.hpp
-	../image_tools/datasets.cpp
-	../image_tools/transforms.hpp
-	../image_tools/transforms.cpp
+    ../07_Dataset_and_dataloader/cifar10.cpp
+    ../07_Dataset_and_dataloader/cifar10.h
 )
 
 target_include_directories(12_DPN_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
@@ -115,12 +111,8 @@ add_executable(12_EfficientNet_32)
 target_sources(12_EfficientNet_32 PRIVATE EfficientNet/EfficientNet_32/main.cpp
     EfficientNet/EfficientNet_32/efficientnet.cpp
     EfficientNet/EfficientNet_32/efficientnet.h
-    ../image_tools/dataloader.hpp
-	../image_tools/dataloader.cpp
-	../image_tools/datasets.hpp
-	../image_tools/datasets.cpp
-	../image_tools/transforms.hpp
-	../image_tools/transforms.cpp
+    ../07_Dataset_and_dataloader/cifar10.cpp
+    ../07_Dataset_and_dataloader/cifar10.h
 )
 
 target_include_directories(12_EfficientNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
@@ -274,12 +266,8 @@ add_executable(12_PreactResNet_32)
 target_sources(12_PreactResNet_32 PRIVATE PreactResnet/PreactResNet_32/main.cpp
     PreactResnet/PreactResNet_32/PreactResNet.cpp
     PreactResnet/PreactResNet_32/PreactResNet.h
-    ../image_tools/dataloader.hpp
-	../image_tools/dataloader.cpp
-	../image_tools/datasets.hpp
-	../image_tools/datasets.cpp
-	../image_tools/transforms.hpp
-	../image_tools/transforms.cpp
+    ../07_Dataset_and_dataloader/cifar10.cpp
+    ../07_Dataset_and_dataloader/cifar10.h
 )
 
 target_include_directories(12_PreactResNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
@@ -297,12 +285,8 @@ add_executable(12_RegNet_32)
 target_sources(12_RegNet_32 PRIVATE RegNet/RegNet_32/main.cpp
     RegNet/RegNet_32/regnet.cpp
     RegNet/RegNet_32/regnet.h
-    ../image_tools/dataloader.hpp
-	../image_tools/dataloader.cpp
-	../image_tools/datasets.hpp
-	../image_tools/datasets.cpp
-	../image_tools/transforms.hpp
-	../image_tools/transforms.cpp
+    ../07_Dataset_and_dataloader/cifar10.cpp
+    ../07_Dataset_and_dataloader/cifar10.h
 )
 
 target_include_directories(12_RegNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})

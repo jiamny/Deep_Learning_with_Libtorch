@@ -62,9 +62,18 @@ std::vector<std::string> Set_Class_Names(const std::string path, const size_t cl
 int main() {
 
 	// Device
-	auto cuda_available = torch::cuda::is_available();
-	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+
+	bool cpu_only = true;
+
+	torch::Device device( torch::kCPU );
+
+	if( ! cpu_only ) {
+		auto cuda_available = torch::cuda::is_available();
+		device = cuda_available ? torch::Device(torch::kCUDA) : torch::Device(torch::kCPU);
+		std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+	} else {
+		std::cout << "Training on CPU." << '\n';
+	}
 
 	size_t img_size = 299;
 	size_t batch_size = 32;
@@ -85,7 +94,7 @@ int main() {
 		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
     };
 
-	std::string dataroot = "./data/17_flowers/train";
+	std::string dataroot = "/media/stree/localssd/DL_data/17_flowers/train";
     std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
     torch::Tensor loss, image, label, output;
     datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
@@ -98,7 +107,7 @@ int main() {
 
 	std::cout << "total training images : " << dataset.size() << std::endl;
 
-    std::string valid_dataroot = "./data/17_flowers/valid";
+    std::string valid_dataroot = "/media/stree/localssd/DL_data/17_flowers/valid";
     valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
     valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
 
@@ -116,7 +125,7 @@ int main() {
     }
 
 	std::cout << "Test model ..." << std::endl;
-	torch::Tensor x = torch::randn({1,3,299,299}, device);
+	torch::Tensor x = torch::randn({1,3,299,299}).to(device);
 	InceptionV3Output y = model->forward(x);
 	std::cout << y.output << std::endl;
 	std::cout << y.aux << std::endl;
@@ -130,7 +139,7 @@ int main() {
 	size_t start_epoch, total_epoch;
 	start_epoch = 1;
 	total_iter = dataloader.get_count_max();
-	total_epoch = 50;
+	total_epoch = 30;
 
 	bool first = true;
 	std::vector<float> train_loss_ave;
@@ -138,6 +147,8 @@ int main() {
 
 	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
 		model->train();
+		torch::AutoGradMode enable_grad(true);
+
 		std::cout << "--------------- Training --------------------\n";
 		first = true;
 		float loss_sum = 0.0;
@@ -176,6 +187,8 @@ int main() {
 		if( valid && (epoch % 5 == 0) ) {
 			std::cout << "--------------- validation --------------------\n";
 			model->eval();
+			torch::NoGradGuard no_grad;
+
 			size_t iteration = 0;
 			float total_loss = 0.0;
 			size_t total_match = 0, total_counter = 0;
@@ -221,7 +234,7 @@ int main() {
 	// ---- Testing
 	if( test ) {
 		std::cout << "--------------- Testing --------------------\n";
-		std::string test_dataroot = "./data/17_flowers/test";
+		std::string test_dataroot = "/media/stree/localssd/DL_data/17_flowers/test";
 		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
 		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, /*batch_size_=*/1, /*shuffle_=*/false, /*num_workers_=*/0);
 		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
@@ -235,6 +248,8 @@ int main() {
 		std::vector<float> class_accuracy = std::vector<float>(class_num, 0.0);
 
 	    model->eval();
+	    torch::NoGradGuard no_grad;
+
 	    while( test_dataloader(data) ){
 	        image = std::get<0>(data).to(device);
 	        label = std::get<1>(data).to(device);

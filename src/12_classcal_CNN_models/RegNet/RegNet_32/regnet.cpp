@@ -4,95 +4,98 @@ using Options = torch::nn::Conv2dOptions;
 
 SE_Impl::SE_Impl(int64_t in_planes, int64_t se_planes) {
 
-	this->se1 = torch::nn::Conv2d(Options(in_planes, se_planes, 1).bias(true));
-
-	this->se2 = torch::nn::Conv2d(Options(se_planes, in_planes, 1).bias(true));
+	se1 = torch::nn::Conv2d(Options(in_planes, se_planes, 1).bias(true));
+	se2 = torch::nn::Conv2d(Options(se_planes, in_planes, 1).bias(true));
 }
 
 torch::Tensor SE_Impl::forward(torch::Tensor x) {
+	at::Tensor kp(x.clone());
 
-	 auto out = torch::adaptive_avg_pool2d(x, {1, 1});
-	 out = torch::relu(se1->forward(out));
-	 out = se2->forward(out).sigmoid();
-	 out = x * out;
+	x = torch::adaptive_avg_pool2d(x, {1, 1});
+	x = torch::relu(se1->forward(x));
+	x = se2->forward(x).sigmoid();
+	x = kp * x;
 
-  return out;
+    return x;
 }
 
 BlockRegImpl::BlockRegImpl(int64_t w_in, int64_t w_out, int64_t stride, int64_t group_width, double bottleneck_ratio, double se_ratio) {
 
 		//# 1x1
         int64_t w_b = static_cast<int64_t>(round(w_out * bottleneck_ratio));
-        this->conv1 = torch::nn::Conv2d(Options(w_in, w_b, 1).bias(false));
-        this->bn1 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(w_b));
+        conv1 = torch::nn::Conv2d(Options(w_in, w_b, 1).bias(false));
+        bn1 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(w_b));
 
 		//# 3x3
         int64_t num_groups = w_b; // group_width
-        this->conv2 = torch::nn::Conv2d(Options(w_b, w_b, 3)
+        conv2 = torch::nn::Conv2d(Options(w_b, w_b, 3)
                                .stride(stride)
 							   .padding(1)
 							   .groups(num_groups)
 							   .bias(false));
 
-        this->bn2 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(w_b));
+        bn2 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(w_b));
 
 		//# se
-        this->with_se = (se_ratio > 0) ? true : false;
+        with_se = (se_ratio > 0) ? true : false;
 
         if( with_se ) {
             int64_t w_se = static_cast<int64_t>(round(w_in * se_ratio));
-            this->se = SE_(w_b, w_se);
+            se = SE_(w_b, w_se);
         }
 
 		//# 1x1
-		this->conv3 = torch::nn::Conv2d(Options(w_b, w_out, 1).bias(false));
-        this->bn3 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(w_out));
+		conv3 = torch::nn::Conv2d(Options(w_b, w_out, 1).bias(false));
+        bn3 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(w_out));
 
-        if( stride != 1 or w_in != w_out ) {
-            this->shortcut = torch::nn::Sequential(
+        if( stride != 1 || w_in != w_out ) {
+            shortcut = torch::nn::Sequential(
             		torch::nn::Conv2d(Options(w_in, w_out, 1).stride(stride).bias(false)),
 					torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(w_out))
             );
-            this->useShortcut = true;
+            useShortcut = true;
         }
 }
 
-torch::Tensor BlockRegImpl::forward(torch::Tensor X) {
+torch::Tensor BlockRegImpl::forward(torch::Tensor x) {
 
-	auto out = torch::relu(bn1->forward(conv1->forward(X)));
-	out = torch::relu(bn2->forward(conv2->forward(out)));
+	at::Tensor kp(x.clone());
+
+	x = torch::relu(bn1->forward(conv1->forward(x)));
+	x = torch::relu(bn2->forward(conv2->forward(x)));
 
 	if( with_se )
-	     out = se->forward(out);
+	     x = se->forward(x);
 
-	out = bn3->forward(conv3->forward(out));
+	x = bn3->forward(conv3->forward(x));
 
 	if( useShortcut )
-		out += shortcut->forward(X);
+		x += shortcut->forward(kp);
 	else
-		out += X;
+		x += kp;
 
-  return out.relu_(); // out = F.relu(out)
+  return x.relu_(); // out = F.relu(out)
 }
 
-RegNetImpl::RegNetImpl(std::map<std::string, std::vector<int64_t>> cfg, std::map<std::string, double> cfg2, int64_t num_classes) {
-	this->cfg = cfg;
-	this->cfg2 = cfg2;
-	this->in_planes = 64;
+RegNetImpl::RegNetImpl(std::map<std::string, std::vector<int64_t>> cfg_, std::map<std::string, double> cfg2_,
+						int64_t num_classes) {
+	cfg = cfg_;
+	cfg2 = cfg2_;
+	in_planes = 64;
 	std::vector<int64_t> width = cfg.at("widths");
 	//std::cout << width.size() << std::endl;
 
-	this->conv1 = torch::nn::Conv2d(Options(3, 64, 3).stride(1).padding(1).bias(false));
-	this->bn1 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(64));
+	conv1 = torch::nn::Conv2d(Options(3, 64, 3).stride(1).padding(1).bias(false));
+	bn1 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(64));
 
-	this->layer1 = _make_layer(0);
-	this->layer2 = _make_layer(1);
-	this->layer3 = _make_layer(2);
-	this->layer4 = _make_layer(3);
-	this->linear = torch::nn::Linear(width[width.size()-1], num_classes);
+	layer1 = _make_layer(0);
+	layer2 = _make_layer(1);
+	layer3 = _make_layer(2);
+	layer4 = _make_layer(3);
+	linear = torch::nn::Linear(width[width.size()-1], num_classes);
 }
 
-std::vector<BlockReg> RegNetImpl::_make_layer(int64_t idx) {
+torch::nn::Sequential RegNetImpl::_make_layer(int64_t idx) {
 
 	int64_t depth = cfg.at("depths")[idx];
 	int64_t width = cfg.at("widths")[idx];
@@ -102,14 +105,14 @@ std::vector<BlockReg> RegNetImpl::_make_layer(int64_t idx) {
     double bottleneck_ratio = cfg2.at("bottleneck_ratio");
     double se_ratio = cfg2.at("se_ratio");
 
-    std::vector<BlockReg> layers;
+    torch::nn::Sequential layers;
 
     for( int i = 0; i < depth; i++ ){
         int64_t s = stride;
         if( i != 0 ) s = 1;
 
-        layers.push_back(BlockReg(this->in_planes, width, s, group_width, bottleneck_ratio, se_ratio));
-        this->in_planes = width;
+        layers->push_back(BlockReg(in_planes, width, s, group_width, bottleneck_ratio, se_ratio));
+        in_planes = width;
     }
 
 	return layers;
@@ -118,8 +121,14 @@ std::vector<BlockReg> RegNetImpl::_make_layer(int64_t idx) {
 torch::Tensor RegNetImpl::forward(torch::Tensor x) {
 
 // out = self.conv1(x)
-	auto out = bn1->forward(conv1->forward(x)).relu_();
+	x = bn1->forward(conv1->forward(x)).relu_();
 
+	x = layer1->forward(x);
+	x = layer2->forward(x);
+	x = layer3->forward(x);
+	x = layer4->forward(x);
+
+/*
 //	std::cout << out.sizes() << std::endl;
 
 	for( int i =0; i < layer1.size(); i++ ) {
@@ -135,14 +144,14 @@ torch::Tensor RegNetImpl::forward(torch::Tensor x) {
 
 	for( int i =0; i < layer4.size(); i++ )
 		out = layer4[i]->forward(out);
-
+*/
 	// out = F.adaptive_avg_pool2d(out, (1, 1))
     // out = out.view(out.size(0), -1)
     // out = self.linear(out)
-	out = torch::adaptive_avg_pool2d(out, {1, 1});
-	out = linear->forward(out.view({out.size(0), -1}));
+	x = torch::adaptive_avg_pool2d(x, {1, 1});
+	x = linear->forward(x.view({x.size(0), -1}));
 
-	return out;
+	return x;
 }
 
 RegNet RegNetX_200MF(int64_t num_classes) {

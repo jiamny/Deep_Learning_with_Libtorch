@@ -87,7 +87,7 @@ int main() {
 		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
     };
 
-	std::string dataroot = "./data/17_flowers/train";
+	std::string dataroot = "/media/stree/localssd/DL_data/17_flowers/train";
     std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
     torch::Tensor loss, image, label, output;
     datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
@@ -99,7 +99,7 @@ int main() {
 
 	std::cout << "total training images : " << dataset.size() << std::endl;
 
-    std::string valid_dataroot = "./data/17_flowers/valid";
+    std::string valid_dataroot = "/media/stree/localssd/DL_data/17_flowers/valid";
     valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
     valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
 
@@ -134,7 +134,7 @@ int main() {
 	size_t start_epoch, total_epoch;
 	start_epoch = 1;
 	total_iter = dataloader.get_count_max();
-	total_epoch = 10;
+	total_epoch = 50;
 
 	bool first = true;
 	std::vector<float> train_loss_ave;
@@ -142,6 +142,8 @@ int main() {
 
 	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
 		model->train();
+		torch::AutoGradMode enable_grad(true);
+
 		std::cout << "--------------- Training --------------------\n";
 		first = true;
 		float loss_sum = 0.0;
@@ -181,6 +183,8 @@ int main() {
 		if( valid && (epoch % 5 == 0) ) {
 			std::cout << "--------------- validation --------------------\n";
 			model->eval();
+			torch::NoGradGuard no_grad;
+
 			size_t iteration = 0;
 			float total_loss = 0.0;
 			size_t total_match = 0, total_counter = 0;
@@ -227,7 +231,7 @@ int main() {
 	//
 	if( test ) {
 		std::cout << "--------------- Testing --------------------\n";
-		std::string test_dataroot = "./data/17_flowers/test";
+		std::string test_dataroot = "/media/stree/localssd/DL_data/17_flowers/test";
 		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
 
 		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, 1, false, 0);
@@ -243,6 +247,8 @@ int main() {
 		std::vector<float> class_accuracy = std::vector<float>(class_num, 0.0);
 
 	    model->eval();
+	    torch::NoGradGuard no_grad;
+
 	    while( test_dataloader(data) ){
 	        image = std::get<0>(data).to(device);
 	        label = std::get<1>(data).to(device);

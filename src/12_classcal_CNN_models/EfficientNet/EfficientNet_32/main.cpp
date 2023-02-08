@@ -1,281 +1,217 @@
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <stdint.h>
+//
+//
 #include <torch/torch.h>
-#include <torch/script.h>
-#include <torch/autograd.h>
-#include <torch/utils.h>
-#include <fstream>
 #include <iostream>
-#include <string>
 #include <vector>
-#include <cstring>
-#include <sstream>
-
-#include <dirent.h>           //get files in directory
-#include <sys/stat.h>
-#include <cmath>
-#include <map>
-#include <tuple>
-
+#include <iomanip>
 #include "efficientnet.h"
-
-#include "../../../image_tools/transforms.hpp"              // transforms_Compose
-#include "../../../image_tools/datasets.hpp"                // datasets::ImageFolderClassesWithPaths
-#include "../../../image_tools/dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
-
-
-std::vector<std::string> Set_Class_Names(const std::string path, const size_t class_num) {
-    // (1) Memory Allocation
-    std::vector<std::string> class_names = std::vector<std::string>(class_num);
-
-    // (2) Get Class Names
-    std::string class_name;
-    std::ifstream ifs(path, std::ios::in);
-    size_t i = 0;
-    if( ! ifs.fail() ) {
-    	while( getline(ifs, class_name) ) {
-//    		std::cout << class_name.length() << std::endl;
-    		if( class_name.length() > 2 ) {
-    			class_names.at(i) = class_name;
-    			i++;
-    		}
-    	}
-    } else {
-    	std::cerr << "Error : can't open the class name file." << std::endl;
-    	std::exit(1);
-    }
-
-    ifs.close();
-    if( i != class_num ){
-        std::cerr << "Error : The number of classes does not match the number of lines in the class name file." << std::endl;
-        std::exit(1);
-    }
-
-    // End Processing
-    return class_names;
-}
+#include "../../../07_Dataset_and_dataloader/cifar10.h"
 
 int main() {
 
-	// Device
-	auto cuda_available = torch::cuda::is_available();
-	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+	std::cout << "EfficientNet\n\n";
 
-	int64_t img_size = 32;
-	size_t batch_size = 200;
-	const std::string path = "./data/CIFAR10_names.txt";
-	const size_t class_num = 10;
-	const size_t valid_batch_size = 1;
-	std::vector<std::string> class_names = Set_Class_Names( path, class_num);
-	constexpr bool train_shuffle = true;    // whether to shuffle the training dataset
-	constexpr size_t train_workers = 2;  	// the number of workers to retrieve data from the training dataset
-    constexpr bool valid_shuffle = true;    // whether to shuffle the validation dataset
-    constexpr size_t valid_workers = 2;     // the number of workers to retrieve data from the validation dataset
+	bool cpu_only = true;
 
-    bool valid = false;						// has valid dataset
-    bool test  = true;						// has test dataset
+	torch::Device device( torch::kCPU );
 
-    // (4) Set Transforms
-    std::vector<transforms_Compose> transform {
-        transforms_Resize(cv::Size(img_size, img_size), cv::INTER_LINEAR),        // {IH,IW,C} ===method{OW,OH}===> {OH,OW,C}
-        transforms_ToTensor(),                                                     // Mat Image [0,255] or [0,65535] ===> Tensor Image [0,1]
-		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
-    };
-
-	std::string dataroot = "./data/CIFAR10/train";
-    std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
-    torch::Tensor loss, image, label, output;
-    datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
-    DataLoader::ImageFolderClassesWithPaths dataloader, valid_dataloader, test_dataloader; 	// dataloader;
-
-    // (1) Get Dataset
-    dataset = datasets::ImageFolderClassesWithPaths(dataroot, transform, class_names);
-    dataloader = DataLoader::ImageFolderClassesWithPaths(dataset, batch_size, /*shuffle_=*/train_shuffle, /*num_workers_=*/train_workers);
-
-	std::cout << "total training images : " << dataset.size() << std::endl;
-
-	if( valid ) {
-		std::string valid_dataroot = "./data/CIFAR10/valid";
-		valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
-		valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
-
-		std::cout << "total validation images : " << valid_dataset.size() << std::endl;
+	if( ! cpu_only ) {
+		// Device
+		auto cuda_available = torch::cuda::is_available();
+		device = cuda_available ? torch::Device(torch::kCUDA) : torch::Device(torch::kCPU);
+		std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+	} else {
+		std::cout << "Training on CPU." << '\n';
 	}
-    bool vobose = false;
 
-    EfficientNet model = EfficientNetB0(class_num);
-//	model->init();
-	model->to(device);
-	std::cout << model << std::endl;
-
-	auto dict = model->named_parameters();
+	EfficientNet net = EfficientNetB0(10);
+	net->to(device);
+	auto dict = net->named_parameters();
 	for (auto n = dict.begin(); n != dict.end(); n++) {
-		std::cout << (*n).key() << std::endl;
+		std::cout<<(*n).key()<<std::endl;
+		//std::cout<<(*n).value() <<std::endl;
 	}
 
 	std::cout << "Test model ..." << std::endl;
-	torch::Tensor x = torch::randn({1,3,img_size, img_size}).to(device);
-	torch::Tensor y = model->forward(x);
+	torch::Tensor x = torch::randn({1,3,32,32}).to(device);
+	torch::Tensor y = net->forward(x);
 	std::cout << y << std::endl;
 
-	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-4).betas({0.5, 0.999}));
+	// Hyper parameters
+	const int64_t image_size{32};
+	const int64_t num_classes = 10;
+	const int64_t batch_size = 100;
+	const size_t num_epochs = 3;
+	const double learning_rate = 0.001;
+	const size_t learning_rate_decay_frequency = 8;  // number of epochs after which to decay the learning rate
+	const double learning_rate_decay_factor = 1.0 / 3.0;
 
-	auto criterion = torch::nn::NLLLoss(torch::nn::NLLLossOptions().ignore_index(-100).reduction(torch::kMean));
+	bool saveBestModel{false};
 
-	size_t epoch;
-	size_t total_iter = dataloader.get_count_max();
-	size_t start_epoch, total_epoch;
-	start_epoch = 1;
-	total_iter = dataloader.get_count_max();
-	total_epoch = 50;
+	const std::string CIFAR_data_path = "/media/stree/localssd/DL_data/cifar/cifar10/";
+    std::string classes[10] = {"plane", "car", "bird", "cat",
+           "deer", "dog", "frog", "horse", "ship", "truck"};
 
-	bool first = true;
-	std::vector<float> train_loss_ave;
-	std::vector<float> train_epochs;
+	// CIFAR10 custom dataset
+	auto train_dataset = CIFAR10(CIFAR_data_path)
+			.map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
+	        .map(torch::data::transforms::Stack<>());
 
-	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
-		model->train();
-		std::cout << "--------------- Training --------------------\n";
-		first = true;
-		float loss_sum = 0.0;
-		while (dataloader(mini_batch)) {
-			image = std::get<0>(mini_batch).to(device);
-			label = std::get<1>(mini_batch).to(device);
+	// Number of samples in the training set
+	auto num_train_samples = train_dataset.size().value();
+	std::cout << "num_train_samples: " << num_train_samples << std::endl;
 
-			if( first && vobose ) {
-				for(size_t i = 0; i < label.size(0); i++)
-					std::cout << label[i].item<int64_t>() << " ";
-				std::cout << "\n";
-				first = false;
-			}
+	auto test_dataset = CIFAR10(CIFAR_data_path, CIFAR10::Mode::kTest)
+		    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
+	        .map(torch::data::transforms::Stack<>());
 
-			image = std::get<0>(mini_batch).to(device);
-			label = std::get<1>(mini_batch).to(device);
-			output = model->forward(image);
-			auto out = torch::nn::functional::log_softmax(output, 1); // dim
-			//std::cout << output.sizes() << "\n" << out.sizes() << std::endl;
+	// Number of samples in the testset
+	auto num_test_samples = test_dataset.size().value();
+	std::cout << "num_test_samples: " << num_test_samples << std::endl;
 
-			loss = criterion(out, label); //torch::mse_loss(out, label);
+	// Data loader
+	auto train_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
+	        std::move(train_dataset), batch_size);
 
-			optimizer.zero_grad();
-			loss.backward();
-			optimizer.step();
+	auto test_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+	        std::move(test_dataset), batch_size);
 
-			loss_sum += loss.item<float>();
-		}
+	// Model
+	EfficientNet model = EfficientNetB0(10);
+	model->to(device);
 
-		train_loss_ave.push_back(loss_sum/total_iter);
-		train_epochs.push_back(epoch*1.0);
-		std::cout << "epoch: " << epoch << "/"  << total_epoch << ", avg_loss: " << (loss_sum/total_iter) << std::endl;
+	// Optimizer
+	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(learning_rate));
 
-		// ---------------------------------
-		// validation
-		// ---------------------------------
-		if( valid && (epoch % 5 == 0) ) {
-			std::cout << "--------------- validation --------------------\n";
-			model->eval();
-			size_t iteration = 0;
-			float total_loss = 0.0;
-			size_t total_match = 0, total_counter = 0;
-			torch::Tensor responses;
-			first = true;
-			while (valid_dataloader(mini_batch)){
+	// Set floating point output precision
+	std::cout << std::fixed << std::setprecision(4);
 
-				image = std::get<0>(mini_batch).to(device);
-			    label = std::get<1>(mini_batch).to(device);
-			    size_t mini_batch_size = image.size(0);
+	auto current_learning_rate = learning_rate;
+	double best_acc{0.0};
+	std::string PATH = "./models/efficientnet.pth";
 
-			    if( first && vobose ) {
-			    	for(size_t i = 0; i < label.size(0); i++)
-			    		std::cout << label[i].item<int64_t>() << " ";
-			    	std::cout << "\n";
-			    	first = false;
-			    }
+	// Train the model
+	for (size_t epoch = 0; epoch != num_epochs; ++epoch) {
+		std::cout << "\nTraining...\n";
 
-			    output = model->forward(image);
-			    auto out = torch::nn::functional::log_softmax(output, 1); // dim=
-			    loss = criterion(out, label);
+	    // Initialize running metrics
+	    double running_loss = 0.0;
+	    size_t num_correct = 0;
 
-			    responses = output.exp().argmax(1); // dim
+	    model->train();
+	    torch::AutoGradMode enable_grad(true);
 
-			    for (size_t i = 0; i < mini_batch_size; i++){
-			        int64_t response = responses[i].item<int64_t>();
-			        int64_t answer = label[i].item<int64_t>();
+	    for (auto& batch : *train_loader) {
+	        // Transfer images and target labels to device
+	        auto data = batch.data.to(device);
+	        auto target = batch.target.to(device);
 
-			        total_counter++;
-			        if (response == answer) total_match++;
-			    }
-			    total_loss += loss.item<float>();
-			    iteration++;
-			}
-			// (3) Calculate Average Loss
-			float ave_loss = total_loss / (float)iteration;
+	        // Forward pass
+	        auto output = model->forward(data);
 
-			// (4) Calculate Accuracy
-			float total_accuracy = (float)total_match / (float)total_counter;
-			std::cout << "Validation accuracy: " << total_accuracy << std::endl << std::endl;
-		}
-	}
+	        // Calculate loss
+	        auto loss = torch::nn::functional::cross_entropy(output, target);
 
-	//
-	if( test ) {
-		std::cout << "--------------- Testing --------------------\n";
-		std::string test_dataroot = "./data/CIFAR10/test";
-		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
+	        // Update running loss
+	        running_loss += loss.item<double>() * data.size(0);
 
-		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, 1, false, 0);
+	        // Calculate prediction
+	        auto prediction = output.argmax(1);
 
-		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
+	        // Update number of correctly classified samples
+	        num_correct += prediction.eq(target).sum().item<int64_t>();
 
-		float  ave_loss = 0.0;
-		size_t match = 0;
-		size_t counter = 0;
-		std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> data;
-		std::vector<size_t> class_match = std::vector<size_t>(class_num, 0);
-		std::vector<size_t> class_counter = std::vector<size_t>(class_num, 0);
-		std::vector<float> class_accuracy = std::vector<float>(class_num, 0.0);
+	        // Backward pass and optimize
+	        optimizer.zero_grad();
+	        loss.backward();
+	        optimizer.step();
+	    }
 
+	    // Decay learning rate
+	    if ((epoch + 1) % learning_rate_decay_frequency == 0) {
+	        current_learning_rate *= learning_rate_decay_factor;
+	        static_cast<torch::optim::AdamOptions&>(optimizer.param_groups().front()
+	                .options()).lr(current_learning_rate);
+	    }
+
+	    auto sample_mean_loss = running_loss / num_train_samples;
+	    auto accuracy = static_cast<double>(num_correct) / num_train_samples;
+
+	    std::cout << "Epoch [" << (epoch + 1) << "/" << num_epochs << "], Trainset - Loss: "
+	            << sample_mean_loss << ", Accuracy: " << accuracy << '\n';
+
+
+	    std::cout << "Training finished!\n\n";
+	    std::cout << "Testing...\n";
+
+	    // Test the model
 	    model->eval();
-	    while( test_dataloader(data) ){
-	        image = std::get<0>(data).to(device);
-	        label = std::get<1>(data).to(device);
-	        output = model->forward(image);
-	        auto out = torch::nn::functional::log_softmax(output, 1);
+	    torch::NoGradGuard no_grad;
 
-	        loss = criterion(out, label);
+	    double test_loss = 0.0;
+	    num_correct = 0;
 
-	        ave_loss += loss.item<float>();
+	    for (const auto& batch : *test_loader) {
+	        auto data = batch.data.to(device);
+	        auto target = batch.target.to(device);
 
-	        output = output.exp();
+	        auto output = model->forward(data);
 
-	        int64_t response = output.argmax(1).item<int64_t>();
+	        auto loss = torch::nn::functional::cross_entropy(output, target);
+	        test_loss += loss.item<double>() * data.size(0);
 
-	        int64_t answer = label[0].item<int64_t>();
-	        counter += 1;
-	        class_counter[answer]++;
-
-	        if (response == answer){
-	        	class_match[answer]++;
-	            match += 1;
-	        }
+	        auto prediction = output.argmax(1);
+	        num_correct += prediction.eq(target).sum().item<int64_t>();
 	    }
 
-	    // (7.1) Calculate Average
-	    ave_loss = ave_loss / (float)dataset.size();
+	    std::cout << "Testing finished!\n";
 
-	    // (7.2) Calculate Accuracy
-	    std::cout << "Test accuracy ==========\n";
-	    for (size_t i = 0; i < class_num; i++){
-	    	class_accuracy[i] = (float)class_match[i] / (float)class_counter[i];
-	    	std::cout << class_names[i] << ": " << class_accuracy[i] << "\n";
-	    }
-	    float accuracy = (float)match / float(counter);
-	    std::cout << "\nTest accuracy: " << accuracy << std::endl;
+	    auto test_accuracy = static_cast<double>(num_correct) / num_test_samples;
+	    auto test_sample_mean_loss = running_loss / num_test_samples;
+
+	    std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
+
+	    if( saveBestModel )
+	    	if( test_accuracy > best_acc ) {
+	    		torch::save(model, PATH);
+	    		best_acc = test_accuracy;
+	    	}
 	}
+
+	if( saveBestModel ) {
+		model = EfficientNetB0(10);
+		torch::load(model, PATH);
+	}
+
+    float class_correct[10];
+    float class_total[10];
+    for (int i = 0; i < 10; ++i) {
+    	class_correct[i] = 0.0;
+    	class_total[i] = 0.0;
+    }
+
+    torch::NoGradGuard no_grad;
+
+    for (const auto& batch : *test_loader) {
+        auto images = batch.data.to(device);
+        auto labels = batch.target.to(device);
+
+        auto outputs = model->forward(images);
+        auto prediction = outputs.argmax(1);
+
+        for (int i = 0; i < batch_size; ++i) {
+            auto label = labels[i].item<long>();
+            if( label == prediction[i].item<long>() )
+            	class_correct[label] += 1;
+            class_total[label] += 1;
+        }
+    }
+
+    for (int i = 0; i < 10; ++i) {
+        std::cout << "Accuracy of " << classes[i] << " "
+                << 100 * class_correct[i] / class_total[i] << "%\n";
+    }
 
     std::cout << "Done!\n";
+    return 0;
 }

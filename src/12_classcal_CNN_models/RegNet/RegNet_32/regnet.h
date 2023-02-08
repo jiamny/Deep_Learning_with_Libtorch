@@ -4,7 +4,7 @@
 #include <torch/torch.h>
 #include <map>
 
-struct SE_Impl : torch::nn::Module {
+struct SE_Impl : public torch::nn::Module {
 
   torch::nn::Conv2d se1{nullptr}, se2{nullptr};
 
@@ -15,7 +15,7 @@ struct SE_Impl : torch::nn::Module {
 
 TORCH_MODULE(SE_);
 
-struct BlockRegImpl : torch::nn::Module {
+struct BlockRegImpl : public torch::nn::Module {
 
   torch::nn::Conv2d conv1{nullptr}, conv2{nullptr}, conv3{nullptr};
   torch::nn::BatchNorm2d bn1{nullptr}, bn2{nullptr}, bn3{nullptr};
@@ -33,16 +33,16 @@ struct BlockRegImpl : torch::nn::Module {
 TORCH_MODULE(BlockReg);
 
 
-struct RegNetImpl : torch::nn::Module {
+struct RegNetImpl : public torch::nn::Module {
   int64_t in_planes{64};
   std::map<std::string, std::vector<int64_t>> cfg;
   std::map<std::string, double> cfg2;
   torch::nn::Conv2d conv1{nullptr};
   torch::nn::BatchNorm2d bn1{nullptr};
-  std::vector<BlockReg> layer1{nullptr}, layer2{nullptr}, layer3{nullptr}, layer4{nullptr};
+  torch::nn::Sequential layer1{nullptr}, layer2{nullptr}, layer3{nullptr}, layer4{nullptr};
   torch::nn::Linear linear{nullptr};
 
-  std::vector<BlockReg> _make_layer(int64_t idx);
+  torch::nn::Sequential _make_layer(int64_t idx);
 
   explicit RegNetImpl(std::map<std::string, std::vector<int64_t>> cfg,
 		  std::map<std::string, double> cfg2, int64_t num_classes);

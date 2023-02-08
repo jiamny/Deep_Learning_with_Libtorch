@@ -49,19 +49,19 @@ void AlexNetImpl::init(){
 }
 
 void weights_init(torch::nn::Module &m){
-    if ((typeid(m) == typeid(torch::nn::Conv2d)) || (typeid(m) == typeid(torch::nn::Conv2dImpl))) {
-        auto p = m.named_parameters(false);
-        auto w = p.find("weight");
-        auto b = p.find("bias");
-        if (w != nullptr) torch::nn::init::normal_(*w, /*mean=*/0.0, /*std=*/0.01);
-        if (b != nullptr) torch::nn::init::constant_(*b, /*bias=*/0.0);
-    }
-    else if ((typeid(m) == typeid(torch::nn::Linear)) || (typeid(m) == typeid(torch::nn::LinearImpl))){
-        auto p = m.named_parameters(false);
-        auto w = p.find("weight");
-        auto b = p.find("bias");
-        if (w != nullptr) torch::nn::init::normal_(*w, /*mean=*/0.0, /*std=*/0.01);
-        if (b != nullptr) torch::nn::init::constant_(*b, /*bias=*/0.0);
-    }
-    return;
+
+	 torch::NoGradGuard no_grad;
+
+	 if (auto* M = m.as<torch::nn::Conv2d>()) {
+		 //M->weight.normal_(0.0, 0.02);
+		 //M->bias.constant_(0.0);
+		 torch::nn::init::normal_(M->weight, /*mean=*/0.0, /*std=*/0.01);
+		 torch::nn::init::constant_(M->bias, /*bias=*/0.0);
+
+	 }else if(auto* M = m.as<torch::nn::Linear>()){
+		 torch::nn::init::normal_(M->weight, /*mean=*/0.0, /*std=*/0.01);
+		 torch::nn::init::constant_(M->bias, /*bias=*/0.0);
+
+	}
+	return;
 }

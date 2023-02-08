@@ -43,12 +43,9 @@ void Classifier::Initialize(int _num_classes, std::string _pretrained_path){
         }
     }
     torch::autograd::GradMode::set_enabled(true);
-    try
-    {
+    try {
         vgg->to(device);
-    }
-    catch (const std::exception&e)
-    {
+    } catch (const std::exception&e) {
         std::cout << e.what() << std::endl;
     }
 
@@ -77,19 +74,15 @@ void Classifier::Train(int num_epochs, int batch_size, int image_size, float lea
         {
             for (auto mm : vgg->named_parameters())
             {
-                if (strstr(mm.key().data(), "classifier"))
-                {
+                if (strstr(mm.key().data(), "classifier")) {
                     mm.value().set_requires_grad(true);
-                }
-                else
-                {
+                } else {
                     mm.value().set_requires_grad(false);
                 }
             }
         }
         else {
-            for (auto mm : vgg->named_parameters())
-            {
+            for (auto mm : vgg->named_parameters()) {
                 mm.value().set_requires_grad(true);
             }
         }
@@ -122,7 +115,6 @@ void Classifier::Train(int num_epochs, int batch_size, int image_size, float lea
 
         //validation part
         vgg->eval();
-
         torch::NoGradGuard no_grad;
 
         for (auto& batch : *data_loader_val) {
@@ -144,7 +136,7 @@ void Classifier::Train(int num_epochs, int batch_size, int image_size, float lea
             std::cout << "Epoch: " << epoch << " |Val Loss: " << loss_val / batch_index_val << " |Valid Acc:" << acc_val / batch_index_val << "\r";
         }
         std::cout << std::endl;
-        std::cout << "end batch validation\n";
+        std::cout << "end batch validation; acc_val " << acc_val << " best_acc " << best_acc << "\n";
 
         if (acc_val > best_acc) {
             torch::save(vgg, save_path);
@@ -169,7 +161,7 @@ int Classifier::Predict(cv::Mat& image){
 }
 
 void Classifier::LoadWeight(std::string weight){
-    torch::load(vgg,weight);
+    torch::load(vgg, weight);
     vgg->eval();
     return;
 }
