@@ -14,29 +14,34 @@ using namespace std;
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 template<typename Dataloader>
-void train(torch::jit::script::Module net, torch::nn::Linear& lin, Dataloader& data_loader, torch::optim::Optimizer& optimizer, size_t dataset_size) {
+void train(torch::jit::script::Module net, torch::nn::Linear& lin, Dataloader& data_loader,
+		torch::optim::Optimizer& optimizer, size_t dataset_size, torch::Device device) {
     float best_accuracy = 0.0f;
 
-    net.eval();
-
     for(int epoch=0; epoch<5; epoch++) {
+        net.train();
+        torch::AutoGradMode enable_grad(true);
+
         float mse = 0.0f;
         float Acc = 0.0f;
 
         int batch_index = 0;
 
         for(auto& batch: *data_loader) {
-            auto data = batch.data;
-            auto target = batch.target.squeeze();
+            auto data = batch.data.to(device);
+            auto target = batch.target.to(device).squeeze();
 
             optimizer.zero_grad();
 
             vector<torch::jit::IValue> input;
             input.push_back(data);
+
             auto output = net.forward(input).toTensor();
+            //std::cout <<  output.options() << '\n';
 
             output = output.view({output.size(0), -1});
-            output = lin(output);
+            output = lin->forward(output);
+            //std::cout <<  output.options() << '\n';
 
             auto loss = torch::nll_loss(torch::log_softmax(output, 1), target);
 
@@ -75,9 +80,14 @@ int main(int argc, char* argv[]) {
     //if (argc!=4)
     //    throw std::runtime_error("Usage: ./exe rawFaceFolder maskedFaceFolder modelWithoutLastLayer");
 
-    string rawFaceFolder = "./data/Face-Mask/without_mask";		//argv[1];
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
 
-    string maskedFaceFolder = "./data/Face-Mask/with_mask";		//argv[2];
+    string rawFaceFolder = "/media/stree/localssd/DL_data/Face-Mask/without_mask";		//argv[1];
+
+    string maskedFaceFolder = "/media/stree/localssd/DL_data/Face-Mask/with_mask";		//argv[2];
 
     cout << rawFaceFolder << endl;
     cout << maskedFaceFolder << endl;
@@ -90,8 +100,10 @@ int main(int argc, char* argv[]) {
     cout << train_dataset_size << endl;
 
     auto model = torch::jit::load("./models/Transfer_learning/resnet18_without_last_layer.pt"); 	//argv[3]);
+    model.to(device);
 
     torch::nn::Linear linear_layer(512, 2);
+    linear_layer->to(device);
 
     torch::optim::Adam optimizer(linear_layer->parameters(), torch::optim::AdamOptions(1e-3));
 
@@ -99,7 +111,7 @@ int main(int argc, char* argv[]) {
     auto train_data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(train_dataset),
     							torch::data::DataLoaderOptions().batch_size(batch_size).drop_last(true));
 
-    train(model, linear_layer, train_data_loader, optimizer, train_dataset_size);
+    train(model, linear_layer, train_data_loader, optimizer, train_dataset_size, device);
 
     cout << "Done!\n";
     return 0;

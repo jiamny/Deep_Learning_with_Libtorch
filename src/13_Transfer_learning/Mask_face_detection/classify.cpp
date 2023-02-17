@@ -5,8 +5,10 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-int classify_image(const std::string& imageName, torch::jit::script::Module& model, torch::nn::Linear& linear_layer) {
+int classify_image(const std::string& imageName, torch::jit::script::Module& model,
+					torch::nn::Linear& linear_layer, torch::Device device) {
     torch::Tensor img_tensor = read_image(imageName);
+    img_tensor = img_tensor.to(device);
     img_tensor.unsqueeze_(0);
 
     std::vector<torch::jit::IValue> input;
@@ -17,6 +19,7 @@ int classify_image(const std::string& imageName, torch::jit::script::Module& mod
     temp = linear_layer(temp);
 
     temp = temp.argmax(1);
+    temp = temp.cpu();
 
     return *temp.data_ptr<long>();
 }
@@ -28,20 +31,28 @@ int main(int argc, char* argv[]) {
     //if (argc!=4)
     //    throw std::runtime_error("Usage: ./exe imageName modelWithoutLastLayer trainedLinearLayer");
 
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+	std::cout << (cuda_available ? "CUDA available. Using on GPU." : "Using on CPU.") << '\n';
+
 	std::string imgF = "./src/13_Transfer_learning/data/person_NM.jpg";
 
 	// Load the model.
     torch::jit::script::Module model;
     model = torch::jit::load("./models/Transfer_learning/resnet18_without_last_layer.pt");
+    model.to(device);
     model.eval();
 
     torch::nn::Linear linear_layer(512, 2);
+    linear_layer->to(device);
+
     torch::load(linear_layer,
     		"./models/mask_face_detection_model_linear.pt");	//argv[3]);
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    int result = classify_image(imgF, model, linear_layer);	// argv[1]
+    int result = classify_image(imgF, model, linear_layer, device);	// argv[1]
 
     auto t2 = std::chrono::high_resolution_clock::now();
     int duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();

@@ -132,7 +132,8 @@ std::pair<std::vector<std::string>,std::vector<int>> load_data_from_folder(std::
 }
 
 template<typename Dataloader>
-void train(torch::jit::script::Module net, torch::nn::Linear lin, Dataloader& data_loader, torch::optim::Optimizer& optimizer, size_t dataset_size) {
+void train(torch::jit::script::Module net, torch::nn::Linear& lin, Dataloader& data_loader,
+		torch::optim::Optimizer& optimizer, size_t dataset_size, torch::Device device, int num_epoch) {
     /*
      This function trains the network on our data loader using optimizer.
      
@@ -149,17 +150,22 @@ void train(torch::jit::script::Module net, torch::nn::Linear lin, Dataloader& da
      ===========
      Nothing (void)
      */
+
     float best_accuracy = 0.0; 
     int batch_index = 0;
     
-    for(int i=0; i < 10; i++) {
+    for(int i=0; i < num_epoch; i++) {
+    	net.train();
+    	torch::AutoGradMode enable_grad(true);
+
         float mse = 0;
         float Acc = 0.0;
         
         for(auto& batch: *data_loader) {
-            auto data = batch.data;
-            auto target = batch.target.squeeze();
+            auto data = batch.data.to(device);
+            auto target = batch.target.to(device).squeeze();
             
+            optimizer.zero_grad();
             // Should be of length: batch_size
             data = data.to(torch::kF32);
             target = target.to(torch::kInt64);
@@ -169,9 +175,10 @@ void train(torch::jit::script::Module net, torch::nn::Linear lin, Dataloader& da
             optimizer.zero_grad();
             
             auto output = net.forward(input).toTensor();
+
             // For transfer learning
             output = output.view({output.size(0), -1});
-            output = lin(output);
+            output = lin->forward(output);
             
             auto loss = torch::nll_loss(torch::log_softmax(output, 1), target);
             
@@ -189,10 +196,10 @@ void train(torch::jit::script::Module net, torch::nn::Linear lin, Dataloader& da
         mse = mse/float(batch_index); // Take mean of loss
         std::cout << "Epoch: " << i  << ", " << "Accuracy: " << Acc/dataset_size << ", " << "MSE: " << mse << std::endl;
 
-        test(net, lin, data_loader, dataset_size);
+        test(net, lin, data_loader, dataset_size, device);
 
-        if(Acc/dataset_size > best_accuracy) {
-            best_accuracy = Acc/dataset_size;
+        if( (Acc/dataset_size) > best_accuracy) {
+            best_accuracy = (Acc/dataset_size);
             std::cout << "Saving model" << std::endl;
             net.save("./models/Tf_model.pt");
             torch::save(lin, "./models/Tf_model_linear.pt");
@@ -201,7 +208,8 @@ void train(torch::jit::script::Module net, torch::nn::Linear lin, Dataloader& da
 }
 
 template<typename Dataloader>
-void test(torch::jit::script::Module network, torch::nn::Linear lin, Dataloader& loader, size_t data_size) {
+void test(torch::jit::script::Module network, torch::nn::Linear lin, Dataloader& loader,
+			size_t data_size, torch::Device device) {
     /*
      Function to test the network on test data
      
@@ -217,12 +225,13 @@ void test(torch::jit::script::Module network, torch::nn::Linear lin, Dataloader&
      Nothing (void)
      */
     network.eval();
+    torch::NoGradGuard no_grad;
     
     float Loss = 0, Acc = 0;
     
     for (const auto& batch : *loader) {
-        auto data = batch.data;
-        auto targets = batch.target.squeeze();
+        auto data = batch.data.to(device);
+        auto targets = batch.target.to(device).squeeze();
         
         data = data.to(torch::kF32);
         targets = targets.to(torch::kInt64);
@@ -244,9 +253,15 @@ void test(torch::jit::script::Module network, torch::nn::Linear lin, Dataloader&
 }
 
 int main(int argc, const char * argv[]) {
+
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+	torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+
     // Set folder names for cat and dog images
-    std::string cats_name = "./data/cat_dog/train/Cat";
-    std::string dogs_name = "./data/cat_dog/train/Dog";
+    std::string cats_name = "/media/stree/localssd/DL_data/cat_dog/train/Cat";
+    std::string dogs_name = "/media/stree/localssd/DL_data/cat_dog/train/Dog";
     
     std::vector<std::string> folders_name;
     folders_name.push_back(cats_name);
@@ -257,7 +272,7 @@ int main(int argc, const char * argv[]) {
 
     std::vector<std::string> list_images = pair_images_labels.first;
     std::vector<int> list_labels = pair_images_labels.second;
-    
+
     // Initialize CustomDataset class and read data
     auto custom_dataset = CustomDataset(list_images, list_labels).map(torch::data::transforms::Stack<>());
 
@@ -265,16 +280,19 @@ int main(int argc, const char * argv[]) {
     // You can also use: auto module = torch::jit::load(argv[1]);
     std::string mdlf = "./models/Transfer_learning/resnet18_without_last_layer.pt";
     torch::jit::script::Module module = torch::jit::load(mdlf); //argv[1]);
+    module.to(device);
     
     // Resource: https://discuss.pytorch.org/t/how-to-load-the-prebuilt-resnet-models-or-any-other-prebuilt-models/40269/8
     // For VGG: 512 * 14 * 14, 2
 
     torch::nn::Linear lin(512, 2); // the last layer of resnet, which we want to replace, has dimensions 512x1000
+    lin->to(device);
+
     torch::optim::Adam opt(lin->parameters(), torch::optim::AdamOptions(1e-3)); //learning rate
 
     auto data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(custom_dataset), 4);
 
-    train(module, lin, data_loader, opt, custom_dataset.size().value());
+    train(module, lin, data_loader, opt, custom_dataset.size().value(), device, 50);
 
     std::cout << "Done!\n";
     return 0;

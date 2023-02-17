@@ -118,7 +118,7 @@ int main() {
     datasets::ImageFolderWithPaths dataset, valid_dataset;
     DataLoader::ImageFolderWithPaths dataloader, valid_dataloader;
 
-    dataroot = "./data/CelebA/train";
+    dataroot = "/media/stree/localssd/DL_data/CelebA/train";
 
     // get train dataset
     dataset = datasets::ImageFolderWithPaths(dataroot, transform);
@@ -127,7 +127,7 @@ int main() {
 
     // get valid dataset
     if(valid){
-        valid_dataroot = "./data/CelebA/valid";
+        valid_dataroot = "/media/stree/localssd/DL_data/CelebA/valid";
         valid_dataset = datasets::ImageFolderWithPaths(valid_dataroot, transform);
         valid_dataloader = DataLoader::ImageFolderWithPaths(valid_dataset, valid_batch_size, valid_shuffle, valid_workers);
         std::cout << "total validation images : " << valid_dataset.size() << std::endl;
@@ -172,6 +172,8 @@ int main() {
 		enc->train();
 		dec->train();
 		dis->train();
+		torch::AutoGradMode enable_grad(true);
+
 		std::cout << "--------------- Training --------------------\n";
 
 		float loss_sum_rec = 0.0, loss_sum_gan = 0.0, loss_sum_dis=0.0;
@@ -235,6 +237,8 @@ int main() {
 			std::cout << "--------------- validation --------------------\n";
 			enc->eval();
 			dec->eval();
+			torch::NoGradGuard no_grad;
+
 			size_t iteration = 0;
 			float total_rec_loss = 0.0, total_enc_loss = 0.0, total_dis_real_loss = 0.0, total_dis_fake_loss = 0.0;
 
@@ -280,8 +284,8 @@ int main() {
 	// ---- Testing
 	if( test ) {
 		std::cout << "--------------- Testing --------------------\n";
-		std::string input_dir = "./data/CelebA/test";
-		std::string output_dir = "./data/CelebA/testO";
+		std::string input_dir = "/media/stree/localssd/DL_data/CelebA/test";
+		std::string output_dir = "/media/stree/localssd/DL_data/CelebA/testO";
 		datasets::ImageFolderPairWithPaths test_dataset = datasets::ImageFolderPairWithPaths(input_dir,
 				output_dir, transform, transform);
 		DataLoader::ImageFolderPairWithPaths test_dataloader = DataLoader::ImageFolderPairWithPaths(test_dataset, 1, false, 0);
@@ -299,6 +303,7 @@ int main() {
 		// Tensor Forward
 		enc->eval();
 		dec->eval();
+		torch::NoGradGuard no_grad;
 
 	    while( test_dataloader(data) ){
 	        imageI = std::get<0>(data).to(device);

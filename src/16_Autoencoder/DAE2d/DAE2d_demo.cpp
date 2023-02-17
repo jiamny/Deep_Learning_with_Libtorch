@@ -134,7 +134,7 @@ int main() {
     datasets::ImageFolderPairWithPaths dataset, valid_dataset;
     DataLoader::ImageFolderPairWithPaths dataloader, valid_dataloader;
 
-    dataroot = "./data/CelebA/train";
+    dataroot = "/media/stree/localssd/DL_data/CelebA/train";
 
     // get train dataset
     dataset = datasets::ImageFolderPairWithPaths(dataroot, dataroot, transformI, transformO);
@@ -143,7 +143,7 @@ int main() {
 
     // get valid dataset
     if(valid){
-        valid_dataroot = "./data/CelebA/valid";
+        valid_dataroot = "/media/stree/localssd/DL_data/CelebA/valid";
         valid_dataset = datasets::ImageFolderPairWithPaths(valid_dataroot, valid_dataroot, transformI, transformO);
         valid_dataloader = DataLoader::ImageFolderPairWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
         std::cout << "total validation images : " << valid_dataset.size() << std::endl;
@@ -182,6 +182,8 @@ int main() {
 
 	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
 		model->train();
+		torch::AutoGradMode enable_grad(true);
+
 		std::cout << "--------------- Training --------------------\n";
 
 		float loss_sum = 0.0;
@@ -199,7 +201,7 @@ int main() {
             loss.backward();
             optimizer.step();
 
-            loss_sum += loss.item<float>();
+            loss_sum += loss.cpu().item<float>();
 		}
 
 		train_loss_ave.push_back(loss_sum/total_iter);
@@ -212,6 +214,8 @@ int main() {
 		if( valid && (epoch % 5 == 0) ) {
 			std::cout << "--------------- validation --------------------\n";
 			model->eval();
+			torch::NoGradGuard no_grad;
+
 			size_t iteration = 0;
 			float total_loss = 0.0;
 
@@ -220,7 +224,7 @@ int main() {
 				imageO = std::get<1>(mini_batch).to(device);
 				output = model->forward(imageI);
 				loss = criterion(output, imageO);
-				total_loss += loss.item<float>();
+				total_loss += loss.cpu().item<float>();
 				iteration++;
 			}
 			//  Calculate Average Loss
@@ -233,8 +237,8 @@ int main() {
 	// ---- Testing
 	if( test ) {
 		std::cout << "--------------- Testing --------------------\n";
-		std::string input_dir = "./data/CelebA/test";
-		std::string output_dir = "./data/CelebA/testO";
+		std::string input_dir = "/media/stree/localssd/DL_data/CelebA/test";
+		std::string output_dir = "/media/stree/localssd/DL_data/CelebA/testO";
 		datasets::ImageFolderPairWithPaths test_dataset = datasets::ImageFolderPairWithPaths(input_dir, output_dir, transformI, transformO);
 		DataLoader::ImageFolderPairWithPaths test_dataloader = DataLoader::ImageFolderPairWithPaths(test_dataset, 1, false, 0);
 		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
@@ -246,6 +250,7 @@ int main() {
 		std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>, std::vector<std::string>> data;
 
 	    model->eval();
+	    torch::NoGradGuard no_grad;
 
 	    // Initialization of Value
 	    ave_loss = 0.0;
@@ -263,8 +268,8 @@ int main() {
 	        loss = criterion(output, imageI);
 	        GT_loss = criterion(output, imageO);
 
-	        ave_loss += loss.item<float>();
-	        ave_GT_loss += GT_loss.item<float>();
+	        ave_loss += loss.cpu().item<float>();
+	        ave_GT_loss += GT_loss.cpu().item<float>();
 	    }
 
 	    // Average

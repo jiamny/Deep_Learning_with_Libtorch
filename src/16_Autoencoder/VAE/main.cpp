@@ -23,10 +23,10 @@ int main() {
     const size_t num_epochs = 15;
     const double learning_rate = 1e-3;
 
-    const std::string MNIST_data_path = "../../../../data/mnist/";
+    const std::string MNIST_data_path = "/media/stree/localssd/DL_data/mnist2/MNIST/raw/";
 
     // Path of the directory where the sampled and reconstructed images will be saved to (This folder must exist!)
-    const std::string sample_output_dir_path = "output/";
+    const std::string sample_output_dir_path = ".";
 
     // MNIST dataset
     auto dataset = torch::data::datasets::MNIST(MNIST_data_path)
@@ -57,6 +57,7 @@ int main() {
         size_t batch_index = 0;
 
         model->train();
+        torch::AutoGradMode enable_grad(true);
 
         for (auto& batch : *dataloader) {
             // Transfer images to device

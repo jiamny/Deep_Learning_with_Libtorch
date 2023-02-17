@@ -35,13 +35,13 @@ int main() {
     const int64_t hidden_size = 256;
     const int64_t image_size = 28 * 28;
     const int64_t batch_size = 100;
-    const size_t num_epochs = 200;
+    const size_t num_epochs = 100;
     const double learning_rate = 0.0002;
 
-    const std::string MNIST_data_path = "./data/mnist/";
+    const std::string MNIST_data_path = "/media/stree/localssd/DL_data/mnist2/MNIST/raw/";
 
     // Path of the directory where the generated samples will be saved to (This folder must exist!)
-    const std::string sample_output_dir_path = "./src/15_GenerativeAdversarialNetwork/GAN/output/";
+    const std::string sample_output_dir_path = "./src/15_GenerativeAdversarialNetwork/GAN/";
     checkDirExisting(sample_output_dir_path);
 
     // MNIST dataset
@@ -149,7 +149,7 @@ int main() {
             g_loss.backward();
             g_optimizer.step();
 
-            if ((batch_index + 1) % 200 == 0) {
+            if ((batch_index + 1) % 300 == 0) {
                 std::cout << "Epoch [" << epoch << "/" << num_epochs << "], Step [" << batch_index + 1 << "/"
                     << num_samples / batch_size << "], d_loss: " << d_loss.item<double>() << ", g_loss: "
                     << g_loss.item<double>() << ", D(x): " << real_score

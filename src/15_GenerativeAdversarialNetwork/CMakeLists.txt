@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 find_package(Python3 COMPONENTS Development NumPy)
 
+add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
+
 find_package(OpenMP REQUIRED)
 find_package(PNG REQUIRED)
 
@@ -44,8 +46,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lm -ldl")
 
 add_executable(15_DCGAN_celebA DCGAN-CelebA/src/main.cpp DCGAN-CelebA/src/dataset.cpp)
 
-target_link_libraries(15_DCGAN_celebA ${OpenCV_LIBS})
-target_link_libraries(15_DCGAN_celebA "${TORCH_LIBRARIES}")
+target_link_libraries(15_DCGAN_celebA ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
 set_target_properties(15_DCGAN_celebA PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
 

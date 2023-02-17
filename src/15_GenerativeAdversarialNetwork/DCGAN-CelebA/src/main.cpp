@@ -45,7 +45,7 @@ int ngf = 64;
 int ndf = 64;
 
 int main(int argc, const char * argv[]) {
-  Arguments args = Arguments("./data", 2, 64, 64, 3, 300, 64, 64, 3, 0.001, 0.5, 1);
+  Arguments args = Arguments("/media/stree/localssd/DL_data", 2, 64, 64, 3, 300, 64, 64, 3, 0.001, 0.5, 1);
   std::string images_name = args.dataroot + "/CelebA/train/";
 
   std::vector<std::string> folders_name;
@@ -92,7 +92,7 @@ int main(int argc, const char * argv[]) {
   torch::optim::Adam optimizerD(
       netD->parameters(), torch::optim::AdamOptions(2e-4).betas(std::make_tuple (0.5, 0.5)));
 
-  int printEveryCheckpoint = 10;
+  int printEveryCheckpoint = 20;
   bool restoreFromCheckpoint = false; // set to false if you don't want to restore from checkpoint saved earlier
 
   if( restoreFromCheckpoint ) {
@@ -108,12 +108,26 @@ int main(int argc, const char * argv[]) {
   auto options = torch::TensorOptions().device(device).requires_grad(false);
   for(int64_t epoch=1; epoch<=20; ++epoch) {
     int64_t batch_index=0;
+
     for(torch::data::Example<>& batch: *data_loader) {
+
+     /*
+      * Warning: An output with one or more elements was resized since it had shape [64, 1, 1, 1],
+      * which does not match the required output shape [64, 1, 1, 64]. This behavior is deprecated,
+      * and in a future PyTorch release outputs will not be resized unless they have zero elements.
+      * You can explicitly reuse an out tensor t by resizing it, inplace,
+      * to zero elements with t.resize_(0).
+      *
+      * Call .reshape({batch_size}) on results of the forward calls.
+      */
+      const auto batch_size = batch.data.size(0);
+
       netD->zero_grad();
       torch::Tensor real_images = batch.data.to(device);
       torch::Tensor real_labels = torch::empty(batch.data.size(0), device).uniform_(1.0, 1.0);
 
-      torch::Tensor real_output = netD->forward(real_images);
+      torch::Tensor real_output = netD->forward(real_images).reshape({batch_size});
+
       torch::Tensor d_loss_real = torch::binary_cross_entropy(real_output, real_labels);
       d_loss_real.backward();
 
@@ -121,7 +135,9 @@ int main(int argc, const char * argv[]) {
       torch::Tensor noise = torch::randn({batch.data.size(0), args.nz, 1, 1}, device);
       torch::Tensor fake_images = netG->forward(noise);
       torch::Tensor fake_labels = torch::zeros(batch.data.size(0), device);
-      torch::Tensor fake_output = netD->forward(fake_images.detach());
+
+      torch::Tensor fake_output = netD->forward(fake_images.detach()).reshape({batch_size});
+
       torch::Tensor d_loss_fake = torch::binary_cross_entropy(fake_output, fake_labels);
       d_loss_fake.backward();
 
@@ -131,7 +147,9 @@ int main(int argc, const char * argv[]) {
       // Train generator
       netG->zero_grad();
       fake_labels.fill_(1);
-      fake_output = netD->forward(fake_images);
+
+      fake_output = netD->forward(fake_images).reshape({batch_size});
+
       torch::Tensor g_loss = torch::binary_cross_entropy(fake_output, fake_labels);
       g_loss.backward();
       optimizerG.step();

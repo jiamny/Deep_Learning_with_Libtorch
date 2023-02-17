@@ -33,7 +33,7 @@ int main() {
     // Device
     auto cuda_available = torch::cuda::is_available();
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
-    std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
+    std::cout << (cuda_available ? "CUDA available. Running on GPU." : "Running on CPU.") << '\n';
 
     // Hyper parameters
     const int64_t max_image_size = 300;
@@ -45,7 +45,7 @@ int main() {
 
     // Paths to content and style images
     const std::string image_path = "./data/neural_style_transfer_images";
-    const std::string output_path = "./src/14_NeuralStyleTransfer/style_transfer/output";
+    const std::string output_path = "./src/14_NeuralStyleTransfer";
     checkDirExisting(image_path);
     checkDirExisting(output_path);
 
@@ -56,7 +56,7 @@ int main() {
     // Must be created using the provided python script at
     // pytorch-cpp/tutorials/advanced/neural_style_transfer/model/create_vgg19_layers_scriptmodule.py.
     const std::string vgg19_layers_scriptmodule_path =
-        "./src/14_NeuralStyleTransfer/style_transfer/model/vgg19_layers.pt";
+        "./src/14_NeuralStyleTransfer/vgg19_layers.pt";
 
     if(!std::ifstream(vgg19_layers_scriptmodule_path)) {
         std::cout << "Could not open the required VGG19 layers scriptmodule file from path: "
@@ -146,11 +146,11 @@ int main() {
 
         if ((step + 1) % sample_step == 0) {
             // Save the generated image
-            auto image = denormalize_transform(target.to(device).clone().squeeze(0)).clamp_(0, 1);
+            auto image = denormalize_transform(target.cpu().clone().squeeze(0)).clamp_(0, 1);
             save_image(image, output_path + "/output-" + std::to_string(step + 1) + ".png", 1, 0);
         }
     }
 
-    std::cout << "Training finished!\n";
+    std::cout << "Finished!\n";
 }
 

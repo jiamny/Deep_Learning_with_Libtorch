@@ -14,10 +14,10 @@ const int64_t kBatchSize = 64;
 const int64_t kNumberOfEpochs = 3;
 
 // Where to find the MNIST dataset.
-const char* kDataFolder = "./data/mnist";
+const char* kDataFolder = "/media/stree/localssd/DL_data/mnist2/MNIST/raw";
 
 // After how many batches to create a new checkpoint periodically.
-const int64_t kCheckpointEvery = 200;
+const int64_t kCheckpointEvery = 600;
 
 // How many images to sample at every checkpoint.
 const int64_t kNumberOfSamplesPerCheckpoint = 10;
@@ -139,24 +139,38 @@ int main(int argc, const char* argv[]) {
   for (int64_t epoch = 1; epoch <= kNumberOfEpochs; ++epoch) {
     int64_t batch_index = 0;
     for (torch::data::Example<>& batch : *data_loader) {
+
+       /*
+        * Warning: An output with one or more elements was resized since it had shape [64, 1, 1, 1],
+        * which does not match the required output shape [64, 1, 1, 64]. This behavior is deprecated,
+        * and in a future PyTorch release outputs will not be resized unless they have zero elements.
+        * You can explicitly reuse an out tensor t by resizing it, inplace,
+        * to zero elements with t.resize_(0).
+        *
+        * Call .reshape({batch_size}) on results of the forward calls.
+        */
+
+      const auto batch_size = batch.data.size(0);
+
       // Train discriminator with real images.
       discriminator->zero_grad();
       torch::Tensor real_images = batch.data.to(device);
-      torch::Tensor real_labels =
-          torch::empty(batch.data.size(0), device).uniform_(0.8, 1.0);
-      torch::Tensor real_output = discriminator->forward(real_images);
-      torch::Tensor d_loss_real =
-          torch::binary_cross_entropy(real_output, real_labels);
+      torch::Tensor real_labels = torch::empty(batch.data.size(0), device).uniform_(0.8, 1.0);
+
+      torch::Tensor real_output = discriminator->forward(real_images).reshape({batch_size});
+
+      torch::Tensor d_loss_real = torch::binary_cross_entropy(real_output, real_labels);
       d_loss_real.backward();
 
       // Train discriminator with fake images.
-      torch::Tensor noise =
-          torch::randn({batch.data.size(0), kNoiseSize, 1, 1}, device);
+      torch::Tensor noise = torch::randn({batch.data.size(0), kNoiseSize, 1, 1}, device);
       torch::Tensor fake_images = generator->forward(noise);
       torch::Tensor fake_labels = torch::zeros(batch.data.size(0), device);
-      torch::Tensor fake_output = discriminator->forward(fake_images.detach());
-      torch::Tensor d_loss_fake =
-          torch::binary_cross_entropy(fake_output, fake_labels);
+
+      torch::Tensor fake_output = discriminator->forward(fake_images.detach()).reshape({batch_size});
+
+      torch::Tensor d_loss_fake = torch::binary_cross_entropy(fake_output, fake_labels);
+
       d_loss_fake.backward();
 
       torch::Tensor d_loss = d_loss_real + d_loss_fake;
@@ -165,12 +179,14 @@ int main(int argc, const char* argv[]) {
       // Train generator.
       generator->zero_grad();
       fake_labels.fill_(1);
-      fake_output = discriminator->forward(fake_images);
-      torch::Tensor g_loss =
-          torch::binary_cross_entropy(fake_output, fake_labels);
+
+      fake_output = discriminator->forward(fake_images).reshape({batch_size});
+
+      torch::Tensor g_loss = torch::binary_cross_entropy(fake_output, fake_labels);
       g_loss.backward();
       generator_optimizer.step();
       batch_index++;
+
       if (batch_index % kLogInterval == 0) {
         std::printf(
             "\r[%2ld/%2ld][%3ld/%3ld] D_loss: %.4f | G_loss: %.4f\n",
@@ -197,8 +213,9 @@ int main(int argc, const char* argv[]) {
             torch::str("./models/dcgan_dcgan-sample-", checkpoint_counter, ".pt"));
         std::cout << "\n-> checkpoint " << ++checkpoint_counter << '\n';
       }
+
     }
   }
 
-  std::cout << "Training complete!" << std::endl;
+  std::cout << "Complete!" << std::endl;
 }
