@@ -25,9 +25,6 @@
 #include "../datasets.hpp"                // datasets::ImageFolderClassesWithPaths
 #include "../dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
 
-#include "../../matplotlibcpp.h"
-namespace plt = matplotlibcpp;
-
 using torch::indexing::Slice;
 using torch::indexing::None;
 
@@ -134,7 +131,7 @@ int main() {
 		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
     };
 
-	std::string dataroot = "./data/17_flowers/train";
+	std::string dataroot = "/media/stree/localssd/DL_data/17_flowers/train";
     std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
     torch::Tensor loss, image, label, output;
     datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
@@ -151,7 +148,7 @@ int main() {
 
 	std::cout << "total training images : " << dataset.size() << std::endl;
 
-    std::string valid_dataroot = "./data/17_flowers/valid";
+    std::string valid_dataroot = "/media/stree/localssd/DL_data/17_flowers/valid";
     valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
     valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
 
@@ -286,7 +283,7 @@ int main() {
 
 	//
 	if( test ) {
-		std::string test_dataroot = "./data/17_flowers/test";
+		std::string test_dataroot = "/media/stree/localssd/DL_data/17_flowers/test";
 		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
 		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, /*batch_size_=*/1, /*shuffle_=*/false, /*num_workers_=*/0);
 		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;

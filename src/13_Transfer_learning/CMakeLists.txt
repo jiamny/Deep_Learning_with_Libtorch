@@ -1,38 +1,27 @@
-cmake_minimum_required(VERSION 3.18)
 
 find_package (Eigen3 REQUIRED NO_MODULE)
 
 add_definitions     ( ${EIGEN3_DEFINITIONS} )
-#include_directories ( ${EIGEN3_INCLUDE_DIRS} )
-
-find_package(Python3 COMPONENTS Development NumPy)
-
-add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
 
 # tell CMake to search for the static libraries ONLY
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
-set(requiredlibs "python3.10")
-list(APPEND requiredlibs "pthread")
+set(requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-
-set(LIBS ${TORCH_LIBRARIES} ${OpenCV_LIBS} ${requiredlibs} Python3::Python Python3::NumPy) 
+set(LIBS ${TORCH_LIBRARIES} ${OpenCV_LIBS} ${requiredlibs}) 
 
 set(INCLUDE_DIRS
     ${TORCH_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS} 
     ${OpenCV_INCLUDE_DIRS}
-    ${Python3_INCLUDE_DIRS}
-    ${Python3_NumPy_INCLUDE_DIRS}
 )
 
 # -------------------- add executable ------------------------
 include_directories(${INCLUDE_DIRS})
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lm -ldl")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lm -ldl")
 
 add_executable(13_Tf_learning)
 target_sources(13_Tf_learning PRIVATE Transfer_learning/main.cpp
@@ -40,33 +29,21 @@ target_sources(13_Tf_learning PRIVATE Transfer_learning/main.cpp
 )
 
 target_link_libraries(13_Tf_learning ${LIBS})
-
-set_target_properties(13_Tf_learning PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(13_Tf_learning PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
 add_executable(13_Tf_classify)
 target_sources(13_Tf_classify PRIVATE Transfer_learning/classify.cpp)
 
 target_link_libraries(13_Tf_classify ${LIBS})
-
-set_target_properties(13_Tf_classify PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(13_Tf_classify PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
 add_executable(13_Image_classification_pretrained)
 target_sources(13_Image_classification_pretrained PRIVATE Image_classification_pretrained/main.cpp)
 
 target_link_libraries(13_Image_classification_pretrained ${LIBS})
-
-set_target_properties(13_Image_classification_pretrained PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(13_Image_classification_pretrained PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
 add_executable(13_Mask_face_detection_classify)
@@ -77,11 +54,7 @@ target_sources(13_Mask_face_detection_classify PRIVATE
 )
 
 target_link_libraries(13_Mask_face_detection_classify ${LIBS})
-
-set_target_properties(13_Mask_face_detection_classify PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(13_Mask_face_detection_classify PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
 add_executable(13_Mask_face_detection_train)
@@ -94,9 +67,5 @@ target_sources(13_Mask_face_detection_train PRIVATE
 )
 
 target_link_libraries(13_Mask_face_detection_train ${LIBS})
-
-set_target_properties(13_Mask_face_detection_train PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(13_Mask_face_detection_train PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 

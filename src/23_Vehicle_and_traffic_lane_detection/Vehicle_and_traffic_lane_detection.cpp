@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 	load_net(net, is_cuda, "./src/23_Vehicle_and_traffic_lane_detection/config_files/yolov5s.onnx");
 
     // The input argument is the location of the video
-    std::string source = "./data/videos/project_video.mp4";
+    std::string source = "/media/stree/localssd/DL_data/videos/project_video.mp4";
     //std::string source = "./data/videos/challenge_video.mp4";
     cv::VideoCapture cap(source);
     if (!cap.isOpened()) {

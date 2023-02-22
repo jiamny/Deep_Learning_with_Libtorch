@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # -----------------------------------------------------------------------------------------
 add_executable(18_RNN)
@@ -8,11 +7,7 @@ target_sources(18_RNN PRIVATE RNN/main.cpp
 )
 
 target_link_libraries(18_RNN ${TORCH_LIBRARIES})
-
-set_target_properties(18_RNN PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(18_RNN PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
 add_executable(18_bi_RNN)
@@ -22,11 +17,7 @@ target_sources(18_bi_RNN PRIVATE bi_RNN/main.cpp
 )
 
 target_link_libraries(18_bi_RNN ${TORCH_LIBRARIES})
-
-set_target_properties(18_bi_RNN PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(18_bi_RNN PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
 add_executable(18_RNN_LM)
@@ -40,8 +31,4 @@ target_sources(18_RNN_LM PRIVATE RNN_LM/main.cpp
 )
 
 target_link_libraries(18_RNN_LM ${TORCH_LIBRARIES})
-
-set_target_properties(18_RNN_LM PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(18_RNN_LM PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)

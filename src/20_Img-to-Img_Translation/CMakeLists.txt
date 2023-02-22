@@ -1,11 +1,5 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-find_package(Python3 COMPONENTS Development NumPy)
-
-add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
-
-set(requiredlibs "python3.10")
-list(APPEND requiredlibs "pthread")
+set(requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
 
@@ -37,9 +31,8 @@ target_sources(20_pix2pix_demo PRIVATE
 	../image_tools/transforms.cpp
 )
 													
-target_include_directories(20_pix2pix_demo PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS})
-target_link_libraries(20_pix2pix_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
+target_include_directories(20_pix2pix_demo PRIVATE ${PNG_INCLUDE_DIRS})
+target_link_libraries(20_pix2pix_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} matplot)
 set_target_properties(20_pix2pix_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
@@ -60,7 +53,6 @@ target_sources(20_U-Net_Regression_demo PRIVATE
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(20_U-Net_Regression_demo PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS})
-target_link_libraries(20_U-Net_Regression_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
+target_include_directories(20_U-Net_Regression_demo PRIVATE  ${PNG_INCLUDE_DIRS})
+target_link_libraries(20_U-Net_Regression_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} matplot)
 set_target_properties(20_U-Net_Regression_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)

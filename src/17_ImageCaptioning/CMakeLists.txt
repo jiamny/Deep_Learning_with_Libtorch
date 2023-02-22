@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-
 project(image-captioning VERSION 1.0.0 LANGUAGES CXX)
 
 set(EXECUTABLE_NAME 17_image-captioning)
@@ -26,13 +24,8 @@ target_sources(${EXECUTABLE_NAME} PRIVATE src/main.cpp
 )
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE include)
-
 target_link_libraries(${EXECUTABLE_NAME} ${TORCH_LIBRARIES} image-io cxxopts)
-
-set_target_properties(${EXECUTABLE_NAME} PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(${EXECUTABLE_NAME} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 if(DOWNLOAD_DATASETS)
     add_dependencies(${EXECUTABLE_NAME} flickr8k)

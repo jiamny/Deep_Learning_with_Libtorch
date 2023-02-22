@@ -13,7 +13,7 @@
 #include <iomanip>
 
 // For Original Header
-#include "options.hpp"                // other functions
+#include "options.hpp"               // other functions
 #include "networks.hpp"              // MC_Discriminator
 
 // Define Namespace

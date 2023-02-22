@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     std::vector<std::string> class_list = load_class_list("./src/19_ObjectDetection/YOLOv5/config_files/classes.txt");
 
     cv::Mat frame;
-    cv::VideoCapture capture("./data/sample.mp4");
+    cv::VideoCapture capture("/media/stree/localssd/DL_data/videos/sample.mp4");
     //cv::VideoCapture capture("./data/videos/project_video.mp4");
     if (!capture.isOpened()) {
         std::cerr << "Error opening video file\n";

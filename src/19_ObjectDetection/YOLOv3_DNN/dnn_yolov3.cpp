@@ -8,10 +8,10 @@
 
 void image_detection();
 void setLabel(cv::Mat& im, std::string label, cv::Scalar text_color, cv::Scalar text_bk_color, const cv::Point& pt);
-std::string yolo_cfg = "./data/models/yolov3.cfg";
-std::string yolo_model = "./data/models/yolov3.weights";
-std::string yolo_tiny_model = "./data/models/yolov3-tiny.weights";
-std::string yolo_tiny_cfg = "./data/models/yolov3-tiny.cfg";
+std::string yolo_cfg = "/media/stree/localssd/DL_data/models/yolov3.cfg";
+std::string yolo_model = "/media/stree/localssd/DL_data/models/yolov3.weights";
+std::string yolo_tiny_model = "/media/stree/localssd/DL_data/models/yolov3-tiny.weights";
+std::string yolo_tiny_cfg = "/media/stree/localssd/DL_data/models/yolov3-tiny.cfg";
 
 bool useDetectionModel = false;
 
@@ -30,7 +30,7 @@ void image_detection() {
 	}
 
 	std::vector<std::string> classNamesVec;
-	std::ifstream classNamesFile("./data/models/coco.names");
+	std::ifstream classNamesFile("/media/stree/localssd/DL_data/models/coco.names");
 
 	if (classNamesFile.is_open()) {
 		std::string className = "";

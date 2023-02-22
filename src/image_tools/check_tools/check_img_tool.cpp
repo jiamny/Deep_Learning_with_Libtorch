@@ -14,11 +14,6 @@
 #include <iomanip>
 
 
-#include "../../matplotlibcpp.h"
-
-namespace plt = matplotlibcpp;
-
-
 using Data = std::vector<std::pair<std::string, long>>;
 using Example = torch::data::Example<>;
 
@@ -351,6 +346,7 @@ int main() {
 
 	cv::cvtColor(rev_bgr_mat, rev_bgr_mat, cv::COLOR_RGB2BGR);
 
+
     // Show Image inside a window with the name provided
     cv::imshow("Original image", org_img_mat);
     // Wait for any keystroke
@@ -366,7 +362,7 @@ int main() {
     cv::waitKey(0);
     cv::destroyAllWindows();
 
-
+/*
     plt::figure_size(800, 500);
 
     // --- mat to tensor
@@ -397,7 +393,7 @@ int main() {
     plt::title("image rev_BGR_tensor");
     plt::imshow(zptr2, rev_bgr_tensor.size(0), rev_bgr_tensor.size(1), rev_bgr_tensor.size(2));
     plt::show();
-
+*/
 /*
     plt::figure_size(800, 500);
     plt::subplot(1, 2, 1);

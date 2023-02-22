@@ -1,16 +1,10 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-
-find_package(Python3 COMPONENTS Development NumPy)
-
-add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
 
 find_package(OpenMP REQUIRED)
 find_package(PNG REQUIRED)
 
 include_directories(${PNG_INCLUDE_DIRS})
 
-set(requiredlibs "python3.10")
-list(APPEND requiredlibs "pthread")
+set(requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
 list(APPEND requiredlibs "png")
@@ -36,13 +30,8 @@ target_sources(12_AlexNet_custom PRIVATE  AlexNet/custom/alexnet_demo.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_AlexNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_AlexNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_AlexNet_custom PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_AlexNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_AlexNet_custom PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # ------------------------------------------------------------------
 # ----AlexNet_torchvision
@@ -58,13 +47,8 @@ target_sources(12_AlexNet_torchvision PRIVATE  AlexNet/torchvision/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_AlexNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_AlexNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_AlexNet_torchvision PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_AlexNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_AlexNet_torchvision PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # ------------------------------------------------------------------
 # ----DenseNet torchvision
@@ -80,13 +64,8 @@ target_sources(12_DenseNet_torchvision PRIVATE  DenseNet/torchvision/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_DenseNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_DenseNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_DenseNet_torchvision PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_DenseNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_DenseNet_torchvision PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --- DPN ---------------------------------------------------
 add_executable(12_DPN_32)
@@ -97,13 +76,8 @@ target_sources(12_DPN_32 PRIVATE  DPN/DPN_32/main.cpp
     ../07_Dataset_and_dataloader/cifar10.h
 )
 
-target_include_directories(12_DPN_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_DPN_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_DPN_32 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_DPN_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_DPN_32 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --- EfficientNet_32 ---------------------------------------------------
 add_executable(12_EfficientNet_32)
@@ -115,13 +89,8 @@ target_sources(12_EfficientNet_32 PRIVATE EfficientNet/EfficientNet_32/main.cpp
     ../07_Dataset_and_dataloader/cifar10.h
 )
 
-target_include_directories(12_EfficientNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_EfficientNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_EfficientNet_32 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_EfficientNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_EfficientNet_32 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------
 # --- GoogleNet torch
@@ -138,13 +107,8 @@ target_sources(12_GoogleNet_custom PRIVATE  GoogleNet/custom/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_GoogleNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_GoogleNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_GoogleNet_custom PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_GoogleNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_GoogleNet_custom PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------
 # --- Inception_V3
@@ -161,13 +125,8 @@ target_sources(12_Inception_V3 PRIVATE  Inception/V3/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_Inception_V3 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_Inception_V3 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_Inception_V3 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_Inception_V3 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_Inception_V3 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------
 # --- MnasNet
@@ -184,13 +143,8 @@ target_sources(12_MnasNet PRIVATE MnasNet/torchvision/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_MnasNet PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_MnasNet ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_MnasNet PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_MnasNet ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_MnasNet PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------
 # --- MobileNet torchvision V2
@@ -207,13 +161,8 @@ target_sources(12_MobileNet_torchvisionV2 PRIVATE   MobileNet/torchvisionV2/main
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_MobileNet_torchvisionV2 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_MobileNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_MobileNet_torchvisionV2 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_MobileNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_MobileNet_torchvisionV2 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --- MobileNet V1 ---------------------------------------------------
 add_executable(12_MobileNet_V1)
@@ -229,13 +178,8 @@ target_sources(12_MobileNet_V1 PRIVATE MobileNet/V1/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_MobileNet_V1 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_MobileNet_V1 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_MobileNet_V1 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_MobileNet_V1 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_MobileNet_V1 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --- PNASNet_custom ---------------------------------------------------
 add_executable(12_PnasNet_custom)
@@ -251,13 +195,8 @@ target_sources(12_PnasNet_custom PRIVATE  PnasNet/PnasNet_custom/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_PnasNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_PnasNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_PnasNet_custom PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_PnasNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_PnasNet_custom PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 #---------------------------------------------------------------------
 # --- PreactResNet_32 torch_cifar10
@@ -270,13 +209,8 @@ target_sources(12_PreactResNet_32 PRIVATE PreactResnet/PreactResNet_32/main.cpp
     ../07_Dataset_and_dataloader/cifar10.h
 )
 
-target_include_directories(12_PreactResNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_PreactResNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_PreactResNet_32 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_PreactResNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_PreactResNet_32 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 #---------------------------------------------------------------------
 # --- RegNet_32 torch_cifar10
@@ -289,13 +223,8 @@ target_sources(12_RegNet_32 PRIVATE RegNet/RegNet_32/main.cpp
     ../07_Dataset_and_dataloader/cifar10.h
 )
 
-target_include_directories(12_RegNet_32 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_RegNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_RegNet_32 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_RegNet_32 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_RegNet_32 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # ---------------------------------------------------------------------
 # --- ResNet
@@ -310,13 +239,8 @@ target_sources(12_ResNet_custom PRIVATE ResNet/resnet_custom/resnet.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_ResNet_custom PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_ResNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_ResNet_custom PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_ResNet_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_ResNet_custom PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # ---------------------------------------------------------------------
 # --- ResNet torchvision
@@ -333,13 +257,8 @@ target_sources(12_ResNet_torchvision PRIVATE ResNet/torchvision/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_ResNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_ResNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_ResNet_torchvision PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_ResNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_ResNet_torchvision PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # ---------------------------------------------------------------------------------
 # --- ShuffleNet torchvision V2 ---------------------------------------------------
@@ -357,13 +276,8 @@ target_sources(12_ShuffleNet_torchvisionV2 PRIVATE ShuffleNet/torchvisionV2/main
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_ShuffleNet_torchvisionV2 PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_ShuffleNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_ShuffleNet_torchvisionV2 PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_ShuffleNet_torchvisionV2 ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} )
+set_target_properties(12_ShuffleNet_torchvisionV2 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # ------------------------------------------------------------------------------
 # --- SqueezeNet torchvision ---------------------------------------------------
@@ -381,13 +295,8 @@ target_sources(12_SqueezeNet_torchvision PRIVATE ShuffleNet/torchvisionV2/main.c
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_SqueezeNet_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_SqueezeNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_SqueezeNet_torchvision PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_SqueezeNet_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_SqueezeNet_torchvision PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --------------------------------------------------------------------
 # --- VGG
@@ -402,11 +311,7 @@ target_sources(12_VGG_custom PRIVATE  VGG/custom/VGG_demo.cpp
 )
 
 target_link_libraries(12_VGG_custom ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-set_target_properties(12_VGG_custom PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(12_VGG_custom PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --------------------------------------------------------------------
 # --- VGG_custom_mc
@@ -423,13 +328,8 @@ target_sources(12_VGG_custom_mc PRIVATE VGG/custom_mc/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_VGG_custom_mc PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_VGG_custom_mc ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_VGG_custom_mc PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_VGG_custom_mc ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_VGG_custom_mc PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------
 # --- VGG torchvision 
@@ -446,13 +346,8 @@ target_sources(12_VGG_torchvision PRIVATE VGG/torchvision/main.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(12_VGG_torchvision PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(12_VGG_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
-set_target_properties(12_VGG_torchvision PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+target_link_libraries(12_VGG_torchvision ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties(12_VGG_torchvision PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 
 

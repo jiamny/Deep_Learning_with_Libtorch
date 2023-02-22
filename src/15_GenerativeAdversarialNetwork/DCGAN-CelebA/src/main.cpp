@@ -67,6 +67,7 @@ int main(int argc, const char * argv[]) {
   auto custom_dataset_init = CustomDataset(list_images, list_labels, 64);
   custom_dataset_init.show_batch(5);
   custom_dataset_init.show_sample(5);
+
   auto custom_dataset = custom_dataset_init.map(torch::data::transforms::Normalize<>(0.5, 0.5)).map(torch::data::transforms::Stack<>());
 
   auto data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(custom_dataset),

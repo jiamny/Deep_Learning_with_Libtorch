@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.18)
 
 project(Reinforcement_CPP
         LANGUAGES CXX
@@ -12,12 +11,7 @@ set(ALE_INCLUDE_DIRS "/home/stree/git/arcade-learning-environment/src")
 # path to libale.so 
 find_library(LIBALE libale.so HINTS "/home/stree/git/arcade-learning-environment/")
 
-find_package(Python3 COMPONENTS Development NumPy)
-
-add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
-
-set(requiredlibs "python3.10")
-list(APPEND requiredlibs "pthread")
+set(requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
 
@@ -34,9 +28,8 @@ src/PrioritizedExperienceReplay.h
 src/noisy.h 
 src/categorical_dqn.h)
 
-target_include_directories(22_Reinforcement_DQN  PRIVATE ${ALE_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(22_Reinforcement_DQN   ${LIBALE} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
+target_include_directories(22_Reinforcement_DQN  PRIVATE ${ALE_INCLUDE_DIRS})
+target_link_libraries(22_Reinforcement_DQN   ${LIBALE} ${TORCH_LIBRARIES} ${requiredlibs})
 set_target_properties(22_Reinforcement_DQN  PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 #include_directories(${CPPRL_INCLUDE_DIRS})

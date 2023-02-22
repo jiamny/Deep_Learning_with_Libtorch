@@ -25,13 +25,13 @@ int main() {
     const int64_t num_samples = 1000;  // the number of words to be sampled
     const int64_t batch_size = 20;
     const int64_t sequence_length = 30;
-    const size_t num_epochs = 3;
+    const size_t num_epochs = 10;
     const double learning_rate = 0.002;
 
     // Load "Penn Treebank" dataset
     // See https://github.com/yunjey/pytorch-tutorial/blob/master/tutorials/02-intermediate/language_model/data/
     // and https://github.com/wojzaremba/lstm/tree/master/data
-    const std::string penn_treebank_data_path = "./data/penntreebank/train.txt";
+    const std::string penn_treebank_data_path = "/media/stree/localssd/DL_data/penntreebank/train.txt";
 
     Corpus corpus(penn_treebank_data_path);
 
@@ -39,7 +39,7 @@ int main() {
     auto vocab_size = corpus.get_dictionary().size();
 
     // Path to the output file (All folders must exist!)
-    const std::string sample_output_path = "./src/18_RecurrentNeuralNetwork/RNN_LM/output/sample.txt";
+    const std::string sample_output_path = "./src/18_RecurrentNeuralNetwork/RNN_LM/sample.txt";
 
     // Model
     RNNLM model(vocab_size, embed_size, hidden_size, num_layers);

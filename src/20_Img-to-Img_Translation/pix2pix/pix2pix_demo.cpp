@@ -28,8 +28,8 @@
 #include "../../image_tools/datasets.hpp"                // datasets::ImageFolderClassesWithPaths
 #include "../../image_tools/dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
 
-#include "../../matplotlibcpp.h"
-namespace plt = matplotlibcpp;
+#include <matplot/matplot.h>
+using namespace matplot;
 
 int main() {
 
@@ -109,19 +109,19 @@ int main() {
     datasets::ImageFolderPairWithPaths dataset;
     DataLoader::ImageFolderPairWithPaths dataloader;
 
-    std::string input_dir = "./data/facades/trainI";
-    std::string output_dir = "./data/facades/trainO";
+    std::string input_dir = "/media/stree/localssd/DL_data/facades/trainI";
+    std::string output_dir = "/media/stree/localssd/DL_data/facades/trainO";
 
     // get train dataset
     dataset = datasets::ImageFolderPairWithPaths(input_dir, output_dir, transformI, transformO);
     dataloader = DataLoader::ImageFolderPairWithPaths(dataset, batch_size, /*shuffle_=*/train_shuffle, /*num_workers_=*/train_workers);
     std::cout << "total training images : " << dataset.size() << std::endl;
 
-	float lr_gen = 2e-4;
-	float lr_dis = 2e-4;
-	float beta1  = 0.5;
-	float beta2  = 0.999;
-	float Lambda = 100.0;
+	double lr_gen = 2e-4;
+	double lr_dis = 2e-4;
+	double beta1  = 0.5;
+	double beta2  = 0.999;
+	double Lambda = 100.0;
 	std::string loss = "vanilla";  //"vanilla (cross-entropy), lsgan (mse), etc.")
 
     // (3) Set Optimizer Method
@@ -151,14 +151,14 @@ int main() {
 	}
 	start_epoch++;
 	total_iter = dataloader.get_count_max();
-	total_epoch = 300;
+	total_epoch = 50;
     torch::Tensor realI, realO, fakeO, realP, fakeP, pair;
     torch::Tensor dis_real_out, dis_fake_out;
     torch::Tensor gen_loss, G_L1_loss, G_GAN_loss;
     torch::Tensor dis_loss, dis_real_loss, dis_fake_loss;
     torch::Tensor label_real, label_fake;
 
-	std::vector<float> G_loss, G_L_1_loss, D_real_loss, D_fake_loss, train_epochs;
+	std::vector<double> G_loss, G_L_1_loss, D_real_loss, D_fake_loss, train_epochs;
 
 	// (2) Training per Epoch
 	for (epoch = start_epoch; epoch <= total_epoch; epoch++){
@@ -243,8 +243,8 @@ int main() {
 		datasets::ImageFolderPairWithPaths test_dataset;
 		DataLoader::ImageFolderPairWithPaths test_dataloader;
 
-		std::string input_dir = "./data/facades/testI";
-		std::string output_dir = "./data/facades/testO";
+		std::string input_dir = "/media/stree/localssd/DL_data/facades/testI";
+		std::string output_dir = "/media/stree/localssd/DL_data/facades/testO";
 		test_dataset = datasets::ImageFolderPairWithPaths(input_dir, output_dir, transformI, transformO);
 		test_dataloader = DataLoader::ImageFolderPairWithPaths(dataset, /*batch_size_=*/1, /*shuffle_=*/false, /*num_workers_=*/0);
 		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
@@ -278,24 +278,32 @@ int main() {
 		    std::cout << '<' << std::get<2>(data).at(0) << "> L1:" << loss_l1.item<float>() << " L2:" << loss_l2.item<float>() << std::endl;
 		}
 		// (6) Calculate Average
-		ave_loss_l1 = ave_loss_l1 / (float)dataset.size();
-		ave_loss_l2 = ave_loss_l2 / (float)dataset.size();
+		ave_loss_l1 = ave_loss_l1 / static_cast<double>(dataset.size());
+		ave_loss_l2 = ave_loss_l2 / static_cast<double>(dataset.size());
 
 		// (7) Average Output
 		std::cout << "<All> L1:" << ave_loss_l1 << " L2:" << ave_loss_l2 << std::endl;
 	}
 
-	plt::figure_size(800, 600);
-	plt::named_plot("G_GAN_loss", train_epochs, G_loss, "b");
-	plt::named_plot("G_L1_loss", train_epochs, G_L_1_loss, "c:");
-	plt::named_plot("D_real_loss", train_epochs, D_real_loss, "g--");
-	plt::named_plot("D_fake_loss", train_epochs, D_fake_loss, "r-.");
-	plt::ylabel("loss");
-	plt::xlabel("epoch");
-	plt::legend();
-	plt::show();
-	plt::close();
+	auto h = figure(true);
+	h->size(800, 600);
+	h->add_axes(false);
+	h->reactive_mode(false);
+	h->tiledlayout(1, 1);
+	h->position(0, 0);
 
+	auto ax1 = h->nexttile();
+    plot(ax1, train_epochs, G_loss, "b");
+    hold(ax1, true);
+    plot(ax1, train_epochs, G_L_1_loss, "c:");
+    plot(ax1, train_epochs, D_real_loss, "g--");
+    plot(ax1, train_epochs, D_fake_loss, "r-.");
+    hold(ax1, false);
+    xlabel(ax1, "epoch");
+    ylabel(ax1, "loss");
+    legend(ax1, "G_GAN_loss", "G_L1_loss", "D_real_loss", "D_fake_loss");
+
+    show();
     std::cout << "Done!\n";
 }
 

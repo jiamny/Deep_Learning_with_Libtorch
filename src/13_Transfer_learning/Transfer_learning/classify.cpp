@@ -32,7 +32,7 @@ std::vector<std::string> load_images(std::string path) {
     	while ((dirs = readdir(root_dir))) {
         	std::string fd(dirs->d_name);
         	std::string fdpath = path + fd;
-        	std::cout << fdpath << std::endl;
+        	//std::cout << fdpath << std::endl;
 
         	if (fd[0] == '.')
         	   continue;
@@ -50,7 +50,7 @@ std::vector<std::string> load_images(std::string path) {
 
         	            if(filename.length() > 4 && filename.substr(filename.length() - 3) == "jpg") {
         	                std::string newf = fdpath + "/" + filename;
-        	                std::cout << newf << std::endl;
+        	                //std::cout << newf << std::endl;
         	                // --- Exclude empty image
         	                cv::Mat temp = cv::imread(newf, 1);
         	                if( ! temp.empty() ) list_images.push_back(newf);
@@ -68,7 +68,7 @@ std::vector<std::string> load_images(std::string path) {
 
 void print_probabilities(std::string loc, std::string model_path, std::string model_path_linear, torch::Device device) {
     // Load image with OpenCV.
-	std::cout << loc << std::endl;
+	//std::cout << loc << std::endl;
     cv::Mat img = cv::imread(loc.c_str(), 1); // 0 - gray image; 1 - color image
     cv::resize(img, img, cv::Size(224, 224)); //, cv::INTER_CUBIC); // cv::INTER_CUBIC cause: error: (-215:Assertion failed) !ssize.empty() in function 'resize'
 
@@ -94,10 +94,15 @@ void print_probabilities(std::string loc, std::string model_path, std::string mo
     torch::Tensor prob = model.forward(input).toTensor();
     prob = prob.view({prob.size(0), -1});
     prob = model_linear->forward(prob).cpu();
-    
-    std::cout << "Printing for image: " << loc << " ";                 //std::endl;
-    std::cout << "Cat prob = " << *(prob.data_ptr<float>())*100. << "; "; //std::endl;
-    std::cout << "Dog prob = " << *(prob.data_ptr<float>()+1)*100. << std::endl;
+    auto rlt = torch::argmax(prob);
+
+    std::cout << "Image: " << loc << "\n";                 //std::endl;
+    std::cout << "Cat prob = " << *(prob.data_ptr<float>()) << "; "; //std::endl;
+    std::cout << "Dog prob = " << *(prob.data_ptr<float>()+1);
+    if( rlt.item<long>() == 0 )
+    	std::cout << "; Pred = cat." << std::endl;
+    else
+    	std::cout << "; Pred = dog." << std::endl;
 }
 
 int main(int arc, char** argv) {
@@ -108,10 +113,7 @@ int main(int arc, char** argv) {
 	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
 
     // get current directory
-    char tmp[256];
-    getcwd(tmp, 256);
-    std::cout << "Current working directory: " << tmp << std::endl;
-    std::string cdir(tmp);
+	std::cout << "Current path is " << get_current_dir_name() << '\n';
 
     // argv[1] should is the test image
     std::string img_location = "/media/stree/localssd/DL_data/cat_dog/train"; //argv[1];

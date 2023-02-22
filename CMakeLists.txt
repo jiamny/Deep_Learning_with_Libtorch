@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 project(Deep_learning_with_pytorch VERSION 1.0.0 LANGUAGES CXX)
 
+# ------------------------------------------------------------------------------------------------------
+# 	Embed Matplot++ as subdirectory
+#
+# https://alandefreitas.github.io/matplotplusplus/integration/cmake/embed-as-subdirectory/
+# ------------------------------------------------------------------------------------------------------
+add_subdirectory(matplotplusplus)
+
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 option(DOWNLOAD_DATASETS "Automatically download required datasets at build-time." OFF)
@@ -63,7 +71,7 @@ else()
 	find_package(Torch ${PYTORCH_VERSION} EXACT QUIET PATHS "${LIBTORCH_PATH}") 
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 message(STATUS "Torch library status:")
 message(STATUS "    version: ${Torch_VERSION}")
@@ -82,11 +90,9 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} ) 
 
-file( GLOB_RECURSE Python310_LIB "/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/*.so" )
-SET( Python310_INCLUDE_DIRS "/usr/include/python3.10" )
-INCLUDE_DIRECTORIES( include ${Python310_INCLUDE_DIRS} ) 
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lm -ldl")
+#file( GLOB_RECURSE Python310_LIB "/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/*.so" )
+#SET( Python310_INCLUDE_DIRS "/usr/include/python3.10" )
+#INCLUDE_DIRECTORIES( include ${Python310_INCLUDE_DIRS} ) 
 
 if(NOT Torch_FOUND)
     unset(Torch_FOUND)
@@ -107,6 +113,7 @@ message(STATUS "    include: ${DMATPLOTLIBCPP_PYTHON_HEADER}")
 message(STATUS "    python3: ${Python3_INCLUDE_DIRS}")
 message(STATUS "    numpy: ${Python3_NumPy_INCLUDE_DIRS}")
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O2 -lm -ldl")
 
 # Dataset fetching
 if(DOWNLOAD_DATASETS)

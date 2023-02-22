@@ -19,10 +19,10 @@ int main() {
     const int64_t num_layers = 2;
     const int64_t num_classes = 10;
     const int64_t batch_size = 100;
-    const size_t num_epochs = 2;
+    const size_t num_epochs = 20;
     const double learning_rate = 0.003;
 
-    const std::string MNIST_data_path = "./data/mnist/";
+    const std::string MNIST_data_path = "/media/stree/localssd/DL_data/mnist2/MNIST/raw/";
 
     // MNIST dataset
     auto train_dataset = torch::data::datasets::MNIST(MNIST_data_path)

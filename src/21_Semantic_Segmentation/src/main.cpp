@@ -53,14 +53,14 @@ int main(int argc, char *argv[]) {
 		tricks.scale_rotate_prob = 0.3;
 
 		//tricks for training process
-		tricks.decay_epochs = { 40, 80 };
+		tricks.decay_epochs = { 10, 20 };
 		tricks.freeze_epochs = 8;
 
 		segmentor.SetTrainTricks(tricks);
 	}
 
 	segmentor.Train(0.0003,	// initial leaning rate
-		            300,	// training epochs
+		            30,		// training epochs
 		            4,		// batch size
 		            "./src/21_Semantic_Segmentation/voc_person_seg",
 		            ".jpg",	// image type

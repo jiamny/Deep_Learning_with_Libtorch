@@ -5,11 +5,10 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdio>
+#include <matplot/matplot.h>
 
-#include "../matplotlibcpp.h"
-
+using namespace matplot;
 using namespace torch::autograd;
-namespace plt = matplotlibcpp;
 
 using torch::indexing::Slice;
 using torch::indexing::None;
@@ -29,32 +28,7 @@ int main() {
     std::cout << "Regression and gradient\n\n";
 
 	// Device
-	auto cuda_available = torch::cuda::is_available();
-
 	torch::Device device = torch::Device(torch::kCPU);
-
-	if( cuda_available ) {
-		int gpu_id = 3;
-		device = torch::Device(torch::kCUDA, gpu_id);
-
-		if(gpu_id >= 0) {
-			if(gpu_id >= torch::getNumGPUs()) {
-				std::cout << "No GPU id " << gpu_id << " abailable, use CPU." << std::endl;
-				device = torch::Device(torch::kCPU);
-				cuda_available = false;
-			} else {
-				device = torch::Device(torch::kCUDA, gpu_id);
-			}
-		} else {
-			device = torch::Device(torch::kCPU);
-			cuda_available = false;
-		}
-	}
-
-	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
-
-	std::cout << device << '\n';
-
     auto dtype_option = torch::TensorOptions().dtype(torch::kDouble).device(device);
 
 	//# 定义一个多变量函数
@@ -63,18 +37,11 @@ int main() {
     auto w_target = torch::tensor({0.5, 3.0, 2.4}, dtype_option); // 定义参数
     auto b_target = torch::tensor({0.9}, dtype_option);           // 定义参数
 
-    w_target = w_target.cpu();
-    b_target = b_target.cpu();
     std::printf("函数的式子:  y = %.2f + %.2f * x + %.2f * x^2 + %.2f * x^3", b_target.item<double>(),
     		w_target[0].item<double>(), w_target[1].item<double>(), w_target[2].item<double>()); // 打印出函数的式子
 
-    plt::figure_size(1200, 800);
-    plt::subplot2grid(2, 2, 0, 0, 1, 1);  // 2 rows, 2 column,
-
     // 画出这个函数的曲线
     auto x_sample = torch::arange(-3.0, 3.1, 0.1, dtype_option);
-    if( cuda_available )
-    	x_sample = x_sample.cpu();
 
     //auto x_sample = torch::tensor({-3.0, 3.1, 0.1}, dtype_option);
     auto f1 = torch::mul(x_sample, w_target[0].item<double>());
@@ -86,9 +53,6 @@ int main() {
 
 	std::vector<double> xx(x_sample.data_ptr<double>(), x_sample.data_ptr<double>() + x_sample.numel());
 	std::vector<double> yy(y_sample.data_ptr<double>(), y_sample.data_ptr<double>() + y_sample.numel());
-	plt::plot(xx, yy);
-	plt::title("Original curve");
-//	plt::show();
 
 	// # 构建数据 x 和 y
 	// # x 是一个如下矩阵 [x, x^2, x^3]
@@ -97,33 +61,23 @@ int main() {
 	auto x_sample2 = x_sample.pow(2);
 	auto x_sample3 = x_sample.pow(3);
 	auto x_train = torch::stack({x_sample, x_sample2, x_sample3}, 1).to(dtype_option); // default is  61 x 3
-	x_train = x_train.cpu();
 	std::cout << x_train.sizes() << '\n';
 	//auto y_train = torch::tensor(yy, dtype_option).view({63,1});
 
 	// # 定义参数和模型
 	auto w = torch::randn({3, 1}, torch::TensorOptions().dtype(torch::kDouble).device(device).requires_grad(true));
 	auto b = torch::zeros({1}, torch::TensorOptions().dtype(torch::kDouble).device(device).requires_grad(true));
-	w = w.cpu();
-	b = b.cpu();
+
 	// # 画出更新之前的模型
 	auto y_pred = multi_linear(x_train, w, b);
 	std::cout << "y_pred = " << y_pred.sizes() << '\n';
 
 	auto x_train1 = x_train.index({Slice(),0}).to(dtype_option).unsqueeze(1); //   view({63, 1});
-	x_train1 = x_train1.cpu();
 //std::cout << "x_train1 = " << x_train1.data() << '\n';
 	std::vector<double> xx2(x_train1.data_ptr<double>(),
 			x_train1.data_ptr<double>() + x_train1.numel());
 //std::cout << xx2 << '\n';
 	std::vector<double> yy2(y_pred.data_ptr<double>(), y_pred.data_ptr<double>() + y_pred.numel());
-
-	plt::subplot2grid(2, 2, 0, 1, 1, 1);
-	plt::named_plot("real curve", xx, yy, "r");
-	plt::named_plot("pred curve", xx, yy2, "b");
-	plt::legend();
-	plt::title("Real vs. predicted");
-//	plt::show();
 
 	auto y_train = torch::unsqueeze(y_sample, 1);
 
@@ -146,13 +100,7 @@ int main() {
 	// 画出更新一次之后的模型
 	auto y_pred2 = multi_linear(x_train, w, b);
 
-	plt::subplot2grid(2, 2, 1, 0, 1, 1);
 	std::vector<double> yy3(y_pred2.data_ptr<double>(), y_pred2.data_ptr<double>() + y_pred2.numel());
-	plt::named_plot("fitting curve", xx, yy3, "b");
-	plt::named_plot("real curve", xx, yy, "r");
-	plt::legend();
-	plt::title("After one epoch - real vs. fitting");
-//	plt::show();
 
 	//  进行 100 次参数更新
 	for( int e =0; e < 100; e++ ){
@@ -179,13 +127,37 @@ int main() {
 	// 画出更新之后的结果
 	auto y_pred3 = multi_linear(x_train, w, b);
 
-	plt::subplot2grid(2, 2, 1, 1, 1, 1);
 	std::vector<double> yy4(y_pred3.data_ptr<double>(), y_pred3.data_ptr<double>() + y_pred3.numel());
-	plt::named_plot("fitting curve", xx, yy4, "b");
-	plt::named_plot("real curve", xx, yy, "r");
-	plt::legend();
-	plt::title("After 100 epochs - real vs. fitting");
-	plt::show();
+
+	tiledlayout(2, 2);
+	auto ax1 = nexttile();
+	plot(ax1, xx, yy);
+	matplot::title(ax1, "Original curve");
+
+	auto ax2 = nexttile();
+	plot(ax2, xx, yy);
+	matplot::title(ax2, "Real vs. predicted");
+	hold(ax2, true);
+	plot(ax2, xx, yy2, "-.r");
+	hold(ax2, false);
+
+	auto ax3 = nexttile();
+	plot(ax3, xx, yy);
+	matplot::title(ax3, "One epoch - real vs. fitted");
+	hold(ax3, true);
+	plot(ax3, xx, yy3, "-.r");
+	hold(ax3, false);
+	legend(ax3, "real", "fitted");
+
+	auto ax4 = nexttile();
+	plot(ax4, xx, yy);
+	matplot::title(ax4, "100 epochs - real vs. fitted");
+	hold(ax4, true);
+	plot(ax4, xx, yy4, "-.r");
+	hold(ax4, false);
+	legend(ax4, "real", "fitted");
+
+	matplot::show();
 
 	std::cout<< "Done!\n";
     return 0;

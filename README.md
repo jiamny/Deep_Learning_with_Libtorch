@@ -17,7 +17,9 @@ Collected deep learning projects with LibTorch C++
 
 - opencv 4.5.4
 
-- matplotlib-cpp
+- Gnuplot 5.2.6+
+
+- matplot++ v-1.1.0
 
 - png++
 

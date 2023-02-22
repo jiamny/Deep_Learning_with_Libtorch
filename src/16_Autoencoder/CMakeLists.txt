@@ -1,15 +1,10 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-
-
-find_package(Python3 COMPONENTS Development NumPy)
 
 find_package(OpenMP REQUIRED)
 find_package(PNG REQUIRED)
 
 include_directories(${PNG_INCLUDE_DIRS})
 
-set(requiredlibs "python3.10")
-list(APPEND requiredlibs "pthread")
+set(requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
 list(APPEND requiredlibs "png")
@@ -31,11 +26,7 @@ target_sources(16_VAE PRIVATE VAE/main.cpp
 )
 
 target_link_libraries(16_VAE ${TORCH_LIBRARIES} image-io)
-
-set_target_properties(16_VAE PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties(16_VAE PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --------------------------------------------------------------------------
 # ----AE2d_demo
@@ -55,9 +46,7 @@ target_sources(16_AE2d_demo PRIVATE  AE2d/AE2d_demo.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(16_AE2d_demo PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(16_AE2d_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs}  Python3::Python Python3::NumPy)
-
+target_link_libraries(16_AE2d_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs}  matplot)
 set_target_properties(16_AE2d_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # --------------------------------------------------------------------------
@@ -78,9 +67,7 @@ target_sources(16_DAE2d_demo PRIVATE  DAE2d/DAE2d_demo.cpp
 	../image_tools/transforms.cpp
 )
 
-target_include_directories(16_DAE2d_demo PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(16_DAE2d_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs}  Python3::Python Python3::NumPy)
-
+target_link_libraries(16_DAE2d_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} matplot)
 set_target_properties(16_DAE2d_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 

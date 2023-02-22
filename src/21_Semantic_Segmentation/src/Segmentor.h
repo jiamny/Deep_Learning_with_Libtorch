@@ -255,8 +255,9 @@ void Segmentor<Model>::Predict(cv::Mat& image, const std::string& which_class, s
 
 	// draw the prediction
 	cv::imwrite( (pred_img_path + "/prediction.jpg").c_str(), image);
-	cv::imshow("prediction", image);
 	cv::imshow("srcImage", srcImg);
+	cv::waitKey(0);
+	cv::imshow("prediction", image);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 	return;

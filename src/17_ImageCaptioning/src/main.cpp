@@ -72,13 +72,17 @@ int main(int argc, char **argv) {
     const auto num_sample_images = results["num_sample_images"].as<size_t>();
 
     // Data input paths
-    const std::string flickr8k_captions_file_path = "./data/flickr_8k/Flickr8k_text/Flickr8k.token.txt";
-    const std::string flickr8k_image_directory_path = "./data/flickr_8k/Flickr8k_Dataset/Flicker8k_Dataset";
+    const std::string flickr8k_captions_file_path =
+    		"/media/stree/localssd/DL_data/flickr_8k/Flickr8k_text/Flickr8k.token.txt";
+
+    const std::string flickr8k_image_directory_path =
+    		"/media/stree/localssd/DL_data/flickr_8k/Flickr8k_Dataset";
+
     const std::string flickr8k_training_set_file_path =
-            "./data/flickr_8k/Flickr8k_text/Flickr_8k.trainImages.txt";
+            "/media/stree/localssd/DL_data/flickr_8k/Flickr8k_text/Flickr_8k.trainImages.txt";
 
     const std::string flickr8k_valiadtion_set_file_path =
-            "./data/flickr_8k/Flickr8k_text/Flickr_8k.devImages.txt";
+            "/media/stree/localssd/DL_data/flickr_8k/Flickr8k_text/Flickr_8k.devImages.txt";
 
     // Path to prelearned encoder backbone scriptmodule file
     const std::string encoder_backbone_scriptmodule_file_path =
@@ -245,7 +249,7 @@ int main(int argc, char **argv) {
 
     // Test data input path
     const std::string flickr8k_testing_set_file_path =
-            "./data/flickr_8k/Flickr8k_text/Flickr_8k.testImages.txt";
+            "/media/stree/localssd/DL_data/flickr_8k/Flickr8k_text/Flickr_8k.testImages.txt";
 
     // Load test data
     auto test_dataset = ImageCaptionDataset(flickr8k_testing_set_file_path, flickr8k_image_directory_path,
@@ -277,6 +281,8 @@ int main(int argc, char **argv) {
 
     predict_captions(encoder, decoder, flickr8k_image_directory_path,
                      test_image_samples, image_crop_size, caption_data, device);
+
+    std::cout << "Done!\n";
 }
 
 cxxopts::ParseResult parse_args(int argc, char **argv) {
@@ -286,7 +292,7 @@ cxxopts::ParseResult parse_args(int argc, char **argv) {
             ("batch_size", "The batch size",
              cxxopts::value<int64_t>()->default_value("32"))
             ("num_epochs", "The number of epochs",
-             cxxopts::value<size_t>()->default_value("4"))
+             cxxopts::value<size_t>()->default_value("10"))
             ("learning_rate", "The learning rate",
              cxxopts::value<double>()->default_value("1e-3"))
             ("min_word_frequency", "The minimum number of times a word must appear in the corpus "
@@ -313,7 +319,7 @@ cxxopts::ParseResult parse_args(int argc, char **argv) {
             ("encoder_out_wh", "Width (= height) of the encoder output",
              cxxopts::value<int64_t>()->default_value("7"))
             ("train_log_steps", "The number of steps after which to display the training metrics",
-             cxxopts::value<size_t>()->default_value("5"))
+             cxxopts::value<size_t>()->default_value("100"))
             ("validate_on_epoch_end", "Whether to perform validation after each epoch",
              cxxopts::value<bool>()->default_value("true"))
             ("sample_on_epoch_end", "Whether to perform sampling after each epoch",

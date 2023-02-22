@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # -----------------------------------------------------------
 add_executable(02_Tensor_Ops)
@@ -32,7 +32,6 @@ set_target_properties(02_pytorch_tensor PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
 )
-
 
 # -----------------------------------------------------------
 add_executable(02_pytorch_tensor_2)

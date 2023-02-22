@@ -12,8 +12,8 @@
 #include <cmath>
 
 #include "../LRdataset.h"
-#include "../matplotlibcpp.h"
-namespace plt = matplotlibcpp;
+#include <matplot/matplot.h>
+using namespace matplot;
 
 using torch::indexing::Slice;
 using torch::indexing::None;
@@ -238,20 +238,32 @@ int main() {
 
 	if( show_plot ) {
 		//可视化
-		plt::figure_size(800,800);
-		auto xp = Xp.index({Slice(),0});
-		auto yp = Xp.index({Slice(),1});
-		auto xn = Xn.index({Slice(),0});
-		auto yn = Xn.index({Slice(),1});
-		std::vector<float> xxp(xp.data_ptr<float>(), xp.data_ptr<float>() + xp.numel());
-		std::vector<float> yyp(yp.data_ptr<float>(), yp.data_ptr<float>() + yp.numel());
-		std::vector<float> xxn(xn.data_ptr<float>(), xn.data_ptr<float>() + xn.numel());
-		std::vector<float> yyn(yn.data_ptr<float>(), yn.data_ptr<float>() + yn.numel());
-		plt::scatter(xxp, yyp, 5.0, {{"c", "r"}, {"label", "positive"}});
-		plt::scatter(xxn, yyn, 5.0, {{"c", "g"}, {"label", "negative"}});
-		plt::legend();
-		plt::show();
-		plt::close();
+		auto xp = Xp.cpu().to(torch::kDouble).index({Slice(),0});
+		auto yp = Xp.cpu().to(torch::kDouble).index({Slice(),1});
+		auto xn = Xn.cpu().to(torch::kDouble).index({Slice(),0});
+		auto yn = Xn.cpu().to(torch::kDouble).index({Slice(),1});
+		std::vector<double> xxp(xp.data_ptr<double>(), xp.data_ptr<double>() + xp.numel());
+		std::vector<double> yyp(yp.data_ptr<double>(), yp.data_ptr<double>() + yp.numel());
+		std::vector<double> xxn(xn.data_ptr<double>(), xn.data_ptr<double>() + xn.numel());
+		std::vector<double> yyn(yn.data_ptr<double>(), yn.data_ptr<double>() + yn.numel());
+
+		auto h = figure(true);
+		h->size(800, 800);
+		h->add_axes(false);
+		h->reactive_mode(false);
+		h->tiledlayout(1, 1);
+		h->position(0, 0);
+
+		auto ax1 = h->nexttile();
+		auto l = scatter(ax1, xxp, yyp, 5);
+		l->marker_color({0.f, .0f, .7f});
+		l->marker_face_color({0.f, .0f, .9f});
+		hold(ax1, true);
+		auto l2 = scatter(ax1, xxn, yyn, 5);
+		l2->marker_color({0.f, .5f, .0f});
+		l2->marker_face_color({0.f, .7f, .0f});
+		legend(ax1, "positive", "negative");
+		show();
 	}
 
 	auto model = DNNModel();
@@ -318,42 +330,59 @@ int main() {
 
 	if( show_plot ) {
 		// # 结果可视化
-		plt::figure_size(1200,500);
-		plt::subplot2grid(1, 2, 0, 0, 1, 1);
-		auto xp = Xp.index({Slice(),0});
-		auto yp = Xp.index({Slice(),1});
-		auto xn = Xn.index({Slice(),0});
-		auto yn = Xn.index({Slice(),1});
-		std::vector<float> xxp(xp.data_ptr<float>(), xp.data_ptr<float>() + xp.numel());
-		std::vector<float> yyp(yp.data_ptr<float>(), yp.data_ptr<float>() + yp.numel());
-		std::vector<float> xxn(xn.data_ptr<float>(), xn.data_ptr<float>() + xn.numel());
-		std::vector<float> yyn(yn.data_ptr<float>(), yn.data_ptr<float>() + yn.numel());
-		plt::scatter(xxp, yyp, 5.0, {{"c", "r"}, {"label", "positive"}});
-		plt::scatter(xxn, yyn, 5.0, {{"c", "g"}, {"label", "negative"}});
-		plt::legend();
-		plt::title("y_true");
+		auto xp = Xp.cpu().to(torch::kDouble).index({Slice(),0});
+		auto yp = Xp.cpu().to(torch::kDouble).index({Slice(),1});
+		auto xn = Xn.cpu().to(torch::kDouble).index({Slice(),0});
+		auto yn = Xn.cpu().to(torch::kDouble).index({Slice(),1});
+		std::vector<double> xxp(xp.data_ptr<double>(), xp.data_ptr<double>() + xp.numel());
+		std::vector<double> yyp(yp.data_ptr<double>(), yp.data_ptr<double>() + yp.numel());
+		std::vector<double> xxn(xn.data_ptr<double>(), xn.data_ptr<double>() + xn.numel());
+		std::vector<double> yyn(yn.data_ptr<double>(), yn.data_ptr<double>() + yn.numel());
 
-		plt::subplot2grid(1, 2, 0, 1, 1, 1);
 		auto idx = torch::where(model.forward(X.to(device)).cpu() >= 0.5);
 		//std::cout << torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]) << std::endl;
 		auto Xp_pred = torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]);
 		idx = torch::where(model.forward(X.to(device)).cpu() < 0.5);
 		auto Xn_pred = torch::index_select(X, /*dim =*/ 0, /*index =*/ idx[0]);
 
-		xp = Xp_pred.index({Slice(),0});
-		yp = Xp_pred.index({Slice(),1});
-	    xn = Xn_pred.index({Slice(),0});
-	    yn = Xn_pred.index({Slice(),1});
-		std::vector<float> xpp(xp.data_ptr<float>(), xp.data_ptr<float>() + xp.numel());
-		std::vector<float> ypp(yp.data_ptr<float>(), yp.data_ptr<float>() + yp.numel());
-		std::vector<float> xpn(xn.data_ptr<float>(), xn.data_ptr<float>() + xn.numel());
-		std::vector<float> ypn(yn.data_ptr<float>(), yn.data_ptr<float>() + yn.numel());
-		plt::scatter(xpp, ypp, 5.0, {{"c", "r"}, {"label", "positive"}});
-		plt::scatter(xpn, ypn, 5.0, {{"c", "g"}, {"label", "negative"}});
-		plt::title("y_pred");
-		plt::legend();
-		plt::show();
-		plt::close();
+		xp = Xp_pred.cpu().to(torch::kDouble).index({Slice(),0});
+		yp = Xp_pred.cpu().to(torch::kDouble).index({Slice(),1});
+	    xn = Xn_pred.cpu().to(torch::kDouble).index({Slice(),0});
+	    yn = Xn_pred.cpu().to(torch::kDouble).index({Slice(),1});
+		std::vector<double> xpp(xp.data_ptr<double>(), xp.data_ptr<double>() + xp.numel());
+		std::vector<double> ypp(yp.data_ptr<double>(), yp.data_ptr<double>() + yp.numel());
+		std::vector<double> xpn(xn.data_ptr<double>(), xn.data_ptr<double>() + xn.numel());
+		std::vector<double> ypn(yn.data_ptr<double>(), yn.data_ptr<double>() + yn.numel());
+
+		auto h = figure(true);
+		h->size(1200, 600);
+		h->add_axes(false);
+		h->reactive_mode(false);
+		h->tiledlayout(1, 2);
+		h->position(0, 0);
+
+		auto ax1 = h->nexttile();
+		auto l = scatter(ax1, xxp, yyp, 5);
+		l->marker_color({0.f, .0f, .7f});
+		l->marker_face_color({0.f, .0f, .9f});
+		hold(ax1, true);
+		auto l2 = scatter(ax1, xxn, yyn, 5);
+		l2->marker_color({0.f, .5f, .0f});
+		l2->marker_face_color({0.f, .7f, .0f});
+		legend(ax1, "positive", "negative");
+		title(ax1, "y true");
+
+		auto ax2 = h->nexttile();
+		auto l3 = scatter(ax2, xpp, ypp, 5);
+		l3->marker_color({0.f, .0f, .7f});
+		l3->marker_face_color({0.f, 0.f, .9f});
+		hold(ax2, true);
+		auto l4 = scatter(ax2, xpn, ypn, 5);
+		l4->marker_color({0.f, .5f, .0f});
+		l4->marker_face_color({0.f, .7f, .0f});
+		legend(ax2, "positive", "negative");
+		title(ax2, "y pred");
+		show();
 	}
 
 	// -----------------------------------------

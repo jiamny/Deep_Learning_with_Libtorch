@@ -49,7 +49,7 @@ int testing_lanes(int video, int frame_number) {
 
     // Select demo video or image without any lines
     if (video == 1) {
-      cv::VideoCapture cap("./data/videos/project_video.mp4");
+      cv::VideoCapture cap("/media/stree/localssd/DL_data/videos/project_video.mp4");
       cap.set(cv::CAP_PROP_POS_FRAMES, frame_number);
       cap.read(frame);
     } else {

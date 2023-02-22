@@ -20,13 +20,13 @@
 #include <cmath>
 #include <map>
 #include <tuple>
+#include <matplot/matplot.h>
+using namespace matplot;
 
 #include "../../image_tools/transforms.hpp"              // transforms_Compose
 #include "../../image_tools/datasets.hpp"                // datasets::ImageFolderClassesWithPaths
 #include "../../image_tools/dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
 
-#include "../../matplotlibcpp.h"
-namespace plt = matplotlibcpp;
 
 struct INetImpl : public torch::nn::Module {
 	torch::nn::Sequential features{nullptr}, classifier{nullptr};
@@ -104,7 +104,7 @@ int main() {
 		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
     };
 
-    std::string dataroot = "./data/cifar2/train";
+    std::string dataroot = "/media/stree/localssd/DL_data/cifar/cifar2/train";
     std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
     std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> test_batch;
     torch::Tensor loss, features, labels, output;
@@ -118,7 +118,7 @@ int main() {
     std::cout << "total training images : " << dataset.size() << std::endl;
 
     if( test ) {
-    	std::string test_dataroot = "./data/cifar2/test";
+    	std::string test_dataroot = "/media/stree/localssd/DL_data/cifar/cifar2/test";
     	test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
 
     	test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, 1, false, 0);
@@ -140,6 +140,8 @@ int main() {
 	for( size_t epoch = 0;  epoch < epochs; epoch++ ) {
 		// train -------------------------------------------------
 		net->train();
+		torch::AutoGradMode enable_grad(true);
+
 		loss_sum = 0.0;
 		step = 0;
 
@@ -166,6 +168,8 @@ int main() {
 
 		// validation ---------------------------------------------
 		net->eval();
+		torch::NoGradGuard no_grad;
+
 		float val_loss_sum = 0.0;
 		int val_step = 0;
 
@@ -187,15 +191,17 @@ int main() {
 	}
 	std::cout << "Finished Training...\n";
 
-	plt::figure_size(800, 600);
-	plt::named_plot("train loss", v_epoch, v_train_loss, "b");
-	plt::named_plot("valid loss", v_epoch, v_val_loss, "r-.");
-	plt::xlabel("epoch");
-	plt::ylabel("loss");
-	plt::legend();
-	plt::show();
-	plt::close();
+    tiledlayout(1, 1);
+    auto ax1 = nexttile();
+    plot(ax1, v_epoch, v_train_loss, "b");
+    hold(ax1, true);
+    plot(ax1, v_epoch, v_val_loss, "r-.");
+    hold(ax1, false);
+    xlabel(ax1, "epoch");
+    ylabel(ax1, "loss");
+    legend(ax1, "train loss", "val loss");
 
+    show();
 	std::cout << "Done!\n";
 	return 0;
 }

@@ -103,7 +103,7 @@ std::pair<std::vector<std::string>,std::vector<int>> load_data_from_folder(std::
     int label = 0;
     for(auto const& value: folders_name) {
         std::string base_name = value + "/";
-        std::cout << "Reading from: " << base_name << std::endl;
+        //std::cout << "Reading from: " << base_name << std::endl;
         DIR* dir;
         struct dirent *ent;
         if((dir = opendir(base_name.c_str())) != NULL) {

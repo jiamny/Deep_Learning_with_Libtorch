@@ -2,11 +2,10 @@
 #include <torch/torch.h>
 #include <iostream>
 #include <iomanip>
-
-#include "../matplotlibcpp.h"
+#include <matplot/matplot.h>
+using namespace matplot;
 
 using namespace torch::autograd;
-namespace plt = matplotlibcpp;
 
 int main() {
     std::cout << "Logistic Regression on fashion-MNIST data\n\n";
@@ -144,15 +143,22 @@ int main() {
     std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
 
     // ---- show some pred examples
-    plt::figure_size(1600, 900);
+	auto h = figure(true);
+	h->size(1200, 1200);
+	h->add_axes(false);
+	h->reactive_mode(false);
+	h->tiledlayout(3, 4);
+	h->position(0, 0);
+
     auto dtype_option = torch::TensorOptions().dtype(torch::kDouble).device(torch::kCPU);
 
     int rid = 0, cid = 0;
     for (auto& batch : *test_loader) {
+    	auto idata = batch.data.clone();
     	auto data = batch.data.view({batch_size, -1}).to(device);;
     	auto target = batch.target.to(device);
 
-    	std::cout << "data.size() = " << data.size(0) << "\n";
+    	std::cout << "idata.sizes() = " << idata.size(0) << "\n";
     	std::cout << "target.size() = " << target.size(0) << "\n";
 
     	std::cout << data.data().sizes() << "\n";
@@ -163,26 +169,28 @@ int main() {
 
     	for( int j = 10; j < 22; j++ ) {
 
-        	auto image = data.data()[j].view({-1,1}).to(dtype_option);
-//        	std::cout << image.data().sizes() << "\n";
+        	auto image = idata.data()[j].squeeze();	//view({-1,1}).to(dtype_option);
+        	//std::cout << image.data().sizes() << "\n";
+        	//std::cout << image.options() << "\n";
 
-        	int type_id = target.data()[j].item<int64_t>();
-//        	std::cout << "type_id = " << type_id << " name = " << fashionMap.at(type_id) << "\n";
+        	int type_id = target.cpu().data()[j].item<int64_t>();
+        	int pred_type_id = prediction.cpu().data()[j].item<int64_t>();
 
-        	int pred_type_id = prediction.data()[j].item<int64_t>();
-
-        	cid = (j - 10) % 4;
-        	rid = static_cast<int>(std::ceil((j - 10) / 4));
-        	plt::subplot2grid(3, 4, rid, cid, 1, 1); // 3 rows, 4 column
         	int ncols = 28, nrows = 28;
-        	std::vector<float> z(image.data_ptr<double>(), image.data_ptr<double>() + image.numel());;
-        	const float* zptr = &(z[0]);
-        	const int colors = 1; // 1 - color
-        	plt::imshow(zptr, nrows, ncols, colors);
-        	plt::title("Ture: " + fashionMap.at(type_id) + " | pred: " + fashionMap.at(pred_type_id));
-    	}
+        	std::vector<std::vector<double>> C;
+        	for( int i = 0; i < nrows; i++ ) {
+        		std::vector<double> c;
+        		for( int j = 0; j < ncols; j++ )
+        			c.push_back(image[i][j].item<double>());
+        		C.push_back(c);
+        	}
 
-    	plt::show();
+        	auto ax = h->nexttile();
+        	ax->axis(false);
+        	matplot::image(ax, C);
+        	matplot::title(ax, fashionMap.at(type_id));
+    	}
+    	show();
 
     	break;
     }

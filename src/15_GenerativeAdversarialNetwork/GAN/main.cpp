@@ -166,8 +166,10 @@ int main() {
         }
 
         // Save generated fake images
-        fake_images = denorm(fake_images.reshape({fake_images.size(0), 1, 28, 28}));
-        save_image(fake_images, sample_output_dir_path + "fake_images-" + std::to_string(epoch + 1) + ".png");
+        if( epoch % 49 == 0 ) {
+        	fake_images = denorm(fake_images.reshape({fake_images.size(0), 1, 28, 28}));
+        	save_image(fake_images, sample_output_dir_path + "fake_images-" + std::to_string(epoch + 1) + ".png");
+        }
     }
 
     std::cout << "Training finished!\n";

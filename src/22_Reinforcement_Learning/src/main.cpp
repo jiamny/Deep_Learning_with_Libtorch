@@ -3,10 +3,6 @@
 #include <iostream>
 #include <unistd.h>
 
-// Move torch imports before ale because ale uses namespace std which interferes with the torch imports.
-#include <ale_interface.hpp>
-
-
 int main() {
 
 	std::cout << "Current path is " << get_current_dir_name() << '\n';

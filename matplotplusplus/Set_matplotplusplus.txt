@@ -1,0 +1,3 @@
+git clone https://github.com/alandefreitas/matplotplusplus/
+
+Embed Matplot++ as subdirectory: https://alandefreitas.github.io/matplotplusplus/integration/cmake/embed-as-subdirectory/

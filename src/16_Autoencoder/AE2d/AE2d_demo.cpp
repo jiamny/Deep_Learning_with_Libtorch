@@ -28,8 +28,8 @@
 #include "../../image_tools/datasets.hpp"                // datasets::ImageFolderClassesWithPaths
 #include "../../image_tools/dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
 
-#include "../../matplotlibcpp.h"
-namespace plt = matplotlibcpp;
+#include <matplot/matplot.h>
+using namespace matplot;
 
 int main() {
 
@@ -144,8 +144,8 @@ int main() {
 	total_epoch = 10;
 
 	bool first = true;
-	std::vector<float> train_loss_ave;
-	std::vector<float> train_epochs;
+	std::vector<double> train_loss_ave;
+	std::vector<double> train_epochs;
 
 	for (epoch = start_epoch; epoch <= total_epoch; epoch++) {
 		model->train();
@@ -153,7 +153,7 @@ int main() {
 
 		std::cout << "--------------- Training --------------------\n";
 
-		float loss_sum = 0.0;
+		double loss_sum = 0.0;
 		while (dataloader(mini_batch)) {
 			// -----------------------------------
             // Convolutional Auto Encoder Training Phase
@@ -168,7 +168,7 @@ int main() {
             loss_sum += loss.cpu().item<float>();
 		}
 
-		train_loss_ave.push_back(loss_sum/total_iter);
+		train_loss_ave.push_back(loss_sum/total_iter*1.0);
 		train_epochs.push_back(epoch*1.0);
 		std::cout << "epoch: " << epoch << "/"  << total_epoch << ", avg_loss: " << (loss_sum/total_iter) << std::endl;
 
@@ -248,13 +248,13 @@ int main() {
 	    std::cout << "<All> " << lossfn << ':' << ave_loss << " GT_" << lossfn << ':' << ave_GT_loss << std::endl;
 	}
 
-	plt::figure_size(600, 500);
-	plt::named_plot("Train loss", train_epochs, train_loss_ave, "b");
-	plt::ylabel("loss");
-	plt::xlabel("epoch");
-	plt::legend();
-	plt::show();
+    tiledlayout(1, 1);
+    auto ax1 = nexttile();
+    plot(ax1, train_epochs, train_loss_ave, "b");
+    xlabel(ax1, "epoch");
+    ylabel(ax1, "loss");
 
+    show();
     std::cout << "Done!\n";
 }
 

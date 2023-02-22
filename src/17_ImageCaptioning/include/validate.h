@@ -175,7 +175,7 @@ void predict_captions(torch::nn::ModuleHolder<TEncoder> encoder, torch::nn::Modu
             const auto display_filename = filename.substr(0, filename.size() - 4);
 
             image_io::save_image(0.5 * image.to(device) + 0.5 * mask,
-                                    "output/" + display_filename + "_"
+                                    "./src/17_ImageCaptioning/output/" + display_filename + "_"
                                     + std::to_string(id + 1) + "_" + *it + ".png", 1, 0);
             ++id;
         }

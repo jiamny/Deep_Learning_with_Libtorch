@@ -18,7 +18,7 @@
 #include "../dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
 
 typedef struct {
-	std::string dataroot = "./data";
+	std::string dataroot = "/media/stree/localssd/DL_data";
 	std::string dataset = "17_flowers"; 					// "dataset name"
 	std::string class_list = "./data/17_flowers_name.txt";  	// "file name in which class names are listed"
 	size_t class_num = 17; 									// "total classes"

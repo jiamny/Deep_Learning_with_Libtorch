@@ -28,8 +28,8 @@
 #include "../../image_tools/datasets.hpp"                // datasets::ImageFolderClassesWithPaths
 #include "../../image_tools/dataloader.hpp"              // DataLoader::ImageFolderClassesWithPaths
 
-#include "../../matplotlibcpp.h"
-namespace plt = matplotlibcpp;
+#include <matplot/matplot.h>
+using namespace matplot;
 
 int main() {
 
@@ -105,8 +105,8 @@ int main() {
     datasets::ImageFolderPairWithPaths dataset;
     DataLoader::ImageFolderPairWithPaths dataloader;
 
-    std::string input_dir = "./data/facades/trainI";
-    std::string output_dir = "./data/facades/trainO";
+    std::string input_dir = "/media/stree/localssd/DL_data/facades/trainI";
+    std::string output_dir = "/media/stree/localssd/DL_data/facades/trainO";
 
     // get train dataset
     dataset = datasets::ImageFolderPairWithPaths(input_dir, output_dir, transformI, transformO);
@@ -136,7 +136,7 @@ int main() {
         start_epoch = 0;
     }
 
-    std::vector<float> train_loss, train_epochs;
+    std::vector<double> train_loss, train_epochs;
 
     for (epoch = start_epoch; epoch <= total_epoch; epoch++){
 
@@ -163,7 +163,7 @@ int main() {
             mini_batch_size++;
         }
 
-    	train_loss.push_back(tot_loss/mini_batch_size);
+    	train_loss.push_back(tot_loss/mini_batch_size*1.0);
     	train_epochs.push_back(epoch*1.0);
 
         if (epoch % 10 == 0) {
@@ -182,8 +182,8 @@ int main() {
 		datasets::ImageFolderPairWithPaths test_dataset;
 		DataLoader::ImageFolderPairWithPaths test_dataloader;
 
-		std::string input_dir = "./data/facades/testI";
-		std::string output_dir = "./data/facades/testO";
+		std::string input_dir = "/media/stree/localssd/DL_data/facades/testI";
+		std::string output_dir = "/media/stree/localssd/DL_data/facades/testO";
 		test_dataset = datasets::ImageFolderPairWithPaths(input_dir, output_dir, transformI, transformO);
 		test_dataloader = DataLoader::ImageFolderPairWithPaths(dataset, 1, false, 0);
 		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;
@@ -212,17 +212,22 @@ int main() {
 		    ave_loss += loss.item<float>();
 		}
 
-		ave_loss = ave_loss / (float)dataset.size();
+		ave_loss = ave_loss / static_cast<float>(dataset.size());
 		std::cout << "<All> ave_loss:" << ave_loss << std::endl;
 	}
 
-	plt::figure_size(800, 600);
-	plt::named_plot("train_loss", train_epochs, train_loss, "b");
-	plt::ylabel("loss");
-	plt::xlabel("epoch");
-	plt::legend();
-	plt::show();
-	plt::close();
+	auto h = figure(true);
+	h->size(800, 600);
+	h->add_axes(false);
+	h->reactive_mode(false);
+	h->tiledlayout(1, 1);
+	h->position(0, 0);
+
+	auto ax1 = h->nexttile();
+    plot(ax1, train_epochs, train_loss, "b");
+    xlabel(ax1, "epoch");
+    ylabel(ax1, "loss");
+    show();
 
     std::cout << "Done!\n";
 }

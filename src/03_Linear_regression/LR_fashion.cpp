@@ -4,10 +4,10 @@
 #include "fashion.h"
 #include "transform.h"
 
-#include "../matplotlibcpp.h"
-
+#include <torch/torch.h>
+#include <matplot/matplot.h>
+using namespace matplot;
 using namespace torch::autograd;
-namespace plt = matplotlibcpp;
 
 using transform::ConstantPad;
 using transform::RandomCrop;
@@ -47,17 +47,17 @@ int main() {
     auto dtype_option = torch::TensorOptions().dtype(torch::kFloat32).device(device);
 
     // Create an unordered_map to hold label names
-    std::unordered_map<int, std::string> fashionMap;
-    fashionMap.insert({0, "T-shirt/top"});
-    fashionMap.insert({1, "Trouser"});
-    fashionMap.insert({2, "Pullover"});
-    fashionMap.insert({3, "Dress"});
-    fashionMap.insert({4, "Coat"});
-    fashionMap.insert({5, "Sandal"});
-    fashionMap.insert({6, "Short"});
-    fashionMap.insert({7, "Sneaker"});
-    fashionMap.insert({8, "Bag"});
-    fashionMap.insert({9, "Ankle boot"});
+    std::unordered_map<int, std::string> fashionMap = {
+    		{0, "T-shirt/top"},
+			{1, "Trouser"},
+			{2, "Pullover"},
+			{3, "Dress"},
+			{4, "Coat"},
+			{5, "Sandal"},
+			{6, "Short"},
+			{7, "Sneaker"},
+			{8, "Bag"},
+			{9, "Ankle boot"}};
 
 
     // Hyper parameters
@@ -101,19 +101,28 @@ int main() {
 
     	std::cout << data.data().sizes() << "\n";
 
-    	auto image = data.data()[12].view({-1,1}).to(dtype_option);
+    	auto image = data.cpu().data()[12].squeeze(); //.view({-1,1}).to(torch::kDouble);
     	std::cout << image.data().sizes() << "\n";
 
-    	int type_id = target.data()[12].item<int>();
+    	int type_id = target.cpu().data()[12].item<int>();
     	std::cout << "type_id = " << type_id << " name = " << fashionMap.at(type_id) << "\n";
 
     	int ncols = 28, nrows = 28;
-    	std::vector<float> z(image.data_ptr<float>(), image.data_ptr<float>() + image.numel());;
-    	const float* zptr = &(z[0]);
-    	const int colors = 1;
-    	plt::imshow(zptr, nrows, ncols, colors);
-    	plt::title(fashionMap.at(type_id));
-    	plt::show();
+    	std::vector<std::vector<double>> C;
+    	for( int i = 0; i < nrows; i++ ) {
+    		std::vector<double> c;
+    		for( int j = 0; j < ncols; j++ )
+    			c.push_back(image[i][j].item<double>());
+    		C.push_back(c);
+    	}
+
+    	matplot::image(C);
+    	auto search = fashionMap.find(type_id);
+    	if (search != fashionMap.end()) {
+    		matplot::title(fashionMap.at(type_id));
+    	}
+    	matplot::show();
+
     	break;
     }
 
@@ -210,6 +219,7 @@ int main() {
     auto test_sample_mean_loss = running_loss / num_test_samples;
 
     std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
+
     return(0);
 }
 

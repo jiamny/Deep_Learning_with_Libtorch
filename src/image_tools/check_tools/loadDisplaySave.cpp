@@ -18,9 +18,9 @@ Copyright (C) 2016 Robert Laganiere, www.laganiere.name
 
 #include <iostream>
 
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
+#include <opencv4/opencv2/core.hpp>
+#include <opencv4/opencv2/highgui.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
 
 
 void onMouse( int event, int x, int y, int flags, void* param)	{

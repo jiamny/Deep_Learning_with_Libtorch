@@ -8,9 +8,9 @@ using namespace std;
 
 const size_t width = 300;
 const size_t height = 300;
-string labelFile = "./data/models/labelmap_det.txt";
-string modelFile = "./data/models/MobileNetSSD_deploy.caffemodel";
-string model_text_file = "./data/models/MobileNetSSD_deploy.prototxt";
+string labelFile = "/media/stree/localssd/DL_data/models/labelmap_det.txt";
+string modelFile = "/media/stree/localssd/DL_data/models/MobileNetSSD_deploy.caffemodel";
+string model_text_file = "/media/stree/localssd/DL_data/models/MobileNetSSD_deploy.prototxt";
 
 string objNames[] = { "background",
 "aeroplane", "bicycle", "bird", "boat",
@@ -38,9 +38,10 @@ int main(int argc, char** argv) {
 	Mat detection = net.forward("detection_out");
 	Mat detectionMat(detection.size[2], detection.size[3], CV_32F, detection.ptr<float>());
 
-	float confidence_threshold = 0.4;
+	float confidence_threshold = 0.5;
 	for (int i = 0; i < detectionMat.rows; i++) {
 		float confidence = detectionMat.at<float>(i, 2);
+		//std::cout << confidence << '\n';
 		if (confidence > confidence_threshold) {
 			size_t objIndex = (size_t)(detectionMat.at<float>(i, 1));
 			float tl_x = detectionMat.at<float>(i, 3) * frame.cols;

@@ -1,12 +1,14 @@
 import torch
-import torchvision
+from torchvision import models
+from torchvision.models import ResNet50_Weights
+
 import argparse
 
 class EncoderCNNBackbone(torch.nn.Module):
     def __init__(self):
         super(EncoderCNNBackbone, self).__init__()
         
-        resnet_children = list(torchvision.models.resnet50(pretrained=True).children())[:-2]
+        resnet_children = list(models.resnet50(weights=ResNet50_Weights.DEFAULT).children())[:-2]
         self.layers = torch.nn.Sequential(*resnet_children)
         out_features = self.layers[-1][-1].conv3.out_channels
             

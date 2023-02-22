@@ -3,7 +3,7 @@
 
 
 int batch_size = 1;
-float learning_rate = 1e-5;
+float learning_rate = 0.3;
 
 int main() {
     std::vector<double> v = {
@@ -28,7 +28,7 @@ int main() {
 
 
     torch::nn::Linear model(1, 1);
-    torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(learning_rate).eps(1e-5));
+    torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(learning_rate).eps(1e-3));
     /*
     //auto x = torch::randn(1, torch::kFloat32);
     auto xx = dataset.get(0);
@@ -60,6 +60,7 @@ int main() {
         std::cout << "loss: " << epoch_loss << std::endl;
     }
 
+    std::cout << "Done!" << std::endl;
     return 0;
 }
 

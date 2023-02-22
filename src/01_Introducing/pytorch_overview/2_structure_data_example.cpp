@@ -5,10 +5,11 @@
 #include <iostream>
 #include <unistd.h>
 #include <iomanip>
+#include <matplot/matplot.h>
+using namespace matplot;
+
 #include "../../csvloader.h"
 #include "../../LRdataset.h"
-#include "../../matplotlibcpp.h"
-namespace plt = matplotlibcpp;
 
 std::pair<std::vector<float>, std::vector<float>> getFeaturesAndLabels(std::string path) {
 	std::ifstream file;
@@ -134,6 +135,8 @@ int main() {
 	for( size_t epoch = 0;  epoch < epochs; epoch++ ) {
 		// train -------------------------------------------------
 		net->train();
+		torch::AutoGradMode enable_grad(true);
+
 		loss_sum = 0.0;
 		step = 0;
 
@@ -158,6 +161,8 @@ int main() {
 
 		// validation ---------------------------------------------
 		net->eval();
+		torch::NoGradGuard no_grad;
+
 		float val_loss_sum = 0.0;
 		int val_step = 0;
 
@@ -178,15 +183,17 @@ int main() {
 	}
 	std::cout << "Finished Training...\n";
 
-	plt::figure_size(800, 600);
-	plt::named_plot("train loss", v_epoch, v_train_loss, "b");
-	plt::named_plot("valid loss", v_epoch, v_val_loss, "r-.");
-	plt::xlabel("epoch");
-	plt::ylabel("loss");
-	plt::legend();
-	plt::show();
-	plt::close();
+    tiledlayout(1, 1);
+    auto ax1 = nexttile();
+    plot(ax1, v_epoch, v_train_loss, "b");
+    hold(ax1, true);
+    plot(ax1, v_epoch, v_val_loss, "r-.");
+    hold(ax1, false);
+    legend(ax1, "train loss", "val loss");
+    xlabel(ax1, "epoch");
+    ylabel(ax1, "loss");
 
+    show();
 	std::cout << "Done!\n";
 	return 0;
 }

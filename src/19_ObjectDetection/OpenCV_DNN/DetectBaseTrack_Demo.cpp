@@ -4,8 +4,8 @@
 using namespace cv;
 using namespace std;
 
-String haar_data_file = "./data/models/haarcascade_frontalface_alt_tree.xml";
-String lbp_data_file = "./data/models/lbpcascade_frontalface_improved.xml";
+String haar_data_file = "/media/stree/localssd/DL_data/models/haarcascade_frontalface_alt_tree.xml";
+String lbp_data_file = "/media/stree/localssd/DL_data/models/lbpcascade_frontalface_improved.xml";
 
 void faceDemo();
 
@@ -43,9 +43,9 @@ int main(int argc, char** argv) {
 void faceDemo() {
 	Mat frame, gray;
 	VideoCapture capture;
-	capture.open("./data/facerecog.mp4");
+	capture.open("/media/stree/localssd/DL_data/videos/facerecog.mp4");
 	namedWindow("input", cv::WINDOW_AUTOSIZE);
-	String cascadeFrontalfilename = "./data/models/haarcascade_frontalface_alt_tree.xml";
+	String cascadeFrontalfilename = "/media/stree/localssd/DL_data/models/haarcascade_frontalface_alt_tree.xml";
 	DetectionBasedTracker::Parameters params;
 
 	Ptr<CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(cascadeFrontalfilename);

@@ -1,11 +1,13 @@
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 find_package(OpenMP REQUIRED)
 find_package(PNG REQUIRED)
 
 include_directories(${PNG_INCLUDE_DIRS})
 
-set(requiredlibs "${Python310_LIB}")
-list(APPEND requiredlibs "pthread")
+#set(requiredlibs "${Python310_LIB}")
+set(requiredlibs "pthread")
+#list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
 list(APPEND requiredlibs "m")
 list(APPEND requiredlibs "png")
@@ -19,28 +21,31 @@ if(OpenMP_CXX_FOUND)
     list(APPEND requiredlibs "OpenMP::OpenMP_CXX")
 endif()
 
-message(STATUS "    requiredlibs: ${requiredlibs}")
-message(STATUS "    Python3_INCLUDE_DIRS: ${Python3_INCLUDE_DIRS}")
-message(STATUS "    Python3_NumPy_INCLUDE_DIRS: ${Python3_NumPy_INCLUDE_DIRS}")
-message(STATUS "    OpenCV_LIBS: ${OpenCV_LIBS}")
+# -------------------------------------------------------------
+# add executable
+add_executable( Image_tools_check_matplotplusplus check_tools/Check_matplotplusplus.cpp)
 
+# link libraries
+target_link_libraries( Image_tools_check_matplotplusplus ${TORCH_LIBRARIES} matplot)
+set_target_properties( Image_tools_check_matplotplusplus  PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+
+# -------------------------------------------------------------
 # add executable
 add_executable( LoadDisplaySave check_tools/loadDisplaySave.cpp)
 
 # link libraries
 target_link_libraries( LoadDisplaySave ${OpenCV_LIBS})
-set_target_properties( LoadDisplaySave  PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED YES)
+set_target_properties( LoadDisplaySave  PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 
-# add executable
-add_executable(Image_tools_check_tool check_tools/check_img_tool.cpp )
+# -------------------------------------------------------------
+add_executable(Image_tools_check_tool)
+
+target_sources(Image_tools_check_tool PRIVATE check_tools/check_img_tool.cpp )	
 
 target_include_directories(Image_tools_check_tool PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(Image_tools_check_tool  ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+target_link_libraries(Image_tools_check_tool ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
-set_target_properties(Image_tools_check_tool PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties( Image_tools_check_tool PROPERTIES CXX_STANDARD 17  CXX_STANDARD_REQUIRED YES )
 
 # -------------------------------------------------------------
 add_executable(Image_tools_img_loder_demo)
@@ -57,10 +62,7 @@ target_sources(Image_tools_img_loder_demo PRIVATE check_tools/img_loder_demo.cpp
 target_include_directories(Image_tools_img_loder_demo PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
 target_link_libraries(Image_tools_img_loder_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
 
-set_target_properties(Image_tools_img_loder_demo PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties( Image_tools_img_loder_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 
 # -------------------------------------------------------------------
 add_executable(Image_tools_Discriminator)
@@ -87,7 +89,6 @@ target_sources(Image_tools_Discriminator PRIVATE Discriminator/main.cpp
 target_include_directories(Image_tools_Discriminator PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
 target_link_libraries(Image_tools_Discriminator ${TORCH_LIBRARIES} ${OpenCV_LIBS} ${requiredlibs} Python3::Python Python3::NumPy)
 
-set_target_properties(Image_tools_Discriminator PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED YES
-)
+set_target_properties( Image_tools_Discriminator PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
+
+
