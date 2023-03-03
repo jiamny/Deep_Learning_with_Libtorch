@@ -293,11 +293,11 @@ int main() {
 	h->position(0, 0);
 
 	auto ax1 = h->nexttile();
-    plot(ax1, train_epochs, G_loss, "b");
+    plot(ax1, train_epochs, G_loss, "b")->line_width(2);
     hold(ax1, true);
-    plot(ax1, train_epochs, G_L_1_loss, "c:");
-    plot(ax1, train_epochs, D_real_loss, "g--");
-    plot(ax1, train_epochs, D_fake_loss, "r-.");
+    plot(ax1, train_epochs, G_L_1_loss, "c:")->line_width(2);
+    plot(ax1, train_epochs, D_real_loss, "g--")->line_width(2);
+    plot(ax1, train_epochs, D_fake_loss, "r-.")->line_width(2);
     hold(ax1, false);
     xlabel(ax1, "epoch");
     ylabel(ax1, "loss");

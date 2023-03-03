@@ -1,11 +1,9 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 find_package(OpenMP REQUIRED)
 find_package(PNG REQUIRED)
 
 include_directories(${PNG_INCLUDE_DIRS})
 
-#set(requiredlibs "${Python310_LIB}")
 set(requiredlibs "pthread")
 #list(APPEND requiredlibs "pthread")
 list(APPEND requiredlibs "dl")
@@ -42,9 +40,7 @@ add_executable(Image_tools_check_tool)
 
 target_sources(Image_tools_check_tool PRIVATE check_tools/check_img_tool.cpp )	
 
-target_include_directories(Image_tools_check_tool PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(Image_tools_check_tool ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
+target_link_libraries(Image_tools_check_tool ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} )
 set_target_properties( Image_tools_check_tool PROPERTIES CXX_STANDARD 17  CXX_STANDARD_REQUIRED YES )
 
 # -------------------------------------------------------------
@@ -59,9 +55,7 @@ target_sources(Image_tools_img_loder_demo PRIVATE check_tools/img_loder_demo.cpp
 						transforms.cpp
 						)
 													
-target_include_directories(Image_tools_img_loder_demo PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(Image_tools_img_loder_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
-
+target_link_libraries(Image_tools_img_loder_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
 set_target_properties( Image_tools_img_loder_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 
 # -------------------------------------------------------------------
@@ -86,9 +80,7 @@ target_sources(Image_tools_Discriminator PRIVATE Discriminator/main.cpp
 												 transforms.cpp
 )
 
-target_include_directories(Image_tools_Discriminator PRIVATE ${Python3_INCLUDE_DIRS} ${Python3_NumPy_INCLUDE_DIRS})
-target_link_libraries(Image_tools_Discriminator ${TORCH_LIBRARIES} ${OpenCV_LIBS} ${requiredlibs} Python3::Python Python3::NumPy)
-
+target_link_libraries(Image_tools_Discriminator ${TORCH_LIBRARIES} ${OpenCV_LIBS} ${requiredlibs})
 set_target_properties( Image_tools_Discriminator PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 
 

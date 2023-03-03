@@ -224,7 +224,7 @@ int main() {
 	h->position(0, 0);
 
 	auto ax1 = h->nexttile();
-    plot(ax1, train_epochs, train_loss, "b");
+    plot(ax1, train_epochs, train_loss, "b")->line_width(2);
     xlabel(ax1, "epoch");
     ylabel(ax1, "loss");
     show();

@@ -129,33 +129,51 @@ int main() {
 
 	std::vector<double> yy4(y_pred3.data_ptr<double>(), y_pred3.data_ptr<double>() + y_pred3.numel());
 
-	tiledlayout(2, 2);
-	auto ax1 = nexttile();
-	plot(ax1, xx, yy);
-	matplot::title(ax1, "Original curve");
+    auto F = figure(true);
+    F->width(F->width() * 2);
+    F->height(F->height() * 2);
+    F->x_position(10);
+    F->y_position(10);
 
-	auto ax2 = nexttile();
-	plot(ax2, xx, yy);
-	matplot::title(ax2, "Real vs. predicted");
-	hold(ax2, true);
-	plot(ax2, xx, yy2, "-.r");
-	hold(ax2, false);
+    subplot(2, 2, 0);
+    legend();
+    title("Original curve");
+	plot(xx, yy)->line_width(2)
+		.display_name("origin");
+	F->draw();
 
-	auto ax3 = nexttile();
-	plot(ax3, xx, yy);
-	matplot::title(ax3, "One epoch - real vs. fitted");
-	hold(ax3, true);
-	plot(ax3, xx, yy3, "-.r");
-	hold(ax3, false);
-	legend(ax3, "real", "fitted");
+	subplot(2, 2, 1);
+	legend();
+	title("Real vs. predicted");
+	plot(xx, yy)->line_width(2)
+		.display_name("real");
+	F->draw();
+	hold(true);
+	plot(xx, yy2, "-.r")->line_width(2)
+		.display_name("predicted");;
+	F->draw();
 
-	auto ax4 = nexttile();
-	plot(ax4, xx, yy);
-	matplot::title(ax4, "100 epochs - real vs. fitted");
-	hold(ax4, true);
-	plot(ax4, xx, yy4, "-.r");
-	hold(ax4, false);
-	legend(ax4, "real", "fitted");
+	subplot(2, 2, 2);
+	legend();
+	title("One epoch - real vs. fitted");
+	plot(xx, yy)->line_width(2)
+		.display_name("real");
+	F->draw();
+	hold(true);
+	plot(xx, yy3, "-.r")->line_width(2)
+		.display_name("fitted");
+	F->draw();
+
+	subplot(2, 2, 3);
+	legend();
+	title("100 epochs - real vs. fitted");
+	plot(xx, yy)->line_width(2)
+		.display_name("real");
+	F->draw();
+	hold(true);
+	plot(xx, yy4, "-.r")->line_width(2)
+		.display_name("fitted");
+	F->draw();
 
 	matplot::show();
 

@@ -21,7 +21,7 @@ set_target_properties(10_pytorch_custom_backward PROPERTIES CXX_STANDARD 17 CXX_
 add_executable(10_nnet)
 target_sources(10_nnet PRIVATE nnet.cpp)
 
-target_link_libraries(10_nnet ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+target_link_libraries(10_nnet ${TORCH_LIBRARIES} ${requiredlibs} )
 set_target_properties(10_nnet PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ set_target_properties(10_function_approx PROPERTIES CXX_STANDARD 17 CXX_STANDARD
 add_executable(10_DefineModel)
 target_sources(10_DefineModel PRIVATE DefineModel.cpp)
 
-target_link_libraries(10_DefineModel ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+target_link_libraries(10_DefineModel ${TORCH_LIBRARIES} ${requiredlibs} )
 
 set_target_properties(10_DefineModel PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 

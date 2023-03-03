@@ -185,9 +185,9 @@ int main() {
 
     tiledlayout(1, 1);
     auto ax1 = nexttile();
-    plot(ax1, v_epoch, v_train_loss, "b");
+    plot(ax1, v_epoch, v_train_loss, "b")->line_width(2);
     hold(ax1, true);
-    plot(ax1, v_epoch, v_val_loss, "r-.");
+    plot(ax1, v_epoch, v_val_loss, "r-.")->line_width(2);
     hold(ax1, false);
     legend(ax1, "train loss", "val loss");
     xlabel(ax1, "epoch");

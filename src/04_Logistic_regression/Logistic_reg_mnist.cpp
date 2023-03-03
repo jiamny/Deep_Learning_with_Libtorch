@@ -144,11 +144,10 @@ int main() {
 
     // ---- show some pred examples
 	auto h = figure(true);
-	h->size(1200, 1200);
-	h->add_axes(false);
-	h->reactive_mode(false);
-	h->tiledlayout(3, 4);
-	h->position(0, 0);
+	h->width(h->width() * 2);
+	h->height(h->height() * 2);
+	h->x_position(5);
+	h->y_position(5);
 
     auto dtype_option = torch::TensorOptions().dtype(torch::kDouble).device(torch::kCPU);
 
@@ -185,12 +184,13 @@ int main() {
         		C.push_back(c);
         	}
 
-        	auto ax = h->nexttile();
-        	ax->axis(false);
-        	matplot::image(ax, C);
-        	matplot::title(ax, fashionMap.at(type_id));
+        	matplot::subplot(3, 4, j - 10);
+        	matplot::title(fashionMap.at(type_id).c_str());
+        	matplot::image(C);
+        	matplot::axis(false);
+        	h->draw();
     	}
-    	show();
+    	matplot::show();
 
     	break;
     }

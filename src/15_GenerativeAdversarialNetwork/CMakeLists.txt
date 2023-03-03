@@ -38,7 +38,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lm -ldl")
 
 add_executable(15_DCGAN_celebA DCGAN-CelebA/src/main.cpp DCGAN-CelebA/src/dataset.cpp)
 
-target_link_libraries(15_DCGAN_celebA ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} Python3::Python Python3::NumPy)
+target_link_libraries(15_DCGAN_celebA ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} )
 set_target_properties(15_DCGAN_celebA PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -------------------------------------------------------------------------------------

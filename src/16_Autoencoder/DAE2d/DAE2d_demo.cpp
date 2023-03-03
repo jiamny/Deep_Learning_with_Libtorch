@@ -282,7 +282,7 @@ int main() {
 
     tiledlayout(1, 1);
     auto ax1 = nexttile();
-    plot(ax1, train_epochs, train_loss_ave, "b");
+    plot(ax1, train_epochs, train_loss_ave, "b")->line_width(2);
     xlabel(ax1, "epoch");
     ylabel(ax1, "loss");
     show();

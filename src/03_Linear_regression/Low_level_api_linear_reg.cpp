@@ -134,7 +134,7 @@ int main() {
     l->marker_color({0.f, .5f, .5f});
     l->marker_face_color({0.f, .7f, .7f});
     hold(ax1, true);
-    plot(ax1, xx, yyp, "-r");
+    plot(ax1, xx, yyp, "-r")->line_width(2);
     hold(ax1, false);
 
     show();

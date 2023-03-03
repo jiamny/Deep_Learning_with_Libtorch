@@ -90,10 +90,6 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} ) 
 
-#file( GLOB_RECURSE Python310_LIB "/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/*.so" )
-#SET( Python310_INCLUDE_DIRS "/usr/include/python3.10" )
-#INCLUDE_DIRECTORIES( include ${Python310_INCLUDE_DIRS} ) 
-
 if(NOT Torch_FOUND)
     unset(Torch_FOUND)
     include(fetch_libtorch)
@@ -104,14 +100,6 @@ if(CREATE_SCRIPTMODULES)
 endif()
 
 INCLUDE_DIRECTORIES( ${TORCH_INCLUDE_DIRS} )
-
-find_package(Python3 COMPONENTS Development NumPy)
-
-add_definitions(-DMATPLOTLIBCPP_PYTHON_HEADER=Python.h)
-
-message(STATUS "    include: ${DMATPLOTLIBCPP_PYTHON_HEADER}")
-message(STATUS "    python3: ${Python3_INCLUDE_DIRS}")
-message(STATUS "    numpy: ${Python3_NumPy_INCLUDE_DIRS}")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O2 -lm -ldl")
 
