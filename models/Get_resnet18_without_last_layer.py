@@ -3,9 +3,10 @@ This python script converts the network into Script Module
 """
 import torch
 from torchvision import models
+from torchvision.models import ResNet18_Weights
 
 # Download and load the pre-trained model
-model = models.resnet18(pretrained=True)
+model = models.resnet18(weights=ResNet18_Weights.DEFAULT) # pretrained=True)
 
 # Set upgrading the gradients to False
 for param in model.parameters():

@@ -6,10 +6,10 @@ project(Reinforcement_CPP
         )
         
 # path to ale include file
-set(ALE_INCLUDE_DIRS "/home/stree/git/arcade-learning-environment/src")
+set(ALE_INCLUDE_DIRS "/media/stree/localssd/LibtorchPrgs/arcade-learning-environment/src")
 
 # path to libale.so 
-find_library(LIBALE libale.so HINTS "/home/stree/git/arcade-learning-environment/")
+find_library(LIBALE libale.so HINTS "/media/stree/localssd/LibtorchPrgs/arcade-learning-environment/")
 
 set(requiredlibs "pthread")
 list(APPEND requiredlibs "dl")

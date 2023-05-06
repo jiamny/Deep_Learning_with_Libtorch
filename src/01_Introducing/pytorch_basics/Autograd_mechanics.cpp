@@ -33,6 +33,7 @@ int main() {
 	auto a = torch::tensor(1.0);
 	auto b = torch::tensor(-2.0);
 	auto c = torch::tensor(1.0);
+	std::cout << "x.sizes: " << x.sizes() << std::endl;
 	auto y = a*torch::pow(x,2) + b*x + c;
 
 	y.backward();
@@ -46,6 +47,8 @@ int main() {
 	a = torch::tensor(1.0);
 	b = torch::tensor(-2.0);
 	c = torch::tensor(1.0);
+	std::cout << "x.sizes: " << x.sizes() << std::endl;
+	std::cout << "a.sizes: " << a.sizes() << std::endl;
 	y = a*torch::pow(x,2) + b*x + c;
 
 	auto gd = torch::tensor({{1.0,1.0}, {1.0,1.0}});

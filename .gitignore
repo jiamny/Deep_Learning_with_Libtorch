@@ -85,6 +85,11 @@ cmake-build-*/
 *.iml
 .settings/
 *.pdf
+*.jpg
+*.png
+*.cc
+*.cu
+test_result/
 src/14_NeuralStyleTransfer/style_transfer/output/*.png
 src/18_RecurrentNeuralNetwork/RNN_LM/output/*txt
 
