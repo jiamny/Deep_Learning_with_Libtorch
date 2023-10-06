@@ -29,11 +29,11 @@ set_target_properties( Image_tools_check_matplotplusplus  PROPERTIES CXX_STANDAR
 
 # -------------------------------------------------------------
 # add executable
-add_executable( LoadDisplaySave check_tools/loadDisplaySave.cpp)
+add_executable( Image_tools_loadDisplaySave check_tools/loadDisplaySave.cpp)
 
 # link libraries
-target_link_libraries( LoadDisplaySave ${OpenCV_LIBS})
-set_target_properties( LoadDisplaySave  PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
+target_link_libraries( Image_tools_loadDisplaySave  ${OpenCV_LIBS})
+set_target_properties( Image_tools_loadDisplaySave   PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 
 # -------------------------------------------------------------
 add_executable(Image_tools_check_tool)
@@ -41,12 +41,12 @@ add_executable(Image_tools_check_tool)
 target_sources(Image_tools_check_tool PRIVATE check_tools/check_img_tool.cpp )	
 
 target_link_libraries(Image_tools_check_tool ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs} )
-set_target_properties( Image_tools_check_tool PROPERTIES CXX_STANDARD 17  CXX_STANDARD_REQUIRED YES )
+set_target_properties(Image_tools_check_tool PROPERTIES CXX_STANDARD 17  CXX_STANDARD_REQUIRED YES )
 
 # -------------------------------------------------------------
-add_executable(Image_tools_img_loder_demo)
+add_executable(Image_tools_img_loader_demo)
 
-target_sources(Image_tools_img_loder_demo PRIVATE check_tools/img_loder_demo.cpp 
+target_sources(Image_tools_img_loader_demo PRIVATE check_tools/img_loder_demo.cpp 
 						dataloader.hpp
 						dataloader.cpp
 						datasets.hpp
@@ -55,8 +55,8 @@ target_sources(Image_tools_img_loder_demo PRIVATE check_tools/img_loder_demo.cpp
 						transforms.cpp
 						)
 													
-target_link_libraries(Image_tools_img_loder_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
-set_target_properties( Image_tools_img_loder_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
+target_link_libraries(Image_tools_img_loader_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
+set_target_properties( Image_tools_img_loader_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
 
 # -------------------------------------------------------------------
 add_executable(Image_tools_Discriminator)

@@ -60,6 +60,7 @@ src/19_ObjectDetection/YOLOv4/dataset/
 src/19_ObjectDetection/YOLOv4/weights/*.pt
 src/19_ObjectDetection/YOLOv5/*.pt
 src/21_Semantic_Segmentation/*.pt
+src/26_Yolov3_deepsort/result
 
 # CMake
 CMakeLists.txt.user
@@ -89,6 +90,8 @@ cmake-build-*/
 *.png
 *.cc
 *.cu
+*.avi
+*.flv
 test_result/
 src/14_NeuralStyleTransfer/style_transfer/output/*.png
 src/18_RecurrentNeuralNetwork/RNN_LM/output/*txt

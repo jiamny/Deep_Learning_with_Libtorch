@@ -167,6 +167,7 @@ add_subdirectory("src/22_Reinforcement_Learning")
 add_subdirectory("src/23_Vehicle_and_traffic_lane_detection")
 add_subdirectory("src/24_Natural_Language_Processing")
 add_subdirectory("src/25_Diffusion")
+add_subdirectory("src/26_Yolov3_deepsort")
 
 
 
