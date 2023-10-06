@@ -11,7 +11,7 @@ torch::Tensor drop_connect(torch::Tensor x, double drop_ratio);
 struct SEImpl : public torch::nn::Module {
 	//Squeeze-and-Excitation block with Swish.
 	torch::nn::Conv2d se1{nullptr}, se2{nullptr};
-	explicit SEImpl(int64_t in_planes, int64_t se_planes);
+	explicit SEImpl(int64_t in_planes, int64_t se_planes, torch::Device device);
 
 	torch::Tensor forward(torch::Tensor x);
 };
@@ -36,7 +36,8 @@ struct Block_Impl : public torch::nn::Module {
             int64_t stride_,
             int64_t expand_ratio_,
             double se_ratio_,
-            double drop_rate_);
+            double drop_rate_,
+			torch::Device device);
 
 	torch::Tensor forward(torch::Tensor x);
 
@@ -52,13 +53,13 @@ struct EfficientNetImpl : public torch::nn::Module {
 	torch::nn::Linear linear{nullptr};
 	torch::nn::AdaptiveAvgPool2d adavgpool{nullptr};
 
-	explicit EfficientNetImpl(std::map<std::string, std::vector<int64_t>> cfg, int64_t num_classes);
+	explicit EfficientNetImpl(std::map<std::string, std::vector<int64_t>> cfg, int64_t num_classes, torch::Device device);
 
 	torch::Tensor forward(torch::Tensor x);
-	torch::nn::Sequential  _make_layers(int64_t in_planes);
+	torch::nn::Sequential  _make_layers(int64_t in_planes, torch::Device device);
 };
 
 TORCH_MODULE(EfficientNet);
 
-EfficientNet EfficientNetB0(int64_t num_classes);
+EfficientNet EfficientNetB0(int64_t num_classes, torch::Device device=torch::kCPU);
 

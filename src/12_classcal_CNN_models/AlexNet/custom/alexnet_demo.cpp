@@ -67,7 +67,7 @@ int main() {
 	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
 
 	size_t img_size = 224;
-	size_t batch_size = 32;
+	size_t batch_size = 4;
 	const std::string path = "./data/17_flowers_name.txt";
 	const size_t class_num = 17;
 	const size_t valid_batch_size = 1;
@@ -85,7 +85,7 @@ int main() {
 		transforms_Normalize(std::vector<float>{0.485, 0.456, 0.406}, std::vector<float>{0.229, 0.224, 0.225})  // Pixel Value Normalization for ImageNet
     };
 
-	std::string dataroot = "/media/stree/localssd/DL_data/17_flowers/train";
+	std::string dataroot = "/media/hhj/localssd/DL_data/17_flowers/train";
     std::tuple<torch::Tensor, torch::Tensor, std::vector<std::string>> mini_batch;
     torch::Tensor loss, image, label, output;
     datasets::ImageFolderClassesWithPaths dataset, valid_dataset, test_dataset;      		// dataset;
@@ -102,7 +102,7 @@ int main() {
 
 	std::cout << "total training images : " << dataset.size() << std::endl;
 
-    std::string valid_dataroot = "/media/stree/localssd/DL_data/17_flowers/valid";
+    std::string valid_dataroot = "/media/hhj/localssd/DL_data/17_flowers/valid";
     valid_dataset = datasets::ImageFolderClassesWithPaths(valid_dataroot, transform, class_names);
     valid_dataloader = DataLoader::ImageFolderClassesWithPaths(valid_dataset, valid_batch_size, /*shuffle_=*/valid_shuffle, /*num_workers_=*/valid_workers);
 
@@ -220,7 +220,7 @@ int main() {
 	// ---- Testing
 	if( test ) {
 		std::cout << "--------------- Testing --------------------\n";
-		std::string test_dataroot = "/media/stree/localssd/DL_data/17_flowers/test";
+		std::string test_dataroot = "/media/hhj/localssd/DL_data/17_flowers/test";
 		test_dataset = datasets::ImageFolderClassesWithPaths(test_dataroot, transform, class_names);
 		test_dataloader = DataLoader::ImageFolderClassesWithPaths(test_dataset, /*batch_size_=*/1, /*shuffle_=*/false, /*num_workers_=*/0);
 		std::cout << "total test images : " << test_dataset.size() << std::endl << std::endl;

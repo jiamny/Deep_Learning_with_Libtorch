@@ -7,15 +7,15 @@ Collected deep learning projects with LibTorch C++
 
 - cmake 3.18+
 
-- PyTorch 2.0.0
+- PyTorch 2.1.0
 
-- NVIDIA CUDA 11.7
+- NVIDIA CUDA 11.8
 
 - NVIDIA cudnn 8.7
 
 - python3.10
 
-- opencv 4.5.4/4.7.0
+- opencv 4.5.4/4.8.0
 
 - Gnuplot 5.2.6+
 
@@ -73,6 +73,10 @@ Collected deep learning projects with LibTorch C++
 - [opencv_tutorial](https://github.com/gloomyfish1998/opencv_tutorial)
 
 - [libtorch_nlp_demo](https://github.com/tashaxing/libtorch_nlp_demo)
+
+- [libtorch-faster-rcnn](https://github.com/thisisi3/libtorch-faster-rcnn)
+
+- [TorchDiffusion](https://github.com/GlassyWing/TorchDiffusion)
 
 
 

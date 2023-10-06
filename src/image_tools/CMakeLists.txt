@@ -62,22 +62,22 @@ set_target_properties( Image_tools_img_loder_demo PROPERTIES CXX_STANDARD 17 CXX
 add_executable(Image_tools_Discriminator)
 
 target_sources(Image_tools_Discriminator PRIVATE Discriminator/main.cpp
-												 Discriminator/options.hpp
-												 Discriminator/loss.hpp
-												 Discriminator/loss.cpp
-												 Discriminator/networks.hpp
-												 Discriminator/networks.cpp
-												 Discriminator/train.cpp
-												 Discriminator/test.cpp
-												 Discriminator/valid.cpp
-												 dataloader.hpp
-												 dataloader.cpp
-												 datasets.hpp
-												 datasets.cpp
-												 losses.hpp
-												 losses.cpp
-												 transforms.hpp
-												 transforms.cpp
+						Discriminator/options.hpp
+						Discriminator/loss.hpp
+						Discriminator/loss.cpp
+						Discriminator/networks.hpp
+						Discriminator/networks.cpp
+						Discriminator/train.cpp
+						Discriminator/test.cpp
+						Discriminator/valid.cpp
+						dataloader.hpp
+						dataloader.cpp
+						datasets.hpp
+						datasets.cpp
+						losses.hpp
+						losses.cpp
+						transforms.hpp
+						transforms.cpp
 )
 
 target_link_libraries(Image_tools_Discriminator ${TORCH_LIBRARIES} ${OpenCV_LIBS} ${requiredlibs})

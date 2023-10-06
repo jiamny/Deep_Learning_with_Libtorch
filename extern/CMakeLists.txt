@@ -11,7 +11,7 @@ FetchContent_Declare(
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cxxopts
 )
 
-set(CXXOPTS_CXX_STANDARD 14)
+set(CXXOPTS_CXX_STANDARD 17)
 set(CXXOPTS_BUILD_EXAMPLES OFF CACHE BOOL "Set to ON to build examples" FORCE)
 set(CXXOPTS_BUILD_TESTS OFF CACHE BOOL "Set to ON to build tests" FORCE)
 set(CXXOPTS_ENABLE_INSTALL OFF CACHE BOOL "Generate the install target" FORCE)
@@ -21,7 +21,7 @@ FetchContent_MakeAvailable(extern_cxxopts)
 foreach(STB_IMAGE_LIB "stb_image" "stb_image_write" "stb_image_resize")
     FetchContent_Declare(
         extern_${STB_IMAGE_LIB}
-        URL https://raw.githubusercontent.com/nothings/stb/master/${STB_IMAGE_LIB}.h
+        URL /media/hhj/localssd/Saved_sources/extern/${STB_IMAGE_LIB}.h
         DOWNLOAD_NO_EXTRACT ON  
         DOWNLOAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${STB_IMAGE_LIB}
     )

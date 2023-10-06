@@ -40,7 +40,7 @@ int main() {
 
 	bool saveBestModel{false};
 
-	const std::string CIFAR_data_path = "/media/stree/localssd/DL_data/cifar/cifar10/";
+	const std::string CIFAR_data_path = "/media/hhj/localssd/DL_data/cifar/cifar10/";
     std::string classes[10] = {"plane", "car", "bird", "cat",
            "deer", "dog", "frog", "horse", "ship", "truck"};
 

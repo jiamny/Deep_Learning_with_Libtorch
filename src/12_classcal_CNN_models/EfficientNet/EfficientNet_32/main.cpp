@@ -11,20 +11,12 @@ int main() {
 
 	std::cout << "EfficientNet\n\n";
 
-	bool cpu_only = true;
+	// Device
+	auto cuda_available = torch::cuda::is_available();
+	torch::Device device = cuda_available ? torch::Device(torch::kCUDA) : torch::Device(torch::kCPU);
+	std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
 
-	torch::Device device( torch::kCPU );
-
-	if( ! cpu_only ) {
-		// Device
-		auto cuda_available = torch::cuda::is_available();
-		device = cuda_available ? torch::Device(torch::kCUDA) : torch::Device(torch::kCPU);
-		std::cout << (cuda_available ? "CUDA available. Training on GPU." : "Training on CPU.") << '\n';
-	} else {
-		std::cout << "Training on CPU." << '\n';
-	}
-
-	EfficientNet net = EfficientNetB0(10);
+	EfficientNet net = EfficientNetB0(10, device);
 	net->to(device);
 	auto dict = net->named_parameters();
 	for (auto n = dict.begin(); n != dict.end(); n++) {
@@ -34,21 +26,22 @@ int main() {
 
 	std::cout << "Test model ..." << std::endl;
 	torch::Tensor x = torch::randn({1,3,32,32}).to(device);
+	std::cout << "x: " << x.options() << '\n';
 	torch::Tensor y = net->forward(x);
-	std::cout << y << std::endl;
+	std::cout << "y: " << y << std::endl;
 
 	// Hyper parameters
 	const int64_t image_size{32};
 	const int64_t num_classes = 10;
 	const int64_t batch_size = 100;
-	const size_t num_epochs = 3;
+	const size_t num_epochs = 2;
 	const double learning_rate = 0.001;
 	const size_t learning_rate_decay_frequency = 8;  // number of epochs after which to decay the learning rate
 	const double learning_rate_decay_factor = 1.0 / 3.0;
 
 	bool saveBestModel{false};
 
-	const std::string CIFAR_data_path = "/media/stree/localssd/DL_data/cifar/cifar10/";
+	const std::string CIFAR_data_path = "/media/hhj/localssd/DL_data/cifar/cifar10/";
     std::string classes[10] = {"plane", "car", "bird", "cat",
            "deer", "dog", "frog", "horse", "ship", "truck"};
 
@@ -77,7 +70,7 @@ int main() {
 	        std::move(test_dataset), batch_size);
 
 	// Model
-	EfficientNet model = EfficientNetB0(10);
+	EfficientNet model = EfficientNetB0(10, device);
 	model->to(device);
 
 	// Optimizer
@@ -179,7 +172,7 @@ int main() {
 	}
 
 	if( saveBestModel ) {
-		model = EfficientNetB0(10);
+		model = EfficientNetB0(10, device);
 		torch::load(model, PATH);
 	}
 
@@ -199,7 +192,7 @@ int main() {
         auto outputs = model->forward(images);
         auto prediction = outputs.argmax(1);
 
-        for (int i = 0; i < batch_size; ++i) {
+        for (int i = 0; i < images.sizes()[0]; ++i) {
             auto label = labels[i].item<long>();
             if( label == prediction[i].item<long>() )
             	class_correct[label] += 1;

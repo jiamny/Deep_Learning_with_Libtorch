@@ -19,19 +19,27 @@ torch::Tensor drop_connect(torch::Tensor x, double drop_ratio) {
 	return x;
 }
 
-SEImpl::SEImpl(int64_t in_planes, int64_t se_planes) {
+SEImpl::SEImpl(int64_t in_planes, int64_t se_planes, torch::Device device) {
 	se1 = torch::nn::Conv2d(Options(in_planes, se_planes, 1).bias(true));
 	se2 = torch::nn::Conv2d(Options(se_planes, in_planes, 1).bias(true));
+	se1->to(device);
+	se2->to(device);
 	register_module("se1", se1);
 	register_module("se2", se2);
 }
 
 torch::Tensor SEImpl::forward(torch::Tensor x) {
 	at::Tensor kp(x.clone());
+	//kp = kp.to(x.device());
 
-    x = torch::adaptive_avg_pool2d(x, {1, 1});
+    x = torch::adaptive_avg_pool2d(x, {1, 1}).to(x.device());
+    //se1->to(x.device());
+
     x = swish(se1->forward(x));
+
+    //se2->to(x.device());
     x = se2->forward(x).sigmoid();
+
     x = kp * x;
     return x;
 }
@@ -42,7 +50,7 @@ Block_Impl::Block_Impl( int64_t in_planes,
     int64_t stride_,
     int64_t expand_ratio_,
     double se_ratio_,
-    double drop_rate_) {
+    double drop_rate_, torch::Device device) {
 
 	stride = stride_;
 	expand_ratio = expand_ratio_;
@@ -53,19 +61,26 @@ Block_Impl::Block_Impl( int64_t in_planes,
 	int64_t planes = expand_ratio * in_planes;
 
 	conv1 = torch::nn::Conv2d(Options(in_planes, planes, 1).stride(1).padding(0).bias(false));
+	conv1->to(device);
 	bn1 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(planes));
+	bn1->to(device);
 
 	//Depthwise conv
-	conv2 = torch::nn::Conv2d(Options(planes, planes, kernel_size).stride(stride).padding( (kernel_size == 3) ? 1 : 2).groups(planes).bias(false));
+	conv2 = torch::nn::Conv2d(Options(planes, planes, kernel_size).stride(stride).padding( (kernel_size == 3) ?
+										1 : 2).groups(planes).bias(false));
+	conv2->to(device);
 	bn2 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(planes));
+	bn2->to(device);
 
 	//SE layers
 	int64_t se_planes = static_cast<int64_t>(in_planes * se_ratio);
-	se = SE(planes, se_planes);
+	se = SE(planes, se_planes, device);
 
 	//Output
 	conv3 = torch::nn::Conv2d(Options(planes, out_planes, 1).stride(1).padding(0).bias(false));
 	bn3 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(out_planes));
+	conv3->to(device);
+	bn3->to(device);
 
 	// Skip connection if in and out shapes are the same (MV-V2 style)
 	has_skip = ((stride == 1) && (in_planes == out_planes));
@@ -81,11 +96,16 @@ Block_Impl::Block_Impl( int64_t in_planes,
 
 torch::Tensor Block_Impl::forward(torch::Tensor x) {
 	at::Tensor kp(x.clone());
+	//kp = kp.to(x.device());
 
     x = (expand_ratio == 1 ) ? x : swish(bn1->forward(conv1->forward(x)));
+
 	x = swish(bn2->forward(conv2->forward(x)));
+
 	x = se->forward(x);
+
 	x = bn3->forward(conv3->forward(x));
+
 	if( has_skip ) {
 		if( training &&  drop_rate > 0 )
 			x = drop_connect(x, drop_rate);
@@ -95,14 +115,18 @@ torch::Tensor Block_Impl::forward(torch::Tensor x) {
 	return x;
 }
 
-EfficientNetImpl::EfficientNetImpl(std::map<std::string, std::vector<int64_t>> cfg_, int64_t num_classes) {
+EfficientNetImpl::EfficientNetImpl(std::map<std::string, std::vector<int64_t>> cfg_, int64_t num_classes, torch::Device device) {
 	cfg = cfg_;
 	std::vector<int64_t> out_planes = cfg.at("out_planes");
 	adavgpool = torch::nn::AdaptiveAvgPool2d(torch::nn::AdaptiveAvgPool2dOptions(1));
 	conv1 = torch::nn::Conv2d(Options(3, 32, 3).stride(1).padding(1).bias(false));
 	bn1 = torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(32));
-	layers = _make_layers(32);
+	layers = _make_layers(32, device);
 	linear = torch::nn::Linear(out_planes[out_planes.size()-1], num_classes);
+	adavgpool->to(device);
+	conv1->to(device);
+	bn1->to(device);
+	linear->to(device);
 
 	register_module("conv1", conv1);
 	register_module("bn1", bn1);
@@ -127,7 +151,7 @@ EfficientNetImpl::EfficientNetImpl(std::map<std::string, std::vector<int64_t>> c
     }
 }
 
-torch::nn::Sequential  EfficientNetImpl::_make_layers(int64_t in_planes) {
+torch::nn::Sequential  EfficientNetImpl::_make_layers(int64_t in_planes, torch::Device device) {
 	torch::nn::Sequential  layers;
 	std::vector<int64_t> expansion = cfg.at("expansion");
 	std::vector<int64_t> out_planes = cfg.at("out_planes");
@@ -149,7 +173,7 @@ torch::nn::Sequential  EfficientNetImpl::_make_layers(int64_t in_planes) {
                     strides[s],
                     expansion[j],
                     0.25,
-                    0));
+                    0, device));
 			in_planes = out_planes[j];
 		}
 	}
@@ -158,7 +182,6 @@ torch::nn::Sequential  EfficientNetImpl::_make_layers(int64_t in_planes) {
 
 torch::Tensor EfficientNetImpl::forward(torch::Tensor x) {
 	x = swish(bn1->forward(conv1->forward(x)));
-//	std::cout << "swish -> " << out.sizes() << std::endl;
     x = layers->forward(x);
 //	for( int i =0; i < layers.size(); i++ ) {
 //		out = layers[i]->forward(out);
@@ -169,15 +192,16 @@ torch::Tensor EfficientNetImpl::forward(torch::Tensor x) {
 //    std::cout << "pool2d -> " << out.sizes() << std::endl;
     x = x.view({x.size(0), -1});
     x = linear->forward(x);
+
     return x;
 }
 
-EfficientNet EfficientNetB0(int64_t num_classes) {
+EfficientNet EfficientNetB0(int64_t num_classes, torch::Device device) {
 	std::map<std::string, std::vector<int64_t>>  cfg;
 	cfg.insert(std::pair<std::string,std::vector<int64_t>>("num_blocks", {1, 2, 2, 3, 3, 4, 1}));
 	cfg.insert(std::pair<std::string,std::vector<int64_t>>("expansion", {1, 6, 6, 6, 6, 6, 6}));
 	cfg.insert(std::pair<std::string,std::vector<int64_t>>("out_planes", {16, 24, 40, 80, 112, 192, 320}));
 	cfg.insert(std::pair<std::string,std::vector<int64_t>>("kernel_size", {3, 3, 5, 3, 5, 5, 3}));
 	cfg.insert(std::pair<std::string,std::vector<int64_t>>("stride", {1, 2, 2, 2, 1, 2, 1}));
-	return EfficientNet(cfg, num_classes);
+	return EfficientNet(cfg, num_classes, device);
 }
