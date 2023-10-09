@@ -26,7 +26,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include<iostream>
 #include <string>
 #include <vector>
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 
 /**
  *@brief Definition of the LaneDetector class. It contains all the functions and variables depicted in the

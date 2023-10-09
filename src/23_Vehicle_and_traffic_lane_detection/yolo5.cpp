@@ -1,106 +1,19 @@
 #include "yolo5.h"
 
-std::vector<std::string> load_class_list(std::string classfilePath)
+
+vector<Mat> pre_process(Mat &input_image, Net &net)
 {
-    std::vector<std::string> class_list;
-    std::ifstream ifs(classfilePath);
-    std::string line;
-    while (getline(ifs, line))
-    {
-        class_list.push_back(line);
-    }
-    return class_list;
-}
+    // Convert to blob.
+    Mat blob;
+    blobFromImage(input_image, blob, 1./255., Size(INPUT_WIDTH, INPUT_HEIGHT), Scalar(), true, false);
 
-void load_net(cv::dnn::Net &net, bool is_cuda, std::string onnxFile) {
-    auto result = cv::dnn::readNet(onnxFile);
-
-    if (is_cuda) {
-        std::cout << "Attempty to use CUDA\n";
-        result.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-        result.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
-    } else {
-        std::cout << "Running on CPU\n";
-        result.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-        result.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-    }
-    net = result;
-}
-
-cv::Mat format_yolov5(const cv::Mat &source) {
-    int col = source.cols;
-    int row = source.rows;
-    int _max = MAX(col, row);
-    cv::Mat result = cv::Mat::zeros(_max, _max, CV_8UC3);
-    source.copyTo(result(cv::Rect(0, 0, col, row)));
-    return result;
-}
-
-void detect(cv::Mat &image, cv::dnn::Net &net, std::vector<Detection> &output, const std::vector<std::string> &className) {
-    cv::Mat blob;
-
-    auto input_image = format_yolov5(image);
-    
-    cv::dnn::blobFromImage(input_image, blob, 1./255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false);
     net.setInput(blob);
-    std::vector<cv::Mat> outputs;
+
+    // Forward propagate.
+    vector<Mat> outputs;
     net.forward(outputs, net.getUnconnectedOutLayersNames());
 
-    float x_factor = input_image.cols / INPUT_WIDTH;
-    float y_factor = input_image.rows / INPUT_HEIGHT;
-    
-    float *data = (float *)outputs[0].data;
-
-    const int dimensions = 85;
-    const int rows = 25200;
-    
-    std::vector<int> class_ids;
-    std::vector<float> confidences;
-    std::vector<cv::Rect> boxes;
-
-    for (int i = 0; i < rows; ++i) {
-
-        float confidence = data[4];
-        if (confidence >= CONFIDENCE_THRESHOLD) {
-
-            float * classes_scores = data + 5;
-            cv::Mat scores(1, className.size(), CV_32FC1, classes_scores);
-            cv::Point class_id;
-            double max_class_score;
-            minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
-            if (max_class_score > SCORE_THRESHOLD) {
-
-                confidences.push_back(confidence);
-
-                class_ids.push_back(class_id.x);
-
-                float x = data[0];
-                float y = data[1];
-                float w = data[2];
-                float h = data[3];
-                int left = int((x - 0.5 * w) * x_factor);
-                int top = int((y - 0.5 * h) * y_factor);
-                int width = int(w * x_factor);
-                int height = int(h * y_factor);
-                boxes.push_back(cv::Rect(left, top, width, height));
-            }
-
-        }
-
-        data += 85;
-
-    }
-
-    std::vector<int> nms_result;
-    cv::dnn::NMSBoxes(boxes, confidences, SCORE_THRESHOLD, NMS_THRESHOLD, nms_result);
-    for (int i = 0; i < nms_result.size(); i++) {
-        int idx = nms_result[i];
-        Detection result;
-        result.class_id = class_ids[idx];
-        result.confidence = confidences[idx];
-        result.box = boxes[idx];
-        output.push_back(result);
-    }
+    return outputs;
 }
 
 void setLabel(cv::Mat& im, std::string label, cv::Scalar text_color, cv::Scalar text_bk_color, const cv::Point& pt) {
@@ -115,21 +28,88 @@ void setLabel(cv::Mat& im, std::string label, cv::Scalar text_color, cv::Scalar 
 }
 
 
-void detect_objects(cv::Mat& frame, cv::dnn::Net net, std::vector<std::string> class_list) {
+Mat post_process(Mat input_image, vector<Mat> &outputs, const vector<string> &class_name)
+{
+    // Initialize vectors to hold respective outputs while unwrapping detections.
+    vector<int> class_ids;
+    vector<float> confidences;
+    vector<Rect> boxes;
 
-    std::vector<Detection> output;
+    // Resizing factor.
+    float x_factor = input_image.cols / INPUT_WIDTH;
+    float y_factor = input_image.rows / INPUT_HEIGHT;
 
-    detect(frame, net, output, class_list);
-    int detections = output.size();
+    float *data = (float *)outputs[0].data;
 
-    for (int i = 0; i < detections; ++i) {
-    	auto detection = output[i];
-    	auto box = detection.box;
-    	auto classId = detection.class_id;
-    	const auto color = colors[classId % colors.size()];
-    	cv::rectangle(frame, box, color, 1);
+    const int dimensions = 85;
+    const int rows = 25200;
+    // Iterate through 25200 detections.
+    for (int i = 0; i < rows; ++i)
+    {
+        float confidence = data[4];
+        // Discard bad detections and continue.
+        if (confidence >= CONFIDENCE_THRESHOLD)
+        {
+            float * classes_scores = data + 5;
+            // Create a 1x85 Mat and store class scores of 80 classes.
+            Mat scores(1, class_name.size(), CV_32FC1, classes_scores);
+            // Perform minMaxLoc and acquire index of best class score.
+            Point class_id;
+            double max_class_score;
+            minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
+            // Continue if the class score is above the threshold.
+            if (max_class_score > SCORE_THRESHOLD)
+            {
+                // Store class ID and confidence in the pre-defined respective vectors.
 
-    	setLabel(frame, class_list[classId].c_str(), cv::Scalar(0, 0, 0), color,
-    	                                		   cv::Point(box.x, box.y - 4));
+                confidences.push_back(confidence);
+                class_ids.push_back(class_id.x);
+
+                // Center.
+                float cx = data[0];
+                float cy = data[1];
+                // Box dimension.
+                float w = data[2];
+                float h = data[3];
+                // Bounding box coordinates.
+                int left = int((cx - 0.5 * w) * x_factor);
+                int top = int((cy - 0.5 * h) * y_factor);
+                int width = int(w * x_factor);
+                int height = int(h * y_factor);
+                // Store good detections in the boxes vector.
+                boxes.push_back(Rect(left, top, width, height));
+            }
+
+        }
+        // Jump to the next column.
+        data += 85;
     }
+
+    // Perform Non Maximum Suppression and draw predictions.
+    vector<int> indices;
+    NMSBoxes(boxes, confidences, SCORE_THRESHOLD, NMS_THRESHOLD, indices);
+    for (int i = 0; i < indices.size(); i++)
+    {
+        int idx = indices[i];
+        Rect box = boxes[idx];
+
+        int left = box.x;
+        int top = box.y;
+        int width = box.width;
+        int height = box.height;
+        const auto color = colors[class_ids[idx] % colors.size()];
+
+        // Draw bounding box.
+        rectangle(input_image, Point(left, top), Point(left + width, top + height), color, 1*THICKNESS);
+
+        // Get the label for the class name and its confidence.
+        string label = format("%.2f", confidences[idx]);
+        label = class_name[class_ids[idx]] + ": " + label;
+
+        // Draw class labels.
+        setLabel(input_image, label.c_str(), cv::Scalar(0, 0, 0), color,
+                                    		   cv::Point(box.x, box.y - 4));
+    }
+    return input_image;
 }
+

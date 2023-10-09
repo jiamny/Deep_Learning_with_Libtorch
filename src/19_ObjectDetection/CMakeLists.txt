@@ -44,6 +44,14 @@ target_link_libraries(19_YOLOV5 ${OpenCV_LIBS} ${TORCH_LIBRARIES})
 set_target_properties(19_YOLOV5 PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -------------------------------------------------------------
+add_executable(19_YOLOV5_video)
+target_sources(19_YOLOV5_video PRIVATE YOLOv5/yolo_video.cpp)
+
+target_link_libraries(19_YOLOV5_video ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+set_target_properties(19_YOLOV5_video PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+
+
+# -------------------------------------------------------------
 add_executable(19_DNN_SSD_demo)
 target_sources(19_DNN_SSD_demo PRIVATE OpenCV_DNN/dnn_ssd_demo.cpp)
 

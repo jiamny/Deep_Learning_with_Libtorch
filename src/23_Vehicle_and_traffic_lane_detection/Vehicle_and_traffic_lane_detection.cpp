@@ -38,17 +38,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 int main(int argc, char *argv[]) {
 
-	// yolo5
-	bool is_cuda = torch::cuda::is_available();
+	// Load class list.
+	vector<string> class_list;
+	ifstream ifs("./src/23_Vehicle_and_traffic_lane_detection/config_files/classes.txt");
+	string line;
 
-	std::vector<std::string> class_list =
-				load_class_list("./src/23_Vehicle_and_traffic_lane_detection/config_files/classes.txt");
+	while (getline(ifs, line)) {
+	    class_list.push_back(line);
+	}
 
-	cv::dnn::Net net;
-	load_net(net, is_cuda, "./src/23_Vehicle_and_traffic_lane_detection/config_files/yolov5s.onnx");
+    // Load model.
+    Net net;
+    net = readNet("/media/hhj/localssd/DL_data/weights/yolo5/yolov5s.onnx");
 
     // The input argument is the location of the video
-    std::string source = "/media/stree/localssd/DL_data/videos/project_video.mp4";
+    std::string source = "/media/hhj/localssd/DL_data/videos/project_video.mp4";
     //std::string source = "./data/videos/challenge_video.mp4";
     cv::VideoCapture cap(source);
     if (!cap.isOpened()) {
@@ -70,48 +74,55 @@ int main(int argc, char *argv[]) {
     int i = 0;
 
     // Main algorithm starts. Iterate through every frame of the video
-    while (i < 540) {
-      // Capture frame
-      if (!cap.read(frame))
-    	  break;
+    // Capture frame
+    while(true) {
 
-      // Denoise the image using a Gaussian filter
-      img_denoise = lanedetector.deNoise(frame);
+    	cap.read(frame);
+    	if(frame.empty()) {
+    		std::cout << "End of stream\n";
+    	    break;
+    	}
 
-      // Detect edges in the image
-      img_edges = lanedetector.edgeDetector(img_denoise);
+       // Denoise the image using a Gaussian filter
+       img_denoise = lanedetector.deNoise(frame);
 
-      // Mask the image so that we only get the ROI
-      img_mask = lanedetector.mask(img_edges);
+       // Detect edges in the image
+       img_edges = lanedetector.edgeDetector(img_denoise);
 
-      // Obtain Hough lines in the cropped image
-      lines = lanedetector.houghLines(img_mask);
+       // Mask the image so that we only get the ROI
+       img_mask = lanedetector.mask(img_edges);
 
-      if (!lines.empty()) {
-        // Separate lines into left and right lines
-        left_right_lines = lanedetector.lineSeparation(lines, img_edges);
+       // Obtain Hough lines in the cropped image
+       lines = lanedetector.houghLines(img_mask);
 
-        // Apply regression to obtain only one line for each side of the lane
-        lane = lanedetector.regression(left_right_lines, frame);
+       if (!lines.empty()) {
+    	   // Separate lines into left and right lines
+    	   left_right_lines = lanedetector.lineSeparation(lines, img_edges);
 
-        // Predict the turn by determining the vanishing point of the the lines
-        turn = lanedetector.predictTurn();
+    	   // Apply regression to obtain only one line for each side of the lane
+    	   lane = lanedetector.regression(left_right_lines, frame);
 
-        // Plot lane detection
-        flag_plot = lanedetector.plotLane(frame, lane, turn);
+    	   // Predict the turn by determining the vanishing point of the the lines
+    	   turn = lanedetector.predictTurn();
 
-        detect_objects(frame, net, class_list);
+    	   // Plot lane detection
+    	   flag_plot = lanedetector.plotLane(frame, lane, turn);
 
-        i += 1;
+    	   vector<Mat> detections;
+    	   detections = pre_process(frame, net);
 
-        cv::namedWindow("Lane", cv::WINDOW_AUTOSIZE);
-        cv::imshow("Lane", frame);
-        int r = cv::waitKey(20);
-        if( r == 27 || r == 81 || r == 113 )  // ESC, Q/q
-           break;
-      } else {
+    	   Mat img = post_process(frame.clone(), detections, class_list);
+
+    	   i += 1;
+
+    	   cv::namedWindow("Lane", cv::WINDOW_AUTOSIZE);
+    	   cv::imshow("Lane", img);
+    	   int r = cv::waitKey(20);
+    	   if( r == 27 || r == 81 || r == 113 )  // ESC, Q/q
+    		   break;
+       } else {
           flag_plot = -1;
-      }
+       }
     }
     cv::destroyAllWindows();
     cap.release();
