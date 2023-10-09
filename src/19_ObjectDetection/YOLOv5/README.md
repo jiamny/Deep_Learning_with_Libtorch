@@ -1,120 +1,47 @@
-# yolov5-opencv-cpp-python
+# Object Detection using YOLOv5 and OpenCV DNN (C++/Python)
 
-Example of performing inference with ultralytics YOLO V5, OpenCV 4.5.4 DNN, C++ and Python 
+**This repository contains the code for [Object Detection using YOLOv5 and OpenCV DNN in C++ and Python](https://learnopencv.com/object-detection-using-yolov5-and-opencv-dnn-in-c-and-python/) blogpost**.
 
-Looking for YOLO V4 OpenCV C++/Python inference? [Check this repository](https://github.com/doleron/yolov4-opencv-cpp-python)
 
-## Code explanation
+<img src="https://learnopencv.com/wp-content/uploads/2022/04/yolov5-feature-image.gif" alt="Introduction to YOLOv5 with OpenCV DNN" width="950">
 
-This code is explained in [this medium article](https://medium.com/@doleron/detecting-objects-with-yolov5-opencv-python-and-c-c7cf13d1483c)
+## Install Dependancies
 
-[![Example of YOLO v5 detection on video file](http://img.youtube.com/vi/cHDLvp_NPOk/0.jpg)](http://www.youtube.com/watch?v=cHDLvp_NPOk "Example of YOLO v5 detection on video file")
+[<img src="https://learnopencv.com/wp-content/uploads/2022/07/download-button-e1657285155454.png" alt="download" width="200">](https://www.dropbox.com/sh/f41c0c6hvdw25ws/AABb2gk5SdkYLPopkz-u3dzia?dl=1)
 
-## Prerequisites
-
-Make sure you have already on your system:
-
-- Any modern Linux OS (tested on Ubuntu 20.04)
-- OpenCV 4.5.4+
-- Python 3.7+ (only if you are intended to run the python program)
-- GCC 9.0+ (only if you are intended to run the C++ program)
-
-IMPORTANT!!! Note that OpenCV versions prior to 4.5.4 will not work at all.
-
-## Running the python script
-
-The python code is [here](python/yolo.py).
-
-```bash
-git clone https://github.com/doleron/yolov5-opencv-cpp-python.git
-cd yolov5-opencv-cpp-python
-python python/yolo.py 
 ```
-
-If your machine/OpenCV install are CUDA capable you can try out running using the GPU:
-
-```bash
-git clone https://github.com/doleron/yolov5-opencv-cpp-python.git
-cd yolov5-opencv-cpp-python
-python python/yolo.py cuda
-```
-
-## Running the C++ program
-
-The C++ code is [here](cpp/yolo.cpp).
-
-```bash
-git clone https://github.com/doleron/yolov5-opencv-cpp-python.git
-cd yolov5-opencv-cpp-python
-g++ -O3 cpp/yolo.cpp -o yolo_example `pkg-config --cflags --libs opencv4`
-./yolo_example
-```
-
-Or using CUDA if available:
-
-```bash
-git clone https://github.com/doleron/yolov5-opencv-cpp-python.git
-cd yolov5-opencv-cpp-python
-g++ -O3 cpp/yolo.cpp -o yolo_example `pkg-config --cflags --libs opencv4`
-./yolo_example cuda
-```
-![running the examples](https://github.com/doleron/yolov5-opencv-cpp-python/raw/main/yolov5.png)
-
-PS.: Video sample from [https://www.youtube.com/watch?v=NyLF8nHIquM](https://www.youtube.com/watch?v=NyLF8nHIquM)
-
-## Which YOLO version should I use?
-
-This repository uses YOLO V5 but it is not the only YOLO version out there. You can read [this article](https://towardsdatascience.com/yolo-v4-or-yolo-v5-or-pp-yolo-dad8e40f7109) to learn more about YOLO versions and choose the more suitable one for you.
-
-## Exporting yolo v5 models to .onnx format
-
-Check here: https://github.com/ultralytics/yolov5/issues/251
-
-My commands were:
-
-```bash
-git clone https://github.com/ultralytics/yolov5
-cd yolov5
 pip install -r requirements.txt
 ```
-And then to convert the model:
+List of tutorials for installing OpenCV for C++ [here](https://learnopencv.com/category/install/).
 
-```bash
-$ python3 export.py --weights yolov5n.pt --img 640 --include onnx
-export: data=data/coco128.yaml, weights=['yolov5n.pt'], imgsz=[640], batch_size=1, device=cpu, half=False, inplace=False, train=False, optimize=False, int8=False, dynamic=False, simplify=False, opset=12, verbose=False, workspace=4, nms=False, agnostic_nms=False, topk_per_class=100, topk_all=100, iou_thres=0.45, conf_thres=0.25, include=['onnx']
-YOLOv5 🚀 v6.0-192-g436ffc4 torch 1.10.1+cu102 CPU
 
-Fusing layers... 
-Model Summary: 213 layers, 1867405 parameters, 0 gradients
-
-PyTorch: starting from yolov5n.pt (4.0 MB)
-
-ONNX: starting export with onnx 1.10.2...
-/home/user/workspace/smartcam/yolov5/models/yolo.py:57: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  if self.onnx_dynamic or self.grid[i].shape[2:4] != x[i].shape[2:4]:
-ONNX: export success, saved as yolov5n.onnx (7.9 MB)
-
-Export complete (1.33s)
-Results saved to /home/doleron/workspace/smartcam/yolov5
-Visualize with https://netron.app
-Detect with `python detect.py --weights yolov5n.onnx` or `model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5n.onnx')
-Validate with `python val.py --weights yolov5n.onnx`
-$ 
+## Execution
+### Python
+```Python
+python yolov5.py
 ```
-### throubleshooting
-
-First time I got a error with protobuf version:
-
+### CMake C++ Linux
+```C++ Linux
+mkdir build
+cd build
+cmake ..
+cmake --build .
+./main
 ```
-"AttributeError: module 'google.protobuf.descriptor' has no attribute '_internal_create_key"?
+### CMake C++ Windows
+```C++ Windows
+rmdir /s /q build
+cmake -S . -B build
+cmake --build build --config Release
+.\build\Release\main.exe
 ```
 
- I fixed it by running:
+# AI Courses by OpenCV
 
-```bash
-pip install --upgrade protobuf
-```
+Want to become an expert in AI? [AI Courses by OpenCV](https://opencv.org/courses/) is a great place to start. 
 
-## References
-
-- https://github.com/ultralytics/yolov5/issues/708
+<a href="https://opencv.org/courses/" target="_blank">
+<p align="center"> 
+<img src="https://www.learnopencv.com/wp-content/uploads/2020/04/AI-Courses-By-OpenCV-Github.png">
+</p>
+</a>

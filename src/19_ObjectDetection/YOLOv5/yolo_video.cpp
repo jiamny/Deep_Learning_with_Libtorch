@@ -1,6 +1,9 @@
 // Include Libraries.
 #include <opencv2/opencv.hpp>
 #include <fstream>
+#include <iostream>
+#include <unistd.h>
+#include <iomanip>
 
 // Namespaces.
 using namespace cv;
@@ -19,30 +22,8 @@ const float FONT_SCALE = 0.7;
 const int FONT_FACE = FONT_HERSHEY_SIMPLEX;
 const int THICKNESS = 1;
 
-// Colors.
-Scalar BLACK = Scalar(0,0,0);
-Scalar BLUE = Scalar(255, 178, 50);
-Scalar YELLOW = Scalar(0, 255, 255);
-Scalar RED = Scalar(0,0,255);
-
-
-// Draw the predicted bounding box.
-void draw_label(Mat& input_image, string label, int left, int top)
-{
-    // Display the label at the top of the bounding box.
-    int baseLine;
-    Size label_size = getTextSize(label, FONT_FACE, FONT_SCALE, THICKNESS, &baseLine);
-    top = max(top, label_size.height);
-    // Top left corner.
-    Point tlc = Point(left, top);
-    // Bottom right corner.
-    Point brc = Point(left + label_size.width, top + label_size.height + baseLine);
-    // Draw black rectangle.
-    rectangle(input_image, tlc, brc, BLACK, FILLED);
-    // Put the label on the black rectangle.
-    putText(input_image, label, Point(left, top + label_size.height), FONT_FACE, FONT_SCALE, YELLOW, THICKNESS);
-}
-
+const std::vector<cv::Scalar> colors = {cv::Scalar(0, 255, 0), cv::Scalar(0, 255, 255),
+		 cv::Scalar(255, 255, 0), cv::Scalar(255, 0, 0), cv::Scalar(0, 0, 255)};
 
 vector<Mat> pre_process(Mat &input_image, Net &net)
 {
@@ -59,13 +40,24 @@ vector<Mat> pre_process(Mat &input_image, Net &net)
     return outputs;
 }
 
+void setLabel(cv::Mat& im, std::string label, cv::Scalar text_color, cv::Scalar text_bk_color, const cv::Point& pt) {
+    int fontface = cv::FONT_HERSHEY_SIMPLEX;
+    double scale = 0.4;
+    int thickness = 1;
+    int baseline = 0;
+
+    cv::Size text = cv::getTextSize(label, fontface, scale, thickness, &baseline);
+    cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width + 5, - text.height), text_bk_color, cv::FILLED);
+    cv::putText(im, label, pt, fontface, scale, text_color, thickness, cv::LINE_AA);
+}
+
 
 Mat post_process(Mat input_image, vector<Mat> &outputs, const vector<string> &class_name)
 {
     // Initialize vectors to hold respective outputs while unwrapping detections.
     vector<int> class_ids;
     vector<float> confidences;
-    vector<Rect> boxes; 
+    vector<Rect> boxes;
 
     // Resizing factor.
     float x_factor = input_image.cols / INPUT_WIDTH;
@@ -76,11 +68,11 @@ Mat post_process(Mat input_image, vector<Mat> &outputs, const vector<string> &cl
     const int dimensions = 85;
     const int rows = 25200;
     // Iterate through 25200 detections.
-    for (int i = 0; i < rows; ++i) 
+    for (int i = 0; i < rows; ++i)
     {
         float confidence = data[4];
         // Discard bad detections and continue.
-        if (confidence >= CONFIDENCE_THRESHOLD) 
+        if (confidence >= CONFIDENCE_THRESHOLD)
         {
             float * classes_scores = data + 5;
             // Create a 1x85 Mat and store class scores of 80 classes.
@@ -90,7 +82,7 @@ Mat post_process(Mat input_image, vector<Mat> &outputs, const vector<string> &cl
             double max_class_score;
             minMaxLoc(scores, 0, &max_class_score, 0, &class_id);
             // Continue if the class score is above the threshold.
-            if (max_class_score > SCORE_THRESHOLD) 
+            if (max_class_score > SCORE_THRESHOLD)
             {
                 // Store class ID and confidence in the pre-defined respective vectors.
 
@@ -120,7 +112,7 @@ Mat post_process(Mat input_image, vector<Mat> &outputs, const vector<string> &cl
     // Perform Non Maximum Suppression and draw predictions.
     vector<int> indices;
     NMSBoxes(boxes, confidences, SCORE_THRESHOLD, NMS_THRESHOLD, indices);
-    for (int i = 0; i < indices.size(); i++) 
+    for (int i = 0; i < indices.size(); i++)
     {
         int idx = indices[i];
         Rect box = boxes[idx];
@@ -129,56 +121,100 @@ Mat post_process(Mat input_image, vector<Mat> &outputs, const vector<string> &cl
         int top = box.y;
         int width = box.width;
         int height = box.height;
+        const auto color = colors[class_ids[idx] % colors.size()];
+
         // Draw bounding box.
-        rectangle(input_image, Point(left, top), Point(left + width, top + height), BLUE, 1*THICKNESS);
+        rectangle(input_image, Point(left, top), Point(left + width, top + height), color, 1*THICKNESS);
 
         // Get the label for the class name and its confidence.
         string label = format("%.2f", confidences[idx]);
-        label = class_name[class_ids[idx]] + ":" + label;
+        label = class_name[class_ids[idx]] + ": " + label;
+
         // Draw class labels.
-        draw_label(input_image, label, left, top);
+        setLabel(input_image, label.c_str(), cv::Scalar(0, 0, 0), color,
+                                    		   cv::Point(box.x, box.y - 4));
     }
     return input_image;
 }
 
 
-int main()
-{
-    // Load class list.
-    vector<string> class_list;
-    ifstream ifs("./src/19_ObjectDetection/YOLOv5/config_files/classes.txt");
-    string line;
+int main(int argc, char **argv) {
 
-    while (getline(ifs, line))
-    {
-        class_list.push_back(line);
+	// Load class list.
+	vector<string> class_list;
+	ifstream ifs("./src/19_ObjectDetection/YOLOv5/config_files/classes.txt");
+	string line;
+
+	while (getline(ifs, line)) {
+	    class_list.push_back(line);
+	}
+
+    cv::Mat frame;
+    cv::VideoCapture capture("/media/hhj/localssd/DL_data/videos/sample.mp4");
+    //cv::VideoCapture capture("./data/videos/project_video.mp4");
+    if (!capture.isOpened()) {
+        std::cerr << "Error opening video file\n";
+        return -1;
     }
 
-    // Load image.
-    Mat frame;
-    frame = imread("/src/19_ObjectDetection/YOLOv5/sample.jpg");
 
     // Load model.
     Net net;
-    net = readNet("./src/19_ObjectDetection/YOLOv5/config_files/yolov5s.onnx");
+    net = readNet("/media/hhj/localssd/DL_data/weights/yolo5/yolov5s.onnx");
 
-    vector<Mat> detections;
-    detections = pre_process(frame, net);
+    auto start = std::chrono::high_resolution_clock::now();
+    int frame_count = 0;
+    float fps = -1;
+    int total_frames = 0;
 
-    Mat img = post_process(frame.clone(), detections, class_list);
+    while(true)  {
 
-    // Put efficiency information.
-    // The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
+        capture.read(frame);
+        if (frame.empty()) {
+            std::cout << "End of stream\n";
+            break;
+        }
 
-    vector<double> layersTimes;
-    double freq = getTickFrequency() / 1000;
-    double t = net.getPerfProfile(layersTimes) / freq;
-    string label = format("Inference time : %.2f ms", t);
-    putText(img, label, Point(20, 40), FONT_FACE, FONT_SCALE, RED);
+        vector<Mat> detections;
+        detections = pre_process(frame, net);
 
-    imshow("Output", img);
-    waitKey(0);
+        Mat img = post_process(frame.clone(), detections, class_list);
+
+        frame_count++;
+        total_frames++;
+
+
+        if (frame_count >= 30) {
+
+            auto end = std::chrono::high_resolution_clock::now();
+            fps = frame_count * 1000.0 / std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+            frame_count = 0;
+            start = std::chrono::high_resolution_clock::now();
+        }
+
+        if (fps > 0) {
+
+            std::ostringstream fps_label;
+            fps_label << std::fixed << std::setprecision(2);
+            fps_label << "FPS: " << fps;
+            std::string fps_label_str = fps_label.str();
+
+            cv::putText(img, fps_label_str.c_str(), cv::Point(10, 25), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
+        }
+
+        cv::imshow("output", img);
+
+        if (cv::waitKey(1) != -1) {
+            capture.release();
+            std::cout << "finished by user\n";
+            break;
+        }
+    }
+
+    std::cout << "Total frames: " << total_frames << "\n";
+
+    capture.release();
 
     return 0;
 }
-
