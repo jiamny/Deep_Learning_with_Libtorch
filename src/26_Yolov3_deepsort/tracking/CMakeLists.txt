@@ -1,5 +1,3 @@
-find_package(OpenCV REQUIRED)
-find_package(Torch REQUIRED)
 
 aux_source_directory(src TRACKING_SRCS)
 add_library(tracking SHARED ${TRACKING_SRCS})

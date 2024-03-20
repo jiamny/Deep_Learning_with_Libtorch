@@ -15,7 +15,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(DOWNLOAD_DATASETS "Automatically download required datasets at build-time." OFF)
 option(CREATE_SCRIPTMODULES "Automatically create all required scriptmodule files at build-time (requires python3)." OFF)
 
-set(PYTORCH_VERSION "2.1.0")
+set(PYTORCH_VERSION "2.2.0")
 
 set(USE_CPU_ONLY NO)
 
@@ -88,8 +88,6 @@ message(STATUS "OpenCV library status:")
 message(STATUS "    version: ${OpenCV_VERSION}")
 message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
-
-INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} ) 
 
 if(NOT Torch_FOUND)
     unset(Torch_FOUND)

@@ -113,16 +113,16 @@ auto main(int argc, char **argv) -> int {
     std::string mode("train");
     std::string exp_name("AnimeFace");
     std::string sampler_type = "ddim";
-    std::string dataset_path("/media/hhj/localssd/DL_data/AnimeFace/images");
+    std::string dataset_path("/media/hhj/localssd/DL_data/AnimeFace/images_all");
     std::string image_suffix("jpg");
     std::string pretrained_weights;
     std::string weight_path;
-    int batch_size = 16;
+    int batch_size = 2;
     double learning_rate = 2e-4;
-    int num_epochs = 1000; // 1000
+    int num_epochs = 10; //1000
     double ema_decay = 0.995;
-    int num_workers = 2;
-    int save_and_sample_every = 500;	//500
+    int num_workers = 1;
+    int save_and_sample_every = 2;	//500
     int accumulation_steps = 1;
     bool amp_enable = false;
 

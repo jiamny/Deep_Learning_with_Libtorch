@@ -9,3 +9,5 @@ add_executable(24_Text_classification
 
 target_link_libraries(24_Text_classification  ${OpenCV_LIBS} ${TORCH_LIBRARIES} ${requiredlibs})
 set_target_properties(24_Text_classification  PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+
+#---------------------------------------------------------------------------------------------------

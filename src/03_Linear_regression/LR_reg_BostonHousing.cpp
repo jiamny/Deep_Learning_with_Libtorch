@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
 	int num_records = std::count(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), '\n');
 	std::cout << "records in file = " << num_records << '\n';
 
-	// ste file read from begining
+	// set file read from begining
 	file.clear();
 	file.seekg(0, std::ios::beg);
 /*
@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
 	torch::optim::SGD optimizer(net->parameters(), 0.001);
 
 	// Train
-	std::size_t n_epochs = 30;
+	std::size_t n_epochs = 1;
 	for (std::size_t epoch = 1; epoch <= n_epochs; epoch++) {
 		auto out = net->forward(train_data);
 		optimizer.zero_grad();
@@ -187,5 +187,6 @@ int main(int argc, char** argv) {
 		std::cout << "Loss: " << loss_val << std::endl;
 	}
 
+	std::cout << "Done!\n";
 	return(0);
 }

@@ -1,5 +1,6 @@
 #include <torch/torch.h>
 #include <iostream>
+#include <vector>
 
 
 int batch_size = 1;
@@ -21,7 +22,7 @@ int main() {
     std::cout << data_tensor.data().sizes() << '\n';
 
     auto dataset = torch::data::datasets::TensorDataset(data_tensor.transpose(0, 1));
-    std::cout << dataset.size() << '\n';
+    //std::cout << dataset.size() << '\n';
     //std::cout << "dataset.get(0):\n"  << dataset.get(0) << '\n';
     //std::cout << "dataset.get(1):\n" << dataset.get(1) << '\n';
     auto data_loader = torch::data::make_data_loader(dataset, batch_size);

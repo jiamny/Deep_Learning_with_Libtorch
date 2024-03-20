@@ -8,6 +8,18 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <numeric>  	// for accumulate etc
+#include <cmath>	// for sqrt
+#include <unordered_map>
+#include <unordered_set>
+#include <regex>
+using namespace std;
+
+
+bool isNumberRegex(const std::string& str) {
+	std::regex numberRegex("^[-+]?([0-9]*\\.[0-9]+[0-9]+)$");
+	return std::regex_match(str, numberRegex);
+}
 
 class CSVRow {
 public:
@@ -15,6 +27,12 @@ public:
 		std::string &eg = m_data[index];
 		return std::atof(eg.c_str());
 	}
+
+	std::string& operator()(std::size_t index) {
+			std::string &eg = m_data[index];
+			return eg;
+	}
+
 	std::size_t size() const {
 		return m_data.size();
 	}
@@ -306,4 +324,111 @@ void process_split_data(std::ifstream &file, std::unordered_set<int> train_idx,
 	}
 }
 
+std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor> process_split_data2(
+		std::ifstream &file, std::unordered_set<int> train_idx, std::unordered_map<std::string, int> iMap,
+		bool skip_first_row = true, bool normalize_lable=false, bool zscore = false) {
+
+	std::vector<std::vector<float>> trainData;
+	std::vector<std::vector<float>> testData;
+	std::vector<int> trainLabel, testLabel;
+
+	CSVRow row;
+	// Read and throw away the first row.
+	if( skip_first_row )
+		file >> row;
+
+	int j = 0;
+
+	while (file >> row) {
+
+		if (train_idx.count(j)) {
+
+			if( j == 0 ) {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop ) {
+					std::vector<float> v;
+					v.push_back(row[loop]*1.0);
+					trainData.push_back(v);
+
+					std::vector<float> m;
+					testData.push_back(m);
+				}
+
+			} else {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop ) {
+					trainData[loop].push_back(row[loop]*1.0);
+				}
+			}
+
+			// Push final column to label vector
+			int cls = iMap[row(row.size() - 1)];
+			trainLabel.push_back(cls);
+
+		} else {
+			if( j == 0 ) {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop ) {
+					std::vector<float> v;
+					v.push_back(row[loop]*1.0);
+					testData.push_back(v);
+
+					std::vector<float> m;
+					trainData.push_back(m);
+				}
+			} else {
+				for( std::size_t loop = 0; loop < (row.size() - 1); ++loop ) {
+					testData[loop].push_back(row[loop]*1.0);
+				}
+			}
+
+			// Push final column to label vector
+			int cls = iMap[row(row.size() - 1)];
+			testLabel.push_back(cls);
+		}
+		j++;
+	}
+
+	for( int b = 0; b < trainData.size(); b++ ) {
+		if( zscore ) {
+			trainData[b] = normalize_data(trainData[b]);
+		} else {
+			trainData[b] = normalize_feature(trainData[b]);
+		}
+
+	}
+
+	int r = trainData[0].size();
+	int c = trainData.size();
+	std::vector<float> trData;
+	for( int j = 0; j < r; j++ ) {
+		for( int i = 0; i < c; i++ ) {
+			std::vector<float> b = trainData[i];
+			trData.push_back(b[j]);
+		}
+	}
+	torch::Tensor train = torch::from_blob(trData.data(), {r, c}).clone();
+	std::cout << "train: " << train.sizes() << '\n';
+
+	for( int b = 0; b < testData.size(); b++ ) {
+		if( zscore ) {
+			testData[b] = normalize_data(testData[b]);
+		} else {
+			testData[b] = normalize_feature(testData[b]);
+		}
+	}
+
+	r = testData[0].size();
+	c = testData.size();
+	std::vector<float> tsData;
+	for( int j = 0; j < r; j++ ) {
+		for( int i = 0; i < c; i++ ) {
+			std::vector<float> b = testData[i];
+			tsData.push_back(b[j]);
+		}
+	}
+	torch::Tensor test = torch::from_blob(tsData.data(), {r, c}).clone();;
+
+	torch::Tensor train_label = torch::from_blob(trainLabel.data(), {int(trainLabel.size()), 1}, torch::kInt).clone();
+	torch::Tensor test_label = torch::from_blob(testLabel.data(), {int(testLabel.size()), 1}, torch::kInt).clone();
+
+	return std::make_tuple(train, train_label, test, test_label);
+}
 

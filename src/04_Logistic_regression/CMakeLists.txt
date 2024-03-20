@@ -5,9 +5,13 @@ list(APPEND requiredlibs "m")
 
 # -----------------------------------------------------------------------------------------
 add_executable(04_Softmax_regression)
-target_sources(04_Softmax_regression PRIVATE Softmax_regression.cpp)
+target_sources(04_Softmax_regression PRIVATE 
+../LRdataset.h
+../LRdataset.cpp
+Softmax_regression.cpp
+)
 
-target_link_libraries(04_Softmax_regression ${TORCH_LIBRARIES} ${requiredlibs} )
+target_link_libraries(04_Softmax_regression ${TORCH_LIBRARIES} ${requiredlibs} matplot)
 set_target_properties(04_Softmax_regression PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # -----------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ Collected deep learning projects with LibTorch C++
 
 - cmake 3.18+
 
-- PyTorch 2.1.0
+- PyTorch 2.2.0
 
 - NVIDIA CUDA 11.8
 
@@ -19,7 +19,7 @@ Collected deep learning projects with LibTorch C++
 
 - Gnuplot 5.2.6+
 
-- matplotplusplus-1.1.0
+- matplotplusplus-1.2.1
 
 - png++
 

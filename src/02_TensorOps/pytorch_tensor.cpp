@@ -65,6 +65,16 @@ int main() {
 
 	std::cout << "second_point.stride() = " << second_point.strides() << '\n';
 
+	std::vector<float> td;
+	td.push_back(11.0);
+	td.push_back(12.0);
+	td.push_back(13.0);
+	td.push_back(21.0);
+	td.push_back(22.0);
+	td.push_back(23.0);
+	torch::Tensor tt = torch::from_blob(td.data(), {2, 3}).clone();;
+	std::cout << "TT = " << tt << "\n";
+
 	/***************************************************************
 	 * Tensor transpose
 	***************************************************************/

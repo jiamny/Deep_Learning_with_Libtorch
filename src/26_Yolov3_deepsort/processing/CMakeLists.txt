@@ -1,4 +1,4 @@
-find_package(OpenCV REQUIRED)
+
 
 aux_source_directory(. PROCESSING_SRCS)
 

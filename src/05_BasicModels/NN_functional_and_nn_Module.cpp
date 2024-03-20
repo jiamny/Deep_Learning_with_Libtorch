@@ -88,12 +88,13 @@ int main() {
 
 	torch::manual_seed(1000);
 
-	auto w = torch::randn({2,2});
+	auto w = torch::randn({2,2}).to(device);
 	std::cout << "w:\n" << w << "\n";
 	std::cout << "w.requires_grad: " << w.requires_grad() << "\n";
 
 	// nn.Parameter 具有 requires_grad = True 属性
 	auto module = torch::nn::Module();
+	module.to(device);
 	module.register_parameter("w", w);
 	std::cout << "module.w.requires_grad: " << module.named_parameters().find("w")->requires_grad() << "\n";
 
