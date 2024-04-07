@@ -39,9 +39,9 @@ int main() {
     const int64_t max_image_size = 300;
     const double learning_rate = 3e-3;
     const double style_loss_weight = 100;
-    const size_t num_total_steps = 2000;
-    const size_t log_step = 50;
-    const size_t sample_step = 500;
+    const size_t num_total_steps = 5000;
+    const size_t log_step = 100;
+    const size_t sample_step = 1000;
 
     // Paths to content and style images
     const std::string image_path = "./data/neural_style_transfer_images";
@@ -49,14 +49,14 @@ int main() {
     checkDirExisting(image_path);
     checkDirExisting(output_path);
 
-    const std::string content_image_path = image_path + "/content.png";
-    const std::string style_image_path = image_path + "/style.png";
+    const std::string content_image_path = image_path + "/content_2.jpg";
+    const std::string style_image_path = image_path + "/style_2.jpg";
 
     // Path to pre-learned VGG19 layers scriptmodule file.
     // Must be created using the provided python script at
     // pytorch-cpp/tutorials/advanced/neural_style_transfer/model/create_vgg19_layers_scriptmodule.py.
     const std::string vgg19_layers_scriptmodule_path =
-        "./src/14_NeuralStyleTransfer/vgg19_layers.pt";
+        "./src/14_NeuralStyleTransfer/style_transfer/model/vgg19_layers.pt";
 
     if(!std::ifstream(vgg19_layers_scriptmodule_path)) {
         std::cout << "Could not open the required VGG19 layers scriptmodule file from path: "

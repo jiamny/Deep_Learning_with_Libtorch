@@ -65,6 +65,18 @@ target_sources(19_DetectBaseTrack_demo PRIVATE OpenCV_DNN/DetectBaseTrack_Demo.c
 target_link_libraries(19_DetectBaseTrack_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES})
 set_target_properties(19_DetectBaseTrack_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
+# -------------------------------------------------------------
+add_executable(19_Yolo_libtorch_demo)
+target_sources(19_Yolo_libtorch_demo PRIVATE 
+Yolo_libtorch/main.cpp
+Yolo_libtorch/Parameter.h
+Yolo_libtorch/Parameter.cpp
+Yolo_libtorch/Yolo.h
+Yolo_libtorch/Yolo.cpp
+)
+
+target_link_libraries(19_Yolo_libtorch_demo ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+set_target_properties(19_Yolo_libtorch_demo PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 
 
