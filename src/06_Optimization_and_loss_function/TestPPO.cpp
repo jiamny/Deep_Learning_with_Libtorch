@@ -1,5 +1,5 @@
 #include <fstream>
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 #include <torch/torch.h>
 #include "ProximalPolicyOptimization.h"
 #include "Models.h"
@@ -51,7 +51,9 @@ int main() {
 
         double x_act = action[0][0].item<double>();
         double y_act = action[0][1].item<double>();
-        auto sd = env.Act(x_act, y_act);
+        std::tuple<torch::Tensor, int, torch::Tensor> sd = env.Act(x_act, y_act);
+
+        //std::cout << std::get<0>(sd) << " " << std::get<1>(sd) << " " << std::get<2>(sd) << '\n';
 
         // Check for done state.
         auto done = std::get<2>(sd);

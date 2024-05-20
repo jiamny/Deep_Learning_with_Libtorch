@@ -9,9 +9,10 @@
 #include <sstream>
 #include <string>
 #include <numeric>  	// for accumulate etc
-#include <cmath>	// for sqrt
+#include <cmath>		// for sqrt
 #include <unordered_map>
 #include <unordered_set>
+#include <torch/torch.h>
 #include <regex>
 using namespace std;
 
@@ -405,7 +406,6 @@ std::tuple<torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor> process_s
 		}
 	}
 	torch::Tensor train = torch::from_blob(trData.data(), {r, c}).clone();
-	std::cout << "train: " << train.sizes() << '\n';
 
 	for( int b = 0; b < testData.size(); b++ ) {
 		if( zscore ) {
