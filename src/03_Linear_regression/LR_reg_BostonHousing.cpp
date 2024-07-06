@@ -155,6 +155,7 @@ int main(int argc, char** argv) {
 
 
 	process_split_data(file, train_idx, trainData, trainLabel, testData, testLabel);
+	file.close();
 
 	std::cout << "Train size = " << trainData.size() << "\n";
 	std::cout << "Test size = " << testData.size() << "\n";
