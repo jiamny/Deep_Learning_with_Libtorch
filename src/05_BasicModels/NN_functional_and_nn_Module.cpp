@@ -67,7 +67,7 @@ struct Net : public torch::nn::Module {
         		register_module("flatten", torch::nn::Flatten()),
 				register_module("linear", torch::nn::Linear(6144,1)),
 				register_module("sigmoid", torch::nn::Sigmoid()));
-        register_module("embedding", embedding);
+        		register_module("embedding", embedding);
     }
 
     torch::Tensor forward(torch::Tensor x) {

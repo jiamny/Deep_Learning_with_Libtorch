@@ -7,7 +7,7 @@ Collected deep learning projects with LibTorch C++
 
 - cmake 3.18+
 
-- PyTorch 2.3.0
+- PyTorch 2.4.0
 
 - NVIDIA CUDA 11.8
 
