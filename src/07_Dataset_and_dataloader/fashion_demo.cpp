@@ -22,7 +22,6 @@ int main() {
     fashionMap.insert({8, "Bag"});
     fashionMap.insert({9, "Ankle boot"});
 
-
     // Device
     auto cuda_available = torch::cuda::is_available();
     torch::Device device(cuda_available ? torch::kCUDA : torch::kCPU);
@@ -34,7 +33,7 @@ int main() {
     const size_t num_epochs = 50;
     const double learning_rate = 0.001;
 
-    const std::string FASHION_data_path = "/media/stree/localssd/DL_data/fashion_MNIST/";
+    const std::string FASHION_data_path = "/media/hhj/localssd/DL_data/fashion_MNIST/";
 
     // MNIST custom dataset
     auto train_dataset = FASHION(FASHION_data_path, FASHION::Mode::kTrain)
