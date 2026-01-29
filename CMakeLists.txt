@@ -15,7 +15,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(DOWNLOAD_DATASETS "Automatically download required datasets at build-time." OFF)
 option(CREATE_SCRIPTMODULES "Automatically create all required scriptmodule files at build-time (requires python3)." OFF)
 
-set(PYTORCH_VERSION "2.6.0")
+set(PYTORCH_VERSION "2.10.0")
 
 set(USE_CPU_ONLY NO)
 
@@ -26,24 +26,28 @@ if( NOT USE_CPU_ONLY )
 	
 	if(NOT DEFINED CUDA_ARCHITECTURES)
 		# change based on your GPU. check at: https://developer.nvidia.com/cuda-gpus
-   		set(CMAKE_CUDA_ARCHITECTURES 86 87 CACHE STRING "CUDA architectures" FORCE)
+   		set(CMAKE_CUDA_ARCHITECTURES 80 86 90 CACHE STRING "CUDA architectures" FORCE)
 	endif()
 	
+	# to solve USE_CUDNN is set to 0. Compiling without cuDNN support
+	set( USE_CUDNN TRUE)
+	set( CAFFE2_USE_CUDNN TRUE)
+
 	# change libtorch path
-	set( LIBTORCH_PATH "/home/hhj/Open_libs/libtorch_cu118" )
+	set( LIBTORCH_PATH "/home/hhj/Open_libs/libtorch_cu130" )
 	
 	
-	set( CUDA_HOME /usr/local/cuda-11.8)
-	set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.8 )
-	set( CUDA_CUDART_LIBRARY /usr/local/cuda-11.8/targets/x86_64-linux/lib/libcudart.so )
-	set( CUDA_nvrtc_LIBRARY /usr/local/cuda-11.8/targets/x86_64-linux/lib/libnvrtc.so )
-	set( CUDA_curand_LIBRARY /usr/local/cuda-11.8/targets/x86_64-linux/lib/libcurand.so )
-	set( CUDA_cufft_LIBRARY /usr/local/cuda-11.8/targets/x86_64-linux/lib/libcufft.so )
-	set( CUDA_cublas_LIBRARY /usr/local/cuda-11.8/targets/x86_64-linux/lib/libcublas.so )
-	set( CMAKE_CUDA_COMPILER /usr/local/cuda-11.8/bin/nvcc )
-	set( CUDA_cublas_device_LIBRARY /usr/local/cuda-11.8/lib64 )
-	set( CUDA_INCLUDE_DIRS /usr/local/cuda-11.8/include )
-	# SET(CMAKE_CUDA_COMPILER_ENV_VAR /usr/local/cuda-11.8/bin/nvcc)
+	set( CUDA_HOME /usr/local/cuda-13.0)
+	set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-13.0 )
+	set( CUDA_CUDART_LIBRARY /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudart.so )
+	set( CUDA_nvrtc_LIBRARY /usr/local/cuda-13.0/targets/x86_64-linux/lib/libnvrtc.so )
+	set( CUDA_curand_LIBRARY /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcurand.so )
+	set( CUDA_cufft_LIBRARY /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcufft.so )
+	set( CUDA_cublas_LIBRARY /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcublas.so )
+	set( CMAKE_CUDA_COMPILER /usr/local/cuda-13.0/bin/nvcc )
+	set( CUDA_cublas_device_LIBRARY /usr/local/cuda-13.0/lib64 )
+	set( CUDA_INCLUDE_DIRS /usr/local/cuda-13.0/include )
+	# SET(CMAKE_CUDA_COMPILER_ENV_VAR /usr/local/cuda-13.0/bin/nvcc)
 
 	set(Torch_DIR "${LIBTORCH_PATH}/share/cmake/Torch" )
 	#--------------------------------------------------------------------------------------------
@@ -79,8 +83,7 @@ message(STATUS "    libraries: ${TORCH_LIBRARIES}")
 message(STATUS "    include path: ${TORCH_INCLUDE_DIRS}") 
 
 # add opencv package to the project
-#FIND_PACKAGE( OpenCV 4.5.4 REQUIRED )
-FIND_PACKAGE( OpenCV 4.8.0 REQUIRED PATHS "/usr/local/")
+FIND_PACKAGE( OpenCV 4.13.0 REQUIRED PATHS "/usr/local/")
 INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} ) 
 SET(OpenCV_LIBRARIES ${OpenCV_LIBS})
 

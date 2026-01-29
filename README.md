@@ -7,15 +7,15 @@ Collected deep learning projects with LibTorch C++
 
 - cmake 3.18+
 
-- PyTorch 2.6.0
+- PyTorch 2.10.0
 
-- NVIDIA CUDA 11.8
+- NVIDIA CUDA 13.0
 
-- NVIDIA cudnn 8.6/8.7
+- NVIDIA cudnn 8.6/8.7/9.0
 
 - python3.10
 
-- opencv 4.5.4/4.8.0
+- opencv 4.13.0
 
 - Gnuplot 5.2.6+
 
@@ -25,7 +25,7 @@ Collected deep learning projects with LibTorch C++
 
 - ubuntu 22.04
 
-- gcc-11/g++-11 for C++ 17
+- gcc-12/g++-12 for C++ 17
 
 ## Image data
 
